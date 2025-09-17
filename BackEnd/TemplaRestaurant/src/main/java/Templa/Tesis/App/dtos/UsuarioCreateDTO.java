@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UsuarioDTO {
-    private Integer id;
+public class UsuarioCreateDTO {
     private String username;
+    private String password;
     private RolUsuario rolUsuario;
-    private Boolean activo;
 }

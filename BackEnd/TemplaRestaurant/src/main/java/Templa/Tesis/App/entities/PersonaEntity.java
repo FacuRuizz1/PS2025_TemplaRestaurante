@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 @Entity
-@Table(name = "T_Persona")
+@Table(name = "personas")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -24,8 +24,6 @@ public class PersonaEntity {
     @Column
     private String apellido;
     @Column
-    private String email;
-    @Column
     private String telefono;
     @Column
     private String dni;
@@ -39,7 +37,7 @@ public class PersonaEntity {
     private Integer userBajaId;
     @Column
     @Enumerated(EnumType.STRING)
-    private Enum<TipoPersona> tipoPersona;
+    private TipoPersona tipoPersona;
 
 
 }

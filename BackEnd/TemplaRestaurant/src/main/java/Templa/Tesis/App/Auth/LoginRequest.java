@@ -1,6 +1,5 @@
-package Templa.Tesis.App.dtos;
+package Templa.Tesis.App.Auth;
 
-import Templa.Tesis.App.Enums.RolUsuario;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,9 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UsuarioDTO {
-    private Integer id;
+public class LoginRequest {
     private String username;
-    private RolUsuario rolUsuario;
-    private Boolean activo;
+    private String password;
 }
