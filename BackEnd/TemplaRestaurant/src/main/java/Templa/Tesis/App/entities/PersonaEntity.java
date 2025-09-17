@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -26,13 +27,15 @@ public class PersonaEntity {
     @Column
     private String telefono;
     @Column
-    private String dni;
+    private String email;
     @Column
-    private Date fechaAlta;
+    private int dni;
+    @Column
+    private LocalDateTime fechaAlta;
     @Column
     private Integer userAltaId;
     @Column
-    private Date fechaBaja;
+    private LocalDateTime fechaBaja;
     @Column
     private Integer userBajaId;
     @Column

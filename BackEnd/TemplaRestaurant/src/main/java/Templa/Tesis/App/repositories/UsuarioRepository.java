@@ -16,21 +16,21 @@ public interface UsuarioRepository extends JpaRepository<UsuarioEntity,Integer> 
     Optional<UsuarioEntity> findByUsername(String username);
 
     //Buscar por Email
-    Optional<UsuarioEntity> findByEmail(String email);
+    //Optional<UsuarioEntity> findByEmail(String email);
 
     // Buscar por username o email (para login)
-    @Query("SELECT u FROM UsuarioEntity u WHERE u.username = :credential OR u.email = :credential")
+    @Query("SELECT u FROM UsuarioEntity u WHERE u.username = :credential")
     Optional<UsuarioEntity> findByUsernameOrEmail(@Param("credential") String credential);
 
     // Verificar si existe username
     boolean existsByUsername(String username);
 
     // Verificar si existe email
-    boolean existsByEmail(String email);
+    //boolean existsByEmail(String email);
 
     // Buscar usuarios activos
     List<UsuarioEntity> findByActivoTrue();
 
     // Buscar usuarios por rol
-    List<UsuarioEntity> findByRol(RolUsuario rol);
+    List<UsuarioEntity> findByRolUsuario(RolUsuario rol);
 }

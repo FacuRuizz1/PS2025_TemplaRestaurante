@@ -2,6 +2,7 @@ package Templa.Tesis.App.configs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.modelmapper.Condition;
 import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +18,17 @@ public class MappersConfig {
     @Bean("mergerMapper")
     public ModelMapper mergerMapper() {
         ModelMapper mapper = new ModelMapper();
-        mapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
+        Condition<Object, Object> notNullOrEmpty = context -> {
+            Object source = context.getSource();
+            if(source == null) {
+                return false;
+            }
+            if(source instanceof String) {
+                return !((String) source).isEmpty();
+            }
+            return true;
+        };
+        mapper.getConfiguration().setPropertyCondition(notNullOrEmpty);
         return mapper;
     }
 

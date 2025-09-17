@@ -1,21 +1,21 @@
-package Templa.Tesis.App.models;
+package Templa.Tesis.App.dtos;
 
 import Templa.Tesis.App.Enums.TipoPersona;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Persona {
+public class PostPersonaDto {
     private String nombre;
     private String apellido;
     private String email;
-    private String telefono;
-    private String dni;
-    @Enumerated(EnumType.STRING)
-    private Enum<TipoPersona> tipoPersona;
+    private int telefono;
+    private Integer dni;
+    private TipoPersona tipoPersona;
+    private Integer userIngId;
 }
