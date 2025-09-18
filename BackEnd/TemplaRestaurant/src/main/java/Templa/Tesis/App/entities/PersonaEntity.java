@@ -27,7 +27,7 @@ public class PersonaEntity {
     @Column
     private String email;
     @Column
-    private int telefono;
+    private String telefono;
     @Column
     private int dni;
     @Column
@@ -41,8 +41,5 @@ public class PersonaEntity {
     private LocalDateTime fechaBaja;
     @Column
     private Integer userBajaId;
-
-    @OneToOne(mappedBy = "persona", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private UsuarioEntity usuario;
 
 }

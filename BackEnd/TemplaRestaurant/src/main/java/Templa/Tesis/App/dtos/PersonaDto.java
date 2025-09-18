@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,7 +18,7 @@ public class PersonaDto {
     private String nombre;
     private String apellido;
     private String email;
-    private int telefono;
+    private String telefono;
     private int dni;
     private TipoPersona tipoPersona;
     private LocalDateTime fechaBaja;

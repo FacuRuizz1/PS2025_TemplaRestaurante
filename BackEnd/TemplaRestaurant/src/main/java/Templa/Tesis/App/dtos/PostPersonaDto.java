@@ -14,7 +14,7 @@ public class PostPersonaDto {
     private String nombre;
     private String apellido;
     private String email;
-    private int telefono;
+    private String telefono;
     private int dni;
     private TipoPersona tipoPersona;
     private int userIngId;

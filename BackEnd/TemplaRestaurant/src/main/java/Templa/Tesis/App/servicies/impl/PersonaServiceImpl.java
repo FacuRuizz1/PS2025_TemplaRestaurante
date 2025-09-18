@@ -57,11 +57,12 @@ public class PersonaServiceImpl implements IPersonaService {
 
         try {
 
-            PersonaEntity nuevo = modelMapper.map(nuevaPersona, PersonaEntity.class);
+            PersonaEntity nuevo = new PersonaEntity();
+            nuevo = modelMapper.map(nuevaPersona, PersonaEntity.class);
             nuevo.setFechaAlta(LocalDateTime.now());
             nuevo.setUserAltaId(nuevaPersona.getUserIngId()); //TODO: ver como obtener el usuario que realiza la baja
-            PersonaEntity guardado = personaRepository.save(nuevo);
-            return modelMapper.map(guardado, PersonaDto.class);
+            personaRepository.save(nuevo);
+            return modelMapper.map(nuevo, PersonaDto.class);
 
         }catch(Exception e){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al guardar la Persona");

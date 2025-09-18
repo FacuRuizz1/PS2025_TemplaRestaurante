@@ -36,7 +36,7 @@ public class SecurityConfig {
                                 // Autenticación pública
                                 .requestMatchers("/api/auth/**").permitAll()
 
-                                .requestMatchers(HttpMethod.POST, "/api/persona/crear").permitAll()
+                                .requestMatchers("/api/persona/**").permitAll()
 
                                 // Endpoints de admin
                                 .requestMatchers("/api/usuario/admin/**").hasRole("ADMINISTRADOR")

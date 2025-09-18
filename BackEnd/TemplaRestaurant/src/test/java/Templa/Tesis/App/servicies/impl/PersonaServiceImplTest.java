@@ -14,10 +14,13 @@ import org.mockito.Spy;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,8 +42,8 @@ class PersonaServiceImplTest {
     void traerPersonas() {
         Pageable pageable = PageRequest.of(0, 5, Sort.by("nombre", "fechaAlta").ascending());
         List<PersonaEntity> personaEntities = List.of(
-                new PersonaEntity(Integer.valueOf(1), "John", "Doe", "john.doe@example.com", 123123,35461,  TipoPersona.CLIENTE,null, null,null,null),
-                new PersonaEntity(Integer.valueOf(2), "Jane", "Smith", "jane.smith@example.com",123123,  35461, TipoPersona.EMPLEADO,null, null,null,null)
+                new PersonaEntity(Integer.valueOf(1), "John", "Doe", "john.doe@example.com", "123123",35461,  TipoPersona.CLIENTE,null, null,null,null),
+                new PersonaEntity(Integer.valueOf(2), "Jane", "Smith", "jane.smith@example.com","123123",  35461, TipoPersona.EMPLEADO,null, null,null,null)
         );
         Page<PersonaEntity> personaPage = new PageImpl<>(personaEntities, pageable, personaEntities.size());
 
@@ -73,16 +76,30 @@ class PersonaServiceImplTest {
     }
 
     @Test
-    void testTraerPersonas() {
+    void testTraerPersonas_filtros() {
+        String busqueda = "6541";
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("nombre").ascending());
+        List<PersonaEntity> personaEntities = List.of(
+                new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro",null,null,65416516,TipoPersona.EMPLEADO,null,null,null,null),
+                new PersonaEntity(Integer.valueOf(2),"Ana","Geremia",null,null,12336541,TipoPersona.JEFE,null,null,null,null)
+        );
+        Page<PersonaEntity> personaPage = new PageImpl<>(personaEntities, pageable, personaEntities.size());
+
+        when(personaRepository.findByFiltros(busqueda,null,pageable)).thenReturn(personaPage);
+
+        Page<PersonaDto> result = personaService.traerPersonas(0, 5,busqueda,null);
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+
     }
 
+    @DisplayName("Insercion Exitosa")
     @Test
     void insertarPersona() {
-        PostPersonaDto nuevaP = new PostPersonaDto("Mateo","Moszoro","mateomosz@gmail.com",12313,43998130, TipoPersona.JEFE,1);
-        PersonaEntity saved = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com",12313,43998130, TipoPersona.JEFE,null,null,null,null);
+        PostPersonaDto nuevaP = new PostPersonaDto("Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,1);
+        PersonaEntity saved = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,null,null,null,null);
 
         when(personaRepository.findByDni(nuevaP.getDni())).thenReturn(null);
-        when(personaRepository.save(any(PersonaEntity.class))).thenReturn(saved);
         ArgumentCaptor<PersonaEntity> captor = ArgumentCaptor.forClass(PersonaEntity.class);
 
 
@@ -90,20 +107,83 @@ class PersonaServiceImplTest {
         verify(personaRepository).save(captor.capture());
 
         verify(personaRepository).save(any(PersonaEntity.class));
+        assertNotNull(captor.getValue().getId());
         assertEquals(nuevaP.getDni(), resultado.getDni());
         assertEquals(nuevaP.getNombre(), resultado.getNombre());
         assertEquals(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), captor.getValue().getFechaAlta().truncatedTo(ChronoUnit.MINUTES));
     }
 
+    @DisplayName("Insercion No Exitosa")
     @Test
-    void actualizarPersona() {
+    void insertarPersona_failure() {
+        PostPersonaDto nuevaP = new PostPersonaDto("Mateo","Moszoro",null,"12313",43998130, TipoPersona.JEFE,1);
+
+        assertThrows(ResponseStatusException.class, ()-> personaService.insertarPersona(nuevaP));
     }
 
+    @DisplayName("Actualizacion Exitosa")
+    @Test
+    void actualizarPersona() {
+        PersonaDto editar = new PersonaDto(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@hotmail.com","3516811074",43998130,TipoPersona.JEFE,null);
+        PersonaEntity existe = new PersonaEntity(Integer.valueOf(1),"Wateo","Woszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,null,null,null,null);
+        ArgumentCaptor<PersonaEntity> captor = ArgumentCaptor.forClass(PersonaEntity.class);
+
+        when(personaRepository.findByDni(editar.getDni())).thenReturn(existe);
+        when(personaRepository.save(any(PersonaEntity.class))).thenReturn(existe);
+
+        personaService.actualizarPersona(editar);
+        verify(personaRepository).save(captor.capture());
+
+        assertNotEquals(existe.getNombre(), captor.getValue().getNombre());
+        assertEquals(editar.getApellido(), captor.getValue().getApellido());
+    }
+
+    @DisplayName("Actualizacion No Exitosa")
+    @Test
+    void actualizarPersona_failure() {
+        PersonaDto editar = new PersonaDto(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@hotmail.com","3516811074",43998130,TipoPersona.JEFE,null);
+        when(personaRepository.findByDni(editar.getDni())).thenReturn(null);
+        assertThrows(ResponseStatusException.class, ()-> personaService.actualizarPersona(editar));
+    }
+
+    @DisplayName("Baja Exitosa")
     @Test
     void bajaPersona() {
         Integer id = 1;
+        PersonaEntity personaEntity = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,null,null,null,null);
 
+        when(personaRepository.findById(id)).thenReturn(Optional.of(personaEntity));
+        personaService.bajaPersona(id);
+        ArgumentCaptor<PersonaEntity> captor = ArgumentCaptor.forClass(PersonaEntity.class);
 
+        verify(personaRepository).save(captor.capture());
+        verify(personaRepository).save(any(PersonaEntity.class));
+        assertEquals(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), captor.getValue().getFechaBaja().truncatedTo(ChronoUnit.MINUTES));
 
+    }
+
+    @DisplayName("Baja a usuario ya dado de baja")
+    @Test
+    void bajaPersona_Failure() {
+        Integer id = 1;
+        PersonaEntity personaEntity = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,null,null, LocalDateTime.now(),null);
+
+        when(personaRepository.findById(id)).thenReturn(Optional.of(personaEntity));
+        assertThrows(ResponseStatusException.class, ()-> personaService.bajaPersona(id));
+    }
+
+    @DisplayName("Baja a usuario Inexistente")
+    @Test
+    void bajaPersona_Failure2() {
+        Integer id = 1;
+
+        when(personaRepository.findById(id)).thenReturn(Optional.empty());
+        ResponseStatusException ex = assertThrows(
+                ResponseStatusException.class,
+                () -> personaService.bajaPersona(id)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        assertEquals("No existe la Persona", ex.getReason());
     }
 }
