@@ -10,13 +10,14 @@ import org.springframework.cglib.core.internal.Function;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
+@Service
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class JwtService {

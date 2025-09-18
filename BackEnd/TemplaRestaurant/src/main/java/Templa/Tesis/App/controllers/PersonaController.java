@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,16 +21,28 @@ public class PersonaController {
     private final IPersonaService personaService;
 
     @GetMapping
-    public ResponseEntity<Page<PersonaDto>> listarPersonas(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ENCARGADO', 'MOZO')")
+    public ResponseEntity<Page<PersonaDto>> listarPersonas(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(personaService.traerPersonas(page, size));
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<Page<PersonaDto>> listarPersonasConFiltros(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
-                                                    @RequestParam(required = false) String busqueda,
-                                                    @RequestParam(required = false) String tipoPersona) {
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ENCARGADO', 'MOZO')")
+    public ResponseEntity<Page<PersonaDto>> listarPersonasConFiltros(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String tipoPersona) {
         return ResponseEntity.ok(personaService.traerPersonas(page, size, busqueda, tipoPersona));
     }
+
+//    @PostMapping("/crear")
+//    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ENCARGADO')")
+//    public ResponseEntity<PersonaDto> crearPersona(@RequestBody PostPersonaDto nuevaPersona) {
+//        return ResponseEntity.ok(personaService.insertarPersona(nuevaPersona));
+//    }
 
     @PostMapping("/crear")
     public ResponseEntity<PersonaDto> crearPersona(@RequestBody PostPersonaDto nuevaPersona) {
@@ -37,11 +50,13 @@ public class PersonaController {
     }
 
     @PutMapping("/actualizar")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ENCARGADO')")
     public ResponseEntity<PersonaDto> actualizarPersona(@RequestBody PersonaDto nuevaPersona) {
         return ResponseEntity.ok(personaService.actualizarPersona(nuevaPersona));
     }
 
     @DeleteMapping("/baja/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> bajaPersona(@PathVariable Integer id) {
         try{
             personaService.bajaPersona(id);
@@ -50,5 +65,4 @@ public class PersonaController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al dar de baja la Persona");
         }
     }
-
 }

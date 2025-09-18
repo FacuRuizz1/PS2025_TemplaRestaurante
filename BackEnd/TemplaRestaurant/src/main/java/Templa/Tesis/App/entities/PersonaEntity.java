@@ -42,6 +42,7 @@ public class PersonaEntity {
     @Column
     private Integer userBajaId;
 
-
+    @OneToOne(mappedBy = "persona", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private UsuarioEntity usuario;
 
 }

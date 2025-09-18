@@ -14,4 +14,5 @@ public class RegisterRequest {
     private String username;
     private String password;
     private RolUsuario rol;
+    private Integer personaId;
 }
