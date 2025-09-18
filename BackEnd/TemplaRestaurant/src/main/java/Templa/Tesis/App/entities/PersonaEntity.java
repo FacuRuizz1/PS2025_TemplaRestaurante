@@ -25,11 +25,14 @@ public class PersonaEntity {
     @Column
     private String apellido;
     @Column
-    private String telefono;
-    @Column
     private String email;
     @Column
+    private int telefono;
+    @Column
     private int dni;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private TipoPersona tipoPersona;
     @Column
     private LocalDateTime fechaAlta;
     @Column
@@ -38,9 +41,7 @@ public class PersonaEntity {
     private LocalDateTime fechaBaja;
     @Column
     private Integer userBajaId;
-    @Column
-    @Enumerated(EnumType.STRING)
-    private TipoPersona tipoPersona;
+
 
 
 }

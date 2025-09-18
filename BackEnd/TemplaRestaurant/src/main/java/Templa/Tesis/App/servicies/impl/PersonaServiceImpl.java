@@ -38,7 +38,7 @@ public class PersonaServiceImpl implements IPersonaService {
 
     @Override
     public PersonaDto insertarPersona(PostPersonaDto nuevaPersona) {
-        if(nuevaPersona.getDni()==null){
+        if(nuevaPersona.getDni()==0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe Ingresar un DNI");
         }
         if(nuevaPersona.getEmail()==null){
