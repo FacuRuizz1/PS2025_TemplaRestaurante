@@ -21,7 +21,6 @@ public class PersonaController {
     private final IPersonaService personaService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ENCARGADO', 'MOZO')")
     public ResponseEntity<Page<PersonaDto>> listarPersonas(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -29,7 +28,6 @@ public class PersonaController {
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ENCARGADO', 'MOZO')")
     public ResponseEntity<Page<PersonaDto>> listarPersonasConFiltros(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -38,25 +36,17 @@ public class PersonaController {
         return ResponseEntity.ok(personaService.traerPersonas(page, size, busqueda, tipoPersona));
     }
 
-//    @PostMapping("/crear")
-//    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ENCARGADO')")
-//    public ResponseEntity<PersonaDto> crearPersona(@RequestBody PostPersonaDto nuevaPersona) {
-//        return ResponseEntity.ok(personaService.insertarPersona(nuevaPersona));
-//    }
-
     @PostMapping("/crear")
     public ResponseEntity<PersonaDto> crearPersona(@RequestBody PostPersonaDto nuevaPersona) {
         return ResponseEntity.ok(personaService.insertarPersona(nuevaPersona));
     }
 
     @PutMapping("/actualizar")
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'ENCARGADO')")
     public ResponseEntity<PersonaDto> actualizarPersona(@RequestBody PersonaDto nuevaPersona) {
         return ResponseEntity.ok(personaService.actualizarPersona(nuevaPersona));
     }
 
     @DeleteMapping("/baja/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<Void> bajaPersona(@PathVariable Integer id) {
         try{
             personaService.bajaPersona(id);
