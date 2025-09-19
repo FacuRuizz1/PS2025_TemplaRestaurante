@@ -75,4 +75,6 @@ public class PersonaController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al dar de baja la Persona");
         }
     }
+
+
 }
