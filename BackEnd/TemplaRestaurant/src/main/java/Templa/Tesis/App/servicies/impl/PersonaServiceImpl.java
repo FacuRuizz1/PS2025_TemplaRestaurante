@@ -5,14 +5,19 @@ import Templa.Tesis.App.dtos.PostPersonaDto;
 import Templa.Tesis.App.entities.PersonaEntity;
 import Templa.Tesis.App.repositories.PersonaRepository;
 import Templa.Tesis.App.servicies.IPersonaService;
+import jakarta.persistence.criteria.Predicate;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import java.time.LocalDateTime;
 
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class PersonaServiceImpl implements IPersonaService {
@@ -23,16 +28,50 @@ public class PersonaServiceImpl implements IPersonaService {
 
     @Override
     public Page<PersonaDto> traerPersonas(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("nombre","fechaAlta").ascending());
-        Page<PersonaEntity> personas = personaRepository.findAll(pageable);
-
-        return personas.map(entity -> modelMapper.map(entity, PersonaDto.class));
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nombre", "fechaAlta").ascending());
+        Page<PersonaEntity> personal = personaRepository.findPersonal(pageable);
+        return personal.map(entity -> modelMapper.map(entity, PersonaDto.class));
     }
 
     @Override
-    public Page<PersonaDto> traerPersonas(int page, int size, String buscarFiltro, String tipoPersonaFiltro) {
+    public Page<PersonaDto> traerPersonas(int page, int size, String buscarFiltro, String tipoPersona, String estado) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending());
-        Page<PersonaEntity> filtrados =personaRepository.findByFiltros(buscarFiltro,tipoPersonaFiltro,pageable);
+
+        Specification<PersonaEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Filtro por estado (null o vacío = TODOS, no filtra)
+            if (estado != null && !estado.isEmpty()) {
+                if ("ACTIVOS".equals(estado)) {
+                    predicates.add(cb.isNull(root.get("fechaBaja")));
+                } else if ("BAJA".equals(estado)) {
+                    predicates.add(cb.isNotNull(root.get("fechaBaja")));
+                } // 'TODOS' no agrega predicate
+            }
+
+            // Filtro por buscarFiltro (null o vacío = no filtra)
+            if (buscarFiltro != null && !buscarFiltro.isEmpty()) {
+                String pattern = "%" + buscarFiltro.toLowerCase() + "%";
+                Predicate nombrePred = cb.like(cb.lower(root.get("nombre")), pattern);
+                Predicate apellidoPred = cb.like(cb.lower(root.get("apellido")), pattern);
+                Predicate emailPred = cb.like(cb.lower(root.get("email")), pattern);
+                Predicate telefonoPred = cb.like(cb.lower(root.get("telefono")), pattern);
+                Predicate dniPred = cb.like(
+                        cb.lower(cb.toString(root.get("dni"))),
+                        pattern
+                );
+                predicates.add(cb.or(nombrePred, apellidoPred, emailPred, telefonoPred, dniPred));
+            }
+
+            // Filtro por tipoPersona (null o vacío = no filtra)
+            if (tipoPersona != null && !tipoPersona.isEmpty()) {
+                predicates.add(cb.equal(root.get("tipoPersona"), tipoPersona));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<PersonaEntity> filtrados = personaRepository.findAll(spec, pageable);
         return filtrados.map(entity -> modelMapper.map(entity, PersonaDto.class));
     }
 
@@ -57,10 +96,9 @@ public class PersonaServiceImpl implements IPersonaService {
 
         try {
 
-            PersonaEntity nuevo = new PersonaEntity();
-            nuevo = modelMapper.map(nuevaPersona, PersonaEntity.class);
+            PersonaEntity nuevo = modelMapper.map(nuevaPersona, PersonaEntity.class);
             nuevo.setFechaAlta(LocalDateTime.now());
-            nuevo.setUserAltaId(nuevaPersona.getUserIngId()); //TODO: ver como obtener el usuario que realiza la baja
+            nuevo.setUserAlta(2); //TODO: ver como obtener el usuario que realiza la baja
             personaRepository.save(nuevo);
             return modelMapper.map(nuevo, PersonaDto.class);
 
@@ -72,10 +110,8 @@ public class PersonaServiceImpl implements IPersonaService {
 
     @Override
     public PersonaDto actualizarPersona(PersonaDto personaActualizada) {
-        PersonaEntity existe = personaRepository.findByDni(personaActualizada.getDni());
-        if(existe==null){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "La Persona que desea modificar no existe.");
-        }
+        PersonaEntity existe = personaRepository.findById(personaActualizada.getId()).orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT, "La Persona que desea modificar no existe."));
+
         try {
             existe = modelMapper.map(personaActualizada, PersonaEntity.class);
             PersonaEntity guardado = personaRepository.save(existe);

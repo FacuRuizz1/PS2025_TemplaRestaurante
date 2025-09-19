@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,7 +42,7 @@ class PersonaServiceImplTest {
         Pageable pageable = PageRequest.of(0, 5, Sort.by("nombre", "fechaAlta").ascending());
         List<PersonaEntity> personaEntities = List.of(
                 new PersonaEntity(Integer.valueOf(1), "John", "Doe", "john.doe@example.com", "123123",35461,  TipoPersona.CLIENTE,null, null,null,null),
-                new PersonaEntity(Integer.valueOf(2), "Jane", "Smith", "jane.smith@example.com","123123",  35461, TipoPersona.EMPLEADO,null, null,null,null)
+                new PersonaEntity(Integer.valueOf(2), "Jane", "Smith", "jane.smith@example.com","123123",  35461, TipoPersona.PERSONAL,null, null,null,null)
         );
         Page<PersonaEntity> personaPage = new PageImpl<>(personaEntities, pageable, personaEntities.size());
 
@@ -77,27 +76,63 @@ class PersonaServiceImplTest {
 
     @Test
     void testTraerPersonas_filtros() {
+        // Arrange
         String busqueda = "6541";
+        String tipoPersona = null; // Todos
+        String estado = "ACTIVOS"; // Solo personas activas
         Pageable pageable = PageRequest.of(0, 5, Sort.by("nombre").ascending());
-        List<PersonaEntity> personaEntities = List.of(
-                new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro",null,null,65416516,TipoPersona.EMPLEADO,null,null,null,null),
-                new PersonaEntity(Integer.valueOf(2),"Ana","Geremia",null,null,12336541,TipoPersona.JEFE,null,null,null,null)
+
+        // Datos de prueba
+        PersonaEntity persona1 = new PersonaEntity(
+                2, "Ana", "Geremia", "ana@example.com", "987654321", 12336541,
+                TipoPersona.PERSONAL, LocalDateTime.now(), 1, null, null
         );
+        PersonaEntity persona2 = new PersonaEntity(
+                1, "Mateo", "Moszoro", "mateo@example.com", "123456789", 65416516,
+                TipoPersona.PERSONAL, LocalDateTime.now(), 1, null, null
+        );
+        List<PersonaEntity> personaEntities = List.of(persona1, persona2);
         Page<PersonaEntity> personaPage = new PageImpl<>(personaEntities, pageable, personaEntities.size());
 
-        when(personaRepository.findByFiltros(busqueda,null,pageable)).thenReturn(personaPage);
+        // Configurar mocks
+        when(personaRepository.findByFiltros(busqueda, tipoPersona, estado, pageable)).thenReturn(personaPage);
+        when(modelMapper.map(persona1, PersonaDto.class)).thenReturn(
+                new PersonaDto(2, "Ana", "Geremia", "ana@example.com", "987654321", 12336541, TipoPersona.PERSONAL,null)
+        );
+        when(modelMapper.map(persona2, PersonaDto.class)).thenReturn(
+                new PersonaDto(1, "Mateo", "Moszoro", "mateo@example.com", "123456789", 65416516, TipoPersona.PERSONAL,null)
+        );
 
-        Page<PersonaDto> result = personaService.traerPersonas(0, 5,busqueda,null);
-        assertNotNull(result);
-        assertEquals(2, result.getContent().size());
+        // Act
+        Page<PersonaDto> result = personaService.traerPersonas(0, 5, busqueda, tipoPersona, estado);
 
+        // Assert
+        assertNotNull(result, "El resultado no debe ser nulo");
+        assertEquals(2, result.getContent().size(), "Debe devolver 2 personas");
+        assertEquals(0, result.getNumber(), "La página debe ser la 0");
+        assertEquals(5, result.getSize(), "El tamaño de la página debe ser 5");
+        assertEquals(2, result.getTotalElements(), "El total de elementos debe ser 2");
+
+        // Verificar contenido de los DTOs
+        PersonaDto dto1 = result.getContent().get(0);
+        assertEquals("Ana", dto1.getNombre(), "El nombre de la primera persona debe ser Ana");
+        assertEquals(12336541, dto1.getDni(), "El DNI de la primera persona debe ser 12336541");
+
+        PersonaDto dto2 = result.getContent().get(1);
+        assertEquals("Mateo", dto2.getNombre(), "El nombre de la segunda persona debe ser Mateo");
+        assertEquals(65416516, dto2.getDni(), "El DNI de la segunda persona debe ser 65416516");
+
+        // Verificar que el repositorio fue llamado correctamente
+        verify(personaRepository).findByFiltros(busqueda, tipoPersona, estado, pageable);
+        verify(modelMapper).map(persona1, PersonaDto.class);
+        verify(modelMapper).map(persona2, PersonaDto.class);
     }
 
     @DisplayName("Insercion Exitosa")
     @Test
     void insertarPersona() {
-        PostPersonaDto nuevaP = new PostPersonaDto("Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,1);
-        PersonaEntity saved = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,null,null,null,null);
+        PostPersonaDto nuevaP = new PostPersonaDto("Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.PERSONAL,1);
+        PersonaEntity saved = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.PERSONAL,null,null,null,null);
 
         when(personaRepository.findByDni(nuevaP.getDni())).thenReturn(null);
         ArgumentCaptor<PersonaEntity> captor = ArgumentCaptor.forClass(PersonaEntity.class);
@@ -116,7 +151,7 @@ class PersonaServiceImplTest {
     @DisplayName("Insercion No Exitosa")
     @Test
     void insertarPersona_failure() {
-        PostPersonaDto nuevaP = new PostPersonaDto("Mateo","Moszoro",null,"12313",43998130, TipoPersona.JEFE,1);
+        PostPersonaDto nuevaP = new PostPersonaDto("Mateo","Moszoro",null,"12313",43998130, TipoPersona.PERSONAL,1);
 
         assertThrows(ResponseStatusException.class, ()-> personaService.insertarPersona(nuevaP));
     }
@@ -124,8 +159,8 @@ class PersonaServiceImplTest {
     @DisplayName("Actualizacion Exitosa")
     @Test
     void actualizarPersona() {
-        PersonaDto editar = new PersonaDto(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@hotmail.com","3516811074",43998130,TipoPersona.JEFE,null);
-        PersonaEntity existe = new PersonaEntity(Integer.valueOf(1),"Wateo","Woszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,null,null,null,null);
+        PersonaDto editar = new PersonaDto(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@hotmail.com","3516811074",43998130,TipoPersona.PERSONAL,null);
+        PersonaEntity existe = new PersonaEntity(Integer.valueOf(1),"Wateo","Woszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.PERSONAL,null,null,null,null);
         ArgumentCaptor<PersonaEntity> captor = ArgumentCaptor.forClass(PersonaEntity.class);
 
         when(personaRepository.findByDni(editar.getDni())).thenReturn(existe);
@@ -141,7 +176,7 @@ class PersonaServiceImplTest {
     @DisplayName("Actualizacion No Exitosa")
     @Test
     void actualizarPersona_failure() {
-        PersonaDto editar = new PersonaDto(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@hotmail.com","3516811074",43998130,TipoPersona.JEFE,null);
+        PersonaDto editar = new PersonaDto(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@hotmail.com","3516811074",43998130,TipoPersona.PERSONAL,null);
         when(personaRepository.findByDni(editar.getDni())).thenReturn(null);
         assertThrows(ResponseStatusException.class, ()-> personaService.actualizarPersona(editar));
     }
@@ -150,7 +185,7 @@ class PersonaServiceImplTest {
     @Test
     void bajaPersona() {
         Integer id = 1;
-        PersonaEntity personaEntity = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,null,null,null,null);
+        PersonaEntity personaEntity = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.PERSONAL,null,null,null,null);
 
         when(personaRepository.findById(id)).thenReturn(Optional.of(personaEntity));
         personaService.bajaPersona(id);
@@ -166,7 +201,7 @@ class PersonaServiceImplTest {
     @Test
     void bajaPersona_Failure() {
         Integer id = 1;
-        PersonaEntity personaEntity = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.JEFE,null,null, LocalDateTime.now(),null);
+        PersonaEntity personaEntity = new PersonaEntity(Integer.valueOf(1),"Mateo","Moszoro","mateomosz@gmail.com","12313",43998130, TipoPersona.PERSONAL,null,null, LocalDateTime.now(),null);
 
         when(personaRepository.findById(id)).thenReturn(Optional.of(personaEntity));
         assertThrows(ResponseStatusException.class, ()-> personaService.bajaPersona(id));

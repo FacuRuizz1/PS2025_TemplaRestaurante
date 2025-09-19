@@ -36,7 +36,7 @@ public class PersonaEntity {
     @Column
     private LocalDateTime fechaAlta;
     @Column
-    private Integer userAltaId;
+    private Integer userAlta;
     @Column
     private LocalDateTime fechaBaja;
     @Column

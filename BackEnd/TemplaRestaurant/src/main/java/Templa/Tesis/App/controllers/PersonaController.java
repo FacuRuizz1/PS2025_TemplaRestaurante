@@ -1,16 +1,21 @@
 package Templa.Tesis.App.controllers;
 
+import Templa.Tesis.App.dtos.GetPersonasFiltroDto;
 import Templa.Tesis.App.dtos.PersonaDto;
 import Templa.Tesis.App.dtos.PostPersonaDto;
 import Templa.Tesis.App.servicies.IPersonaService;
 import Templa.Tesis.App.servicies.impl.PersonaServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/persona")
@@ -19,20 +24,36 @@ public class PersonaController {
 
     private final IPersonaService personaService;
 
-    @GetMapping
-    public ResponseEntity<Page<PersonaDto>> listarPersonas(
+    @GetMapping("/personas")
+    public Page<PersonaDto> getPersonas(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(personaService.traerPersonas(page, size));
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return personaService.traerPersonas(page, size);
     }
 
-    @GetMapping("/buscar")
-    public ResponseEntity<Page<PersonaDto>> listarPersonasConFiltros(
+    @GetMapping("/personas/filtrar")
+    public Page<PersonaDto> getPersonasFiltradas(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String busqueda,
-            @RequestParam(required = false) String tipoPersona) {
-        return ResponseEntity.ok(personaService.traerPersonas(page, size, busqueda, tipoPersona));
+            @RequestParam(required = false) String buscarFiltro,
+            @RequestParam(required = false) String tipoPersona,
+            @RequestParam(required = false) String estado
+    ) {
+        // Validación manual para tipoPersona y estado
+        if (tipoPersona != null && !tipoPersona.isEmpty() && !tipoPersona.matches("^(PERSONAL|CLIENTE)$")) {
+            throw new IllegalArgumentException("tipoPersona debe ser 'PERSONAL' o 'CLIENTE'");
+        }
+        if (estado != null && !estado.isEmpty() && !estado.matches("^(ACTIVOS|BAJA|TODOS)$")) {
+            throw new IllegalArgumentException("estado debe ser 'ACTIVOS', 'BAJA' o 'TODOS'");
+        }
+        return personaService.traerPersonas(page, size, buscarFiltro, tipoPersona, estado);
+    }
+
+    // Manejo global de excepciones para este controller (puedes moverlo a un @ControllerAdvice global)
+    @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<String> handleBadRequest(Exception ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @PostMapping("/crear")
