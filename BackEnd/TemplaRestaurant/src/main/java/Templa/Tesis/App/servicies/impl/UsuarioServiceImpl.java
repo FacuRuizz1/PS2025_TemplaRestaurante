@@ -4,12 +4,12 @@ import Templa.Tesis.App.dtos.UsuarioCreateDTO;
 import Templa.Tesis.App.dtos.UsuarioDTO;
 import Templa.Tesis.App.entities.PersonaEntity;
 import Templa.Tesis.App.entities.UsuarioEntity;
+import Templa.Tesis.App.repositories.PersonaRepository;
 import Templa.Tesis.App.repositories.UsuarioRepository;
 import Templa.Tesis.App.servicies.UsuarioService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,8 +20,9 @@ import java.util.stream.Collectors;
 public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PersonaRepository personaRepository;
     private final ModelMapper modelMapper;
-    private final PasswordEncoder passwordEncoder;
+
 
     @Override
     public UsuarioDTO crearUsuario(UsuarioCreateDTO usuarioCreateDTO) {
@@ -30,12 +31,17 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("El nombre de usuario ya existe");
         }
 
+        // Buscar la persona asociada
+        PersonaEntity persona = personaRepository.findById(usuarioCreateDTO.getPersonaId())
+                .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada con ID: " + usuarioCreateDTO.getPersonaId()));
+
         // Crear la entidad usuario
         UsuarioEntity usuario = UsuarioEntity.builder()
                 .username(usuarioCreateDTO.getUsername())
-                .password(passwordEncoder.encode(usuarioCreateDTO.getPassword()))
+                .password(usuarioCreateDTO.getPassword())
                 .rolUsuario(usuarioCreateDTO.getRolUsuario())
                 .activo(true) // Por defecto activo
+                .persona(persona) // Asigno la entidad completa, no el ID
                 .build();
 
         // Guardar en la base de datos

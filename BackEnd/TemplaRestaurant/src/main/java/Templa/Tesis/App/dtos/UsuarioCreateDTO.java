@@ -14,4 +14,5 @@ public class UsuarioCreateDTO {
     private String username;
     private String password;
     private RolUsuario rolUsuario;
+    private Integer personaId;
 }
