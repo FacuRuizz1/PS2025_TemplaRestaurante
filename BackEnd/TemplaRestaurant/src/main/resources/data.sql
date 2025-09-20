@@ -1,6 +1,6 @@
 -- Insertar persona administrador
 INSERT INTO personas (id,nombre, apellido, email, telefono, dni, tipo_persona, fecha_alta, user_alta, fecha_baja, user_baja_id)
-VALUES (Integer.Value.of(1),'Admin', 'Sistema', 'admin@gmail.com', '0000000000', 99999999, 'PERSONAL', NOW(), 0, NULL, NULL);
+VALUES (1,'Admin', 'Sistema', 'admin@gmail.com', '0000000000', 99999999, 'PERSONAL', NOW(), 0, NULL, NULL);
 
 -- Insertar usuario administrador con password ENCRIPTADA
 INSERT INTO usuarios (username, password, rol, activo, id_persona)
