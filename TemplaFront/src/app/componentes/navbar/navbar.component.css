@@ -39,60 +39,65 @@
 }
 
 /* ===== ANIMACIÓN HAMBURGUESA/X ===== */
-.hamburger-icon {
-  width: 24px;
-  height: 18px;
-  position: relative;
+/* ===== ESTILOS SVG HAMBURGUESA ===== */
+.ham {
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 400ms;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  height: 50px;
+  width: 50px;
+}
+
+.hamRotate.active {
+  transform: rotate(45deg);
 }
 
 .line {
-  width: 100%;
-  height: 3px;
-  background-color: white;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  position: absolute;
+  fill: none;
+  transition: stroke-dasharray 400ms, stroke-dashoffset 400ms;
+  stroke: white; /* ✅ Color blanco para el navbar */
+  stroke-width: 5.5;
+  stroke-linecap: round;
 }
 
-.line1 {
-  top: 0;
-  /* Esta línea se queda arriba */
+.ham8 .top {
+  stroke-dasharray: 40 160;
 }
 
-.line2 {
-  top: 50%;
-  transform: translateY(-50%);
-  /* Esta línea forma parte de la X */
+.ham8 .middle {
+  stroke-dasharray: 40 142;
+  transform-origin: 50%;
+  transition: transform 400ms;
 }
 
-.line3 {
-  bottom: 0;
-  /* Esta línea forma parte de la X */
+.ham8 .bottom {
+  stroke-dasharray: 40 85;
+  transform-origin: 50%;
+  transition: transform 400ms, stroke-dasharray 400ms, stroke-dashoffset 400ms;
 }
 
-/* Animación cuando está activo (X) */
-.hamburger-icon.active .line1 {
-  /* La primera línea se queda arriba, solo cambia un poco de posición */
-  transform: translateY(-7px);
+.ham8.active .top {
+  stroke-dasharray: 40 180;
+  stroke-dashoffset: -64px;
 }
 
-.hamburger-icon.active .line2 {
-  /* La línea del medio rota 45 grados */
-  transform: translateY(-50%) rotate(45deg);
+.ham8.active .middle {
+  stroke-dasharray: 40 142;
+  transform: rotate(90deg);
 }
 
-.hamburger-icon.active .line3 {
-  /* La línea de abajo rota -45 grados y sube */
-  transform: translateY(-9px) rotate(-45deg);
+.ham8.active .bottom {
+  stroke-dasharray: 40 85;
+  stroke-dashoffset: -64px;
 }
 
-/* Efecto hover para el toggle */
-.navbar-toggle:hover .hamburger-icon .line {
-  background-color: var(--templa-gold);
+/* Efecto hover */
+.navbar-toggle:hover .ham .line {
+  stroke: var(--templa-gold);
 }
 
 .navbar-menu {
@@ -244,6 +249,7 @@
   left: 80px;
   right: 0;
   transition: left 0.3s ease;
+  z-index: 999
 }
 
 .header-container.expanded {

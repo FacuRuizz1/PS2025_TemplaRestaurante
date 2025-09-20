@@ -1,0 +1,45 @@
+<div class="background">
+    <div class="header pt-3 px-3">
+        <!-- Título a la izquierda -->
+        <div class="header-left">
+            <h1 class="texto-elegante">Listado de personas</h1>
+        </div>
+
+        <!-- Controles a la derecha -->
+        <div class="header-right">
+            <!-- Input de búsqueda -->
+            <div class="search-container">
+                <input type="text" id="username" name="username" class="form-control custom-input"
+                    placeholder="Buscar persona..." [(ngModel)]="filtro">
+            </div>
+
+            <!-- Primer grupo de radio buttons -->
+            <div class="btn-group filter-group" role="group" aria-label="Filtro por tipo">
+                <input type="radio" class="btn-check" name="tipo" id="empleado" autocomplete="off" checked>
+                <label class="btn btn-outline-primary custom-radio" for="empleado">Personal</label>
+
+                <input type="radio" class="btn-check" name="tipo" id="cliente" autocomplete="off">
+                <label class="btn btn-outline-primary custom-radio" for="cliente">Clientes</label>
+
+                <input type="radio" class="btn-check" name="tipo" id="todos" autocomplete="off">
+                <label class="btn btn-outline-primary custom-radio" for="todos">Todos</label>
+            </div>
+
+            <!-- Segundo grupo de radio buttons -->
+            <div class="btn-group filter-group" role="group" aria-label="Filtro por estado">
+                <input type="radio" class="btn-check" name="estado" id="activo" autocomplete="off" checked>
+                <label class="btn btn-outline-success custom-radio" for="activo">Activos</label>
+
+                <input type="radio" class="btn-check" name="estado" id="inactivo" autocomplete="off">
+                <label class="btn btn-outline-danger custom-radio" for="inactivo">Inactivos</label>
+
+                <input type="radio" class="btn-check" name="estado" id="todosEstado" autocomplete="off">
+                <label class="btn btn-outline-secondary custom-radio" for="todosEstado">Todos</label>
+            </div>
+
+
+        </div>
+    </div>
+
+    <hr class="header-divider">
+</div>

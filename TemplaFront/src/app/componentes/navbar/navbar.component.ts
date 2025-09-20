@@ -27,6 +27,13 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit() {
     this.loadMenu();
+    this.resetNavbarState();
+  }
+
+  private resetNavbarState() {
+    this.isExpanded = false;
+    this.expandedSubmenu = null;
+    this.navbarToggled.emit(false);
   }
 
   private loadMenu() {

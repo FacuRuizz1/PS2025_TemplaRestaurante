@@ -5,13 +5,16 @@
 
 .content-area {
   margin-left: 80px; /* Espacio para navbar colapsado */
-  margin-top: 70px;  /* Espacio para header */
+  /*margin-top: 70px;   Espacio para header */
   flex-grow: 1;
   background-color: #f8f9fa;
-  padding: 20px;
   min-height: calc(100vh - 70px);
   transition: margin-left 0.3s ease;
   width: calc(100vw - 80px); /* Asegurar que ocupe el espacio correcto */
+  padding: 0;
+  padding-top: 70px;;
+  position:relative;
+  z-index: 1;
 }
 
 .content-area.no-navbar {
@@ -26,3 +29,4 @@
   margin-left: 250px;
   width: calc(100vw - 250px);
 }
+
