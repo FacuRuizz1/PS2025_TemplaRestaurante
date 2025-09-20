@@ -1,12 +1,12 @@
 .background {
-    background-color: #755143;
+    background-color: var(--templa-brown);
     width: 100%;
     height: 100vh;
     display: block;
 }
 
 .container {
-    background-color: #F4EADD;
+    background-color: var(--templa-beige);
     width: 70%;
     padding-left: 0;
     padding-right: 0;
@@ -26,9 +26,9 @@
 }
 
 .texto-elegante {
-    font-family: 'Amethysta';
+    font-family: var(--templa-font-title);
     font-size: 28px;
-    color: #696848;
+    color: var(--templa-dark-green);
 }
 
 .image-container {
@@ -47,34 +47,34 @@
 
 /* Estilos personalizados para el formulario */
 .custom-input {
-    background-color: #D4A574;
+    background-color: var(--templa-gold);
     border: none;
     border-radius: 7px 7px 0 0;
     padding: 15px 20px;
     font-size: 16px;
-    color: #696848;
-    font-family: 'Amiko';
+    color: var(--templa-dark-green);
+    font-family: var(--templa-font-text);
     box-shadow: 0 4px 10px 2px rgba(0, 0, 0, 0.5) !important;
 
 }
 
 .custom-input::placeholder {
-    color: #696848;
+    color: var(--templa-dark-green);
     opacity: 0.8;
 }
 
 .custom-input:focus {
-    background-color: #D4A574;
+    background-color: var(--templa-gold);
     border: none;
     box-shadow: 0 0 0 0.2rem rgba(212, 165, 116, 0.5);
-    color: #696848;
+    color: var(--templa-dark-green);
 }
 
 .forgot-password {
-    color: #696848;
+    color: var(--templa-dark-green);
     text-decoration: underline;
     font-size: 14px;
-    font-family: 'Amiko';
+    font-family: var(--templa-font-text);
 }
 
 .forgot-password:hover {
@@ -82,18 +82,18 @@
 }
 
 .custom-btn {
-    background-color: #84C473;
+    background-color: var(--templa-green);
     border: none;
     border-radius: 25px;
     padding: 12px 30px;
     font-size: 18px;
-    color: #696848;
+    color: var(--templa-dark-green);
     font-weight: 500;
-    font-family: 'Amiko';
+    font-family: var(--templa-font-text);
     box-shadow: 0 4px 10px 2px rgba(0, 0, 0, 0.5) !important;
 
 }
 
 .custom-btn:hover {
-    background-color: #689F38;
+    background-color: #91da7e;
 }
