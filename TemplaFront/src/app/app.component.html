@@ -1,9 +1,6 @@
-<div class="app-container">
-  <!-- Navbar solo si NO estamos en login -->
-  <app-navbar *ngIf="mostrarNavbar"></app-navbar>
-  
-  <!-- El contenido siempre se muestra -->
-  <div class="content" [class.with-navbar]="mostrarNavbar">
+<div class="main-layout">
+  <app-navbar *ngIf="showNavbar"></app-navbar>
+  <div class="content-area" [ngClass]="{'no-navbar': !showNavbar}">
     <router-outlet></router-outlet>
   </div>
 </div>

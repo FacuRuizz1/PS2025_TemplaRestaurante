@@ -13,15 +13,17 @@ import { filter } from 'rxjs';
 })
 export class AppComponent {
   title = 'TemplaFront';
-    mostrarNavbar = false;
+  showNavbar = false;
 
-  constructor(private router: Router) {
-    // Escuchar cambios de ruta
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe((event: NavigationEnd) => {
-      // Si NO estamos en login, mostrar navbar
-      this.mostrarNavbar = event.url !== '/login';
-    });
+  constructor(private router: Router) {}
+
+  ngOnInit() {
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        // Oculta el navbar solo en la ruta de login
+        this.showNavbar = !event.url.includes('/login');
+      }
+    );
   }
 }

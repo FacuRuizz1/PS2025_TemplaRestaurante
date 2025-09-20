@@ -1,0 +1,16 @@
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.content-area {
+  margin-left: 80px;
+  flex-grow: 1;
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+
+.content-area.no-navbar {
+  margin-left: 0;
+  padding: 0;
+}

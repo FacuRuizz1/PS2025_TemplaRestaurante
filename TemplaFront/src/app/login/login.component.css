@@ -1,5 +1,4 @@
 .background {
-    /* Add your background styling here, for example: */
     background-color: #755143;
     width: 100%;
     height: 100vh;
@@ -8,5 +7,93 @@
 
 .container {
     background-color: #F4EADD;
-    
+    width: 70%;
+    padding-left: 0;
+    padding-right: 0;
+    border-radius: 43px;
+    height: 80%;
+    box-shadow: 0 4px 50px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+.LogoLogin {
+    height: 95px; /* Altura fija */
+    width: auto;
+    object-fit: contain;
+}
+
+.flip-horizontal {
+    transform: scaleX(-1);
+}
+
+.texto-elegante {
+    font-family: 'Amethysta';
+    font-size: 28px;
+    color: #696848;
+}
+
+.image-container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.border-image {
+    margin: 0;
+    padding: 0;
+    height: 85%; /* Se ajusta al 85% del contenedor padre */
+    width: 100%; /* Mantiene la proporción */ 
+    object-fit: contain;
+}
+
+/* Estilos personalizados para el formulario */
+.custom-input {
+    background-color: #D4A574;
+    border: none;
+    border-radius: 7px 7px 0 0;
+    padding: 15px 20px;
+    font-size: 16px;
+    color: #696848;
+    font-family: 'Amiko';
+    box-shadow: 0 4px 10px 2px rgba(0, 0, 0, 0.5) !important;
+
+}
+
+.custom-input::placeholder {
+    color: #696848;
+    opacity: 0.8;
+}
+
+.custom-input:focus {
+    background-color: #D4A574;
+    border: none;
+    box-shadow: 0 0 0 0.2rem rgba(212, 165, 116, 0.5);
+    color: #696848;
+}
+
+.forgot-password {
+    color: #696848;
+    text-decoration: underline;
+    font-size: 14px;
+    font-family: 'Amiko';
+}
+
+.forgot-password:hover {
+    color: #9c9c72;
+}
+
+.custom-btn {
+    background-color: #84C473;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-size: 18px;
+    color: #696848;
+    font-weight: 500;
+    font-family: 'Amiko';
+    box-shadow: 0 4px 10px 2px rgba(0, 0, 0, 0.5) !important;
+
+}
+
+.custom-btn:hover {
+    background-color: #689F38;
 }

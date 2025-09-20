@@ -1,1 +1,55 @@
-<p>navbar works!</p>
+<div class="navbar-layout">
+  <!-- Barra lateral -->
+  <nav class="navbar-container">
+    <!-- Logo superior -->
+    <div class="navbar-logo">
+      <img src="assets/imagenes/LogoLogin.png" alt="Templa Logo" class="logo-img">
+    </div>
+
+    <!-- Menú de navegación -->
+    <div class="navbar-menu">
+      <a routerLink="/personas" routerLinkActive="active" class="nav-item">
+        <span class="nav-text">Pers</span>
+      </a>
+      <a routerLink="/inventario" routerLinkActive="active" class="nav-item">
+        <span class="nav-text">Inv</span>
+      </a>
+      <a routerLink="/mesas" routerLinkActive="active" class="nav-item">
+        <span class="nav-text">Mes</span>
+      </a>
+      <a routerLink="/reportes" routerLinkActive="active" class="nav-item">
+        <span class="nav-text">Rep</span>
+      </a>
+    </div>
+
+    <!-- Botón inferior -->
+    <div class="navbar-bottom">
+      <button class="nav-item bottom-btn" (click)="logout()">
+        <span class="nav-text">Log</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Header superior -->
+  <header class="header-container">
+    <!-- Logo central -->
+    <div class="header-logo">
+      <img src="assets/imagenes/LogoNavbar.png" alt="Templa" class="templa-logo">
+    </div>
+
+    <!-- Información del usuario y notificaciones -->
+    <div class="header-user-section">
+      <!-- Botón de notificaciones -->
+      <button class="notification-btn" (click)="showNotifications()">
+        <span class="notification-icon">🔔</span>
+        <span class="notification-badge" *ngIf="notificationCount > 0">{{notificationCount}}</span>
+      </button>
+
+      <!-- Info del usuario -->
+      <div class="user-info">
+        <span class="user-icon">👤</span>
+        <span class="user-text">Usuario: {{username}}</span>
+      </div>
+    </div>
+  </header>
+</div>

@@ -1,20 +1,36 @@
 <div class="background d-flex align-items-center justify-content-center">
-    <div class="container d-flex align-items-center justify-content-center rounded shadow-lg">
-        <div class="row align-items-start">
-            <img class="col" src=".../imagenes/LogoLogin.png" alt=" logo imagen">
+    <div class="container d-flex align-items-center justify-content-between position-relative py-4">
+
+        <!-- Imagen izquierda -->
+        <div class="d-flex align-items-center image-container">
+            <img class="border-image" src="assets/imagenes/Mitad Templa Logo colored.png" alt="logo Templa">
         </div>
-        
-        <div class="row align-items-center">
-            
-            <div class="col">
-                One of three columns
-            </div>
-            <div class="col">
-                One of three columns
-            </div>
-            <div class="col">
-                One of three columns
-            </div>
+
+        <!-- Contenido central -->
+        <div class="flex-grow-1 text-center mx-5">
+            <img class="LogoLogin mb-3" src="assets/imagenes/LogoLogin.png" alt="logo Templa Login">
+            <h2 class="texto-elegante mb-4">Templa Employee <br>Log In</h2>
+
+            <form #loginForm="ngForm" class="d-flex flex-column align-items-center">
+                <div class="mb-4 w-75">
+                    <input type="text" id="username" name="username" class="form-control custom-input"
+                        placeholder="Usuario" required [(ngModel)]="username">
+                </div>
+                <div class="mb-2 w-75">
+                    <input type="password" id="password" name="password" class="form-control custom-input"
+                        placeholder="Contraseña" required [(ngModel)]="password">
+                </div>
+                <div class="mb-4 w-75 text-start">
+                    <a href="#" class="forgot-password">Olvidó su Contraseña?</a>
+                </div>
+                <button type="submit" class="btn custom-btn w-75" (click)="login()">Log In</button>
+            </form>
+        </div>
+
+        <!-- Imagen derecha -->
+        <div class="d-flex align-items-center image-container">
+            <img class="border-image flip-horizontal" src="assets/imagenes/Mitad Templa Logo colored.png"
+                alt="logo Templa">
         </div>
     </div>
 </div>
