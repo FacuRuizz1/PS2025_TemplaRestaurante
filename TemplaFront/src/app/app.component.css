@@ -4,13 +4,25 @@
 }
 
 .content-area {
-  margin-left: 80px;
+  margin-left: 80px; /* Espacio para navbar colapsado */
+  margin-top: 70px;  /* Espacio para header */
   flex-grow: 1;
   background-color: #f8f9fa;
   padding: 20px;
+  min-height: calc(100vh - 70px);
+  transition: margin-left 0.3s ease;
+  width: calc(100vw - 80px); /* Asegurar que ocupe el espacio correcto */
 }
 
 .content-area.no-navbar {
   margin-left: 0;
+  margin-top: 0;
   padding: 0;
+  width: 100vw;
+}
+
+/* Clase para cuando el navbar está expandido */
+.content-area.navbar-expanded {
+  margin-left: 250px;
+  width: calc(100vw - 250px);
 }
