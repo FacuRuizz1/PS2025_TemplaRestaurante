@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit} from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuService } from '../servicies/MenuService';
 import { MenuItem } from '../models/menu-model';
@@ -11,12 +11,14 @@ import { MenuItem } from '../models/menu-model';
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
-export class NavbarComponent {
-username = 'ChefAna';
+export class NavbarComponent implements OnInit {
+  username = 'ChefAna';
   notificationCount = 3;
   isExpanded = false;
-  menuItems: MenuItem[] = []; // Ahora se genera automáticamente
+  menuItems: MenuItem[] = [];
   expandedSubmenu: string | null = null;
+
+  @Output() navbarToggled = new EventEmitter<boolean>();
 
   constructor(
     private router: Router,
@@ -36,6 +38,7 @@ username = 'ChefAna';
 
   toggleNavbar() {
     this.isExpanded = !this.isExpanded;
+    this.navbarToggled.emit(this.isExpanded); // ✅ Esto emite un boolean
     if (!this.isExpanded) {
       this.expandedSubmenu = null;
     }
