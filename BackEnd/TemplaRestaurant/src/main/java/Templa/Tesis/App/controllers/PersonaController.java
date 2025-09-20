@@ -50,11 +50,6 @@ public class PersonaController {
         return personaService.traerPersonas(page, size, buscarFiltro, tipoPersona, estado);
     }
 
-    // Manejo global de excepciones para este controller (puedes moverlo a un @ControllerAdvice global)
-    @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<String> handleBadRequest(Exception ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
-    }
 
     @PostMapping("/crear")
     public ResponseEntity<PersonaDto> crearPersona(@RequestBody PostPersonaDto nuevaPersona) {

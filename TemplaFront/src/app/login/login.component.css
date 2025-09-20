@@ -1,0 +1,12 @@
+.background {
+    /* Add your background styling here, for example: */
+    background-color: #755143;
+    width: 100%;
+    height: 100vh;
+    display: block;
+}
+
+.container {
+    background-color: #F4EADD;
+    
+}
