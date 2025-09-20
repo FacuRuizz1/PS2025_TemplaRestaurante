@@ -11,19 +11,33 @@
             <img class="LogoLogin mb-3" src="assets/imagenes/LogoLogin.png" alt="logo Templa Login">
             <h2 class="texto-elegante mb-4">Templa Employee <br>Log In</h2>
 
+            <!-- Mensaje de error -->
+            <div *ngIf="errorMessage" class="alert alert-danger mb-3 w-75 mx-auto">
+                {{ errorMessage }}
+            </div>
+
             <form #loginForm="ngForm" class="d-flex flex-column align-items-center">
                 <div class="mb-4 w-75">
                     <input type="text" id="username" name="username" class="form-control custom-input"
-                        placeholder="Usuario" required [(ngModel)]="username">
+                        placeholder="Usuario" required [(ngModel)]="username"
+                        [disabled]="isLoading">
                 </div>
                 <div class="mb-2 w-75">
                     <input type="password" id="password" name="password" class="form-control custom-input"
-                        placeholder="Contraseña" required [(ngModel)]="password">
+                        placeholder="Contraseña" required [(ngModel)]="password"
+                        [disabled]="isLoading">
                 </div>
                 <div class="mb-4 w-75 text-start">
                     <a href="#" class="forgot-password">Olvidó su Contraseña?</a>
                 </div>
-                <button type="submit" class="btn custom-btn w-75" (click)="login()">Log In</button>
+                <button type="submit" class="btn custom-btn w-75" 
+                        (click)="login()" 
+                        [disabled]="isLoading || !username || !password">
+                    <span *ngIf="!isLoading">Log In</span>
+                    <span *ngIf="isLoading">
+                        <i class="fas fa-spinner fa-spin"></i> Iniciando sesión...
+                    </span>
+                </button>
             </form>
         </div>
 

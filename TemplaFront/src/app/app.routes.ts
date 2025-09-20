@@ -2,15 +2,17 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './componentes/login/login.component';
 import { PersonasComponent } from './componentes/modulos/personas/personas.component';
 import { UsuariosComponent } from './componentes/modulos/usuarios/usuarios.component';
+import { AuthGuard as authGuard } from './guards/auth-guard.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   
-  // Rutas principales del menú
+  // Rutas principales del menú (PROTEGIDAS)
   { 
     path: 'personas', 
     component: PersonasComponent,
+    canActivate: [authGuard], // ← Agregar guard aquí
     data: { 
       showInMenu: true, 
       menuLabel: 'Personas', 
@@ -19,10 +21,11 @@ export const routes: Routes = [
     }
   },
   
-  // Subrutas de personas
+  // Subrutas de personas (PROTEGIDAS)
   { 
     path: 'personas/listado', 
-    component: PersonasComponent, // Cambiar por EmpleadosComponent cuando lo tengas
+    component: PersonasComponent,
+    canActivate: [authGuard], // ← Agregar guard aquí
     data: { 
       showInMenu: true, 
       parentMenu: 'personas',
@@ -31,11 +34,15 @@ export const routes: Routes = [
   },
   { 
     path: 'personas/usuarios', 
-    component: UsuariosComponent, // Cambiar por UsuariosComponent cuando lo tengas
+    component: UsuariosComponent,
+    canActivate: [authGuard], // ← Agregar guard aquí
     data: { 
       showInMenu: true, 
       parentMenu: 'personas',
       menuLabel: 'Usuarios'
     }
-  }
+  },
+
+  // Ruta comodín para redireccionar a login si no existe la ruta
+  { path: '**', redirectTo: '/login' }
 ];

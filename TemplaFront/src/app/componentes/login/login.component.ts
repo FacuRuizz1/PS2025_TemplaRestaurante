@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import {FormsModule,ReactiveFormsModule} from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../servicies/auth.service';
+import { LoginRequest } from '../models/LoginRequest';
 
 @Component({
   selector: 'app-login',
@@ -13,11 +15,32 @@ import { Router, RouterModule } from '@angular/router';
 export class LoginComponent {
   username = '';
   password = '';
+  isLoading = false;
+  errorMessage = '';
 
-  constructor(private router: Router) { }
+  constructor(private authService: AuthService,private router: Router) { }
   
 
-  login(){
-    this.router.navigate(['/personas']);
-  }
-}
+  login() {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const credentials: LoginRequest = {
+      username: this.username,
+      password: this.password
+    };
+
+    this.authService.login(credentials).subscribe({
+      next: () => {
+        this.router.navigate(['/personas']);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = 'Credenciales inválidas. Por favor, intente nuevamente.';
+        console.error('Login error:', error);
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
+  }}
