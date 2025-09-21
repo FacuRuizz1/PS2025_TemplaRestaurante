@@ -12,8 +12,8 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins("http://localhost:4200")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("Authorization", "Content-Type") // Necesario para enviar JWT
+                .allowedHeaders("*") // Necesario para enviar JWT
                 .exposedHeaders("Authorization") // Por si necesitás leer headers en el frontend
-                .allowCredentials(false); // false porque no estás usando cookies
+                .allowCredentials(true); // false porque no estás usando cookies
     }
 }
