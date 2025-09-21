@@ -25,7 +25,7 @@ export const routes: Routes = [
   { 
     path: 'personas/listado', 
     component: PersonasComponent,
-    //canActivate: [authGuard], // ← Agregar guard aquí
+    canActivate: [authGuard], // ← Agregar guard aquí
     data: { 
       showInMenu: true, 
       parentMenu: 'personas',

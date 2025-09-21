@@ -1,10 +1,8 @@
 <div class="main-layout">
   <app-navbar *ngIf="showNavbar" (navbarToggled)="onNavbarToggled($event)"></app-navbar>
   <div class="content-area" 
-       [ngClass]="{
-         'no-navbar': !showNavbar,
-         'navbar-expanded': showNavbar && isNavbarExpanded
-       }">
+       [class.no-navbar]="!showNavbar"
+       [class.navbar-expanded]="showNavbar && isNavbarExpanded">
     <router-outlet></router-outlet>
   </div>
 </div>

@@ -41,8 +41,11 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  getAuthHeaders(): { [header: string]: string } {
+  getAuthHeaders(): { [key: string]: string } {
     const token = this.getToken();
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
   }
 }
