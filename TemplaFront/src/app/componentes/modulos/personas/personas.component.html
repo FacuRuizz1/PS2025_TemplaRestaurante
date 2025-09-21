@@ -44,7 +44,7 @@
     <div class="body mt-5 mx-5 px-5">
         <!-- Botón Nueva Persona alineado a la derecha -->
         <div class="mb-3 d-flex justify-content-end"> <!-- ✅ Corregir class0 por class -->
-            <button class="btn custom-btn">
+            <button class="btn custom-btn" (click)="openNewPersonModal()">
                 <span class="btn-icon">➕</span>
                 Nueva Persona
             </button>
@@ -127,7 +127,7 @@
                 <div class="pagination-info">
                     <span class="text-muted">Mostrando 1-5 de 23 registros</span>
                 </div>
-                
+
                 <nav aria-label="Paginación de personas">
                     <ul class="pagination custom-pagination mb-0">
                         <li class="page-item disabled">

@@ -4,8 +4,19 @@
   --templa-gold: #d2a46d;
   --templa-dark-green: #696848;
   --templa-green: #84C473;
+  --templa-hovergreen: #91da7e;
   --templa-black: #1E1E1E;
+  --templa-red: #C47373;
+  --templa-hoverred: #da7e7e;
+
 
   --templa-font-title: 'Amethysta';
   --templa-font-text: 'Amiko'; 
+}
+
+.modal-content {
+  border-radius: 50px; 
+  box-shadow: 0 4px 50px 25px rgba(0, 0, 0, 0.3);
+  background-color: var(--templa-beige);
+  overflow: hidden;
 }

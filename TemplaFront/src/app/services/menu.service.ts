@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { MenuItem, RouteMenuData } from '../models/menu-model';
+import { MenuItem, RouteMenuData } from '../componentes/models/menu-model';
 
 @Injectable({
   providedIn: 'root'

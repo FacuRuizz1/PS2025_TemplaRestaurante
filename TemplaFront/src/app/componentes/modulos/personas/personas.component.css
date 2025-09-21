@@ -145,7 +145,7 @@
 }
 
 .custom-btn:hover {
-    background-color: #91da7e;
+    background-color: var(--templa-hovergreen);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(139, 195, 74, 0.4);
     color: white;
@@ -203,7 +203,7 @@
 }
 
 .badge-baja {
-    background-color: #dc3545;
+    background-color: var(--templa-red);
     color: white;
 }
 
@@ -222,7 +222,7 @@
 }
 
 .btn-delete:hover {
-    background-color: #dc3545;
+    background-color: var(--templa-hoverred);
 }
 
 /* ===== PAGINACIÓN ===== */

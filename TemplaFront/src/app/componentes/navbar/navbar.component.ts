@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output, OnInit} from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { MenuService } from '../servicies/MenuService';
 import { MenuItem } from '../models/menu-model';
+import { MenuService } from '../../services/menu.service';
 
 @Component({
   selector: 'app-navbar',
