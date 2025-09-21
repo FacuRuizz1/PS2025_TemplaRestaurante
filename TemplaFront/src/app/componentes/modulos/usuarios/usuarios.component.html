@@ -1,1 +1,159 @@
-<p>usuarios works!</p>
+<div class="background">
+    <div class="header pt-3 px-3">
+        <!-- Título a la izquierda -->
+        <div class="header-left">
+            <h1 class="texto-elegante">Listado de Usuarios</h1>
+        </div>
+
+        <!-- Controles a la derecha -->
+        <div class="header-right">
+            <!-- Input de búsqueda -->
+            <div class="search-container">
+                <input type="text" id="username" name="username" class="form-control custom-input"
+                    placeholder="🔎 Buscar usuario..." [(ngModel)]="filtro">
+            </div>
+
+            <!-- Filtro por Rol -->
+            <div class="btn-group filter-group" role="group" aria-label="Filtro por rol">
+                <input type="radio" class="btn-check" name="tipo" id="ADMINISTRADOR" autocomplete="off" checked>
+                <label class="btn custom-radio" for="ADMINISTRADOR">Administrador</label>
+
+                <input type="radio" class="btn-check" name="tipo" id="MOZO" autocomplete="off">
+                <label class="btn custom-radio" for="MOZO">Mozo</label>
+
+                <input type="radio" class="btn-check" name="tipo" id="COCINA" autocomplete="off">
+                <label class="btn custom-radio" for="COCINA">Cocina</label>
+
+                <input type="radio" class="btn-check" name="tipo" id="ENCARGADO" autocomplete="off">
+                <label class="btn custom-radio" for="ENCARGADO">Encargado</label>
+
+                <input type="radio" class="btn-check" name="tipo" id="TODOS" autocomplete="off">
+                <label class="btn custom-radio" for="TODOS">Todos</label>
+            </div>
+
+            <!-- Filtro por Estado -->
+            <div class="btn-group filter-group" role="group" aria-label="Filtro por estado">
+                <input type="radio" class="btn-check" name="estado" id="ACTIVOS" autocomplete="off" checked>
+                <label class="btn custom-radio" for="ACTIVOS">Activos</label>
+
+                <input type="radio" class="btn-check" name="estado" id="TODOS_ESTADO" autocomplete="off">
+                <label class="btn custom-radio" for="TODOS_ESTADO">Todos</label>
+
+                <input type="radio" class="btn-check" name="estado" id="BAJA" autocomplete="off">
+                <label class="btn custom-radio" for="BAJA">Baja</label>
+            </div>
+        </div>
+    </div>
+
+    <hr class="header-divider">
+
+    <div class="body mt-5 mx-5 px-5">
+        <!-- Botón Nuevo Usuario -->
+        <div class="mb-3 d-flex justify-content-end">
+            <button class="btn custom-btn">
+                <span class="btn-icon">➕</span>
+                Nuevo Usuario
+            </button>
+        </div>
+
+        <!-- Tabla de Usuarios -->
+        <div class="listado">
+            <table class="table table-hover table-striped custom-table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Rol</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>AnaChef</td>
+                        <td><span class="badge badge-encargado">Encargado</span></td>
+                        <td><span class="badge badge-activo">Activo</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-edit">✏️</button>
+                            <button class="btn btn-sm btn-delete">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">2</th>
+                        <td>Carlos</td>
+                        <td><span class="badge badge-mozo">Mozo</span></td>
+                        <td><span class="badge badge-activo">Activo</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-edit">✏️</button>
+                            <button class="btn btn-sm btn-delete">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">3</th>
+                        <td>María</td>
+                        <td><span class="badge badge-cocina">Cocina</span></td>
+                        <td><span class="badge badge-activo">Activo</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-edit">✏️</button>
+                            <button class="btn btn-sm btn-delete">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">4</th>
+                        <td>José</td>
+                        <td><span class="badge badge-administrador">Administrador</span></td>
+                        <td><span class="badge badge-baja">Baja</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-edit">✏️</button>
+                            <button class="btn btn-sm btn-delete">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">5</th>
+                        <td>Elena</td>
+                        <td><span class="badge badge-mozo">Mozo</span></td>
+                        <td><span class="badge badge-activo">Activo</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-edit">✏️</button>
+                            <button class="btn btn-sm btn-delete">🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- ✅ Paginación -->
+            <div class="pagination-container d-flex justify-content-between align-items-center mt-4">
+                <div class="pagination-info">
+                    <span class="text-muted">Mostrando 1-5 de 23 registros</span>
+                </div>
+                
+                <nav aria-label="Paginación de usuarios">
+                    <ul class="pagination custom-pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">‹</a>
+                        </li>
+                        <li class="page-item active">
+                            <a class="page-link" href="#">1</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">2</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">3</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">4</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">5</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
