@@ -1,50 +1,60 @@
+// usuarios.component.ts - VERSIÓN CORREGIDA
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { UsuarioDTO } from '../../models/UsuarioDTO';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { UsuarioModalComponent } from '../../modales/usuario-modal/usuario-modal.component';
 import { UserService } from '../../../services/user.service';
-import { Router } from '@angular/router';
+import { UsuarioDTO, UsuarioCreateDTO, RolUsuario } from '../../models/UsuarioModel';
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './usuarios.component.html',
   styleUrl: './usuarios.component.css'
 })
 export class UsuariosComponent implements OnInit {
-
+  
+  // ✅ Datos
   usuarios: UsuarioDTO[] = [];
   usuariosFiltrados: UsuarioDTO[] = [];
-  filtro: string = '';
+  
+  // ✅ Filtros
+  busqueda: string = '';
+  rolSeleccionado: string = '';
+  activoSeleccionado: boolean = true;
+  
+  // ✅ Paginación
   paginaActual: number = 1;
   itemsPorPagina: number = 5;
   totalItems: number = 0;
+
+  // ✅ Loading
   cargando: boolean = false;
   error: string = '';
 
-  // Filtros
-  filtroEstado: string = 'ACTIVOS';
-  filtroRol: string = 'TODOS';
-Math: any;
+  RolUsuario = RolUsuario;
 
   constructor(
-    private usuarioService: UserService,
-    private router: Router
+    private modalService: NgbModal,
+    private userService: UserService
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.cargarUsuarios();
   }
 
+  // ✅ Carga inicial
   cargarUsuarios(): void {
     this.cargando = true;
     this.error = '';
 
-    this.usuarioService.listarUsuarios().subscribe({
-      next: (usuarios) => {
-        this.usuarios = usuarios;
-        this.totalItems = usuarios.length;
+    this.userService.listarUsuarios().subscribe({
+      next: (usuarios: UsuarioDTO[]) => {
+        console.log('Usuarios recibidos:', usuarios);
+        this.usuarios = usuarios || [];
+        this.totalItems = this.usuarios.length;
         this.aplicarFiltros();
         this.cargando = false;
       },
@@ -56,41 +66,62 @@ Math: any;
     });
   }
 
+  // ✅ Aplicar filtros en el frontend
   aplicarFiltros(): void {
-    let usuariosFiltrados = this.usuarios;
+    let usuariosFiltrados = [...this.usuarios];
 
     // Filtro por texto
-    if (this.filtro) {
-      const filtroLower = this.filtro.toLowerCase();
+    if (this.busqueda.trim()) {
+      const filtroLower = this.busqueda.toLowerCase();
       usuariosFiltrados = usuariosFiltrados.filter(usuario =>
         usuario.username.toLowerCase().includes(filtroLower) ||
         usuario.rolUsuario.toLowerCase().includes(filtroLower)
       );
     }
 
-    // Filtro por estado
-    if (this.filtroEstado !== 'TODOS') {
+    // Filtro por rol
+    if (this.rolSeleccionado && this.rolSeleccionado !== '') {
       usuariosFiltrados = usuariosFiltrados.filter(usuario =>
-        this.filtroEstado === 'ACTIVOS' ? usuario.activo : !usuario.activo
+        usuario.rolUsuario === this.rolSeleccionado
       );
     }
 
-    // Filtro por rol
-    if (this.filtroRol !== 'TODOS') {
-      usuariosFiltrados = usuariosFiltrados.filter(usuario =>
-        usuario.rolUsuario === this.filtroRol
-      );
-    }
+    // Filtro por estado
+    usuariosFiltrados = usuariosFiltrados.filter(usuario =>
+      usuario.activo === this.activoSeleccionado
+    );
 
     this.usuariosFiltrados = usuariosFiltrados;
     this.totalItems = usuariosFiltrados.length;
-    this.paginaActual = 1; // Resetear a primera página
+    this.paginaActual = 1;
   }
 
-  cambiarPagina(pagina: number): void {
-    this.paginaActual = pagina;
+  // ✅ Métodos de filtros
+  onBusquedaChange() {
+    this.aplicarFiltros();
   }
 
+  onRolChange(rol: string) {
+    this.rolSeleccionado = rol;
+    this.aplicarFiltros();
+  }
+
+  onEstadoChange(estado: string) {
+    if (estado === 'TODOS') {
+      this.activoSeleccionado = true;
+      this.cargarUsuarios();
+    } else {
+      this.activoSeleccionado = estado === 'ACTIVOS';
+      this.aplicarFiltros();
+    }
+  }
+
+  onActivoChange(activo: boolean) {
+    this.activoSeleccionado = activo;
+    this.aplicarFiltros();
+  }
+
+  // ✅ Paginación en frontend
   get usuariosPaginados(): UsuarioDTO[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
     const fin = inicio + this.itemsPorPagina;
@@ -102,49 +133,153 @@ Math: any;
   }
 
   get paginas(): number[] {
-    return Array.from({ length: this.totalPaginas }, (_, i) => i + 1);
+    const total = this.totalPaginas;
+    const actual = this.paginaActual;
+    const paginas: number[] = [];
+    
+    let inicio = Math.max(1, actual - 2);
+    let fin = Math.min(total, inicio + 4);
+    
+    if (fin - inicio < 4) {
+      inicio = Math.max(1, fin - 4);
+    }
+    
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    
+    return paginas;
   }
 
-  cambiarFiltroEstado(estado: string): void {
-    this.filtroEstado = estado;
-    this.aplicarFiltros();
-  }
-
-  cambiarFiltroRol(rol: string): void {
-    this.filtroRol = rol;
-    this.aplicarFiltros();
-  }
-
-  editarUsuario(usuario: UsuarioDTO): void {
-    this.router.navigate(['/usuarios/editar', usuario.id]);
-  }
-
-  eliminarUsuario(usuario: UsuarioDTO): void {
-    if (confirm(`¿Estás seguro de eliminar al usuario ${usuario.username}?`)) {
-      this.usuarioService.eliminarUsuario(usuario.id!).subscribe({
-        next: () => {
-          this.cargarUsuarios(); // Recargar la lista
-        },
-        error: (error) => {
-          this.error = 'Error al eliminar el usuario';
-          console.error('Error:', error);
-        }
-      });
+  irAPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
     }
   }
 
-  nuevoUsuario(): void {
-    this.router.navigate(['/usuarios/crear']);
+  // ✅ Método para calcular el rango mostrado (reemplaza el uso de Math en el template)
+  get rangoMostrado(): string {
+    const inicio = ((this.paginaActual - 1) * this.itemsPorPagina) + 1;
+    const fin = Math.min(this.paginaActual * this.itemsPorPagina, this.totalItems);
+    return `Mostrando ${inicio}-${fin} de ${this.totalItems} registros`;
   }
 
+  // ✅ Modal para crear/editar
+  openNewUserModal(usuario?: UsuarioDTO) {
+    const modalRef = this.modalService.open(UsuarioModalComponent, {
+      size: 'lg',
+      backdrop: 'static'
+    });
+
+    if (usuario) {
+      modalRef.componentInstance.isEditMode = true;
+      modalRef.componentInstance.usuarioData = { ...usuario };
+    } else {
+      modalRef.componentInstance.isEditMode = false;
+    }
+
+    modalRef.result.then((result: any) => {
+      console.log('Usuario guardado:', result);
+      
+      if (usuario && usuario.id) {
+        this.actualizarUsuario(usuario.id, result);
+      } else {
+        this.crearUsuario(result);
+      }
+    }).catch((error) => {
+      console.log('Modal cerrado sin guardar');
+    });
+  }
+
+  // ✅ Crear usuario
+  crearUsuario(usuarioData: any) {
+    this.cargando = true;
+    
+    const usuarioDto: UsuarioCreateDTO = {
+      username: usuarioData.username,
+      password: usuarioData.password,
+      rolUsuario: usuarioData.rolUsuario as RolUsuario,
+      personaId: usuarioData.personaId
+    };
+    
+    this.userService.crearUsuario(usuarioDto).subscribe({
+      next: (usuarioCreado) => {
+        console.log('✅ Usuario creado exitosamente:', usuarioCreado);
+        this.cargarUsuarios();
+        alert('Usuario creado exitosamente');
+      },
+      error: (error) => {
+        console.error('❌ Error al crear usuario:', error);
+        this.cargando = false;
+        alert('Error al crear el usuario');
+      }
+    });
+  }
+
+  // ✅ Actualizar usuario
+  actualizarUsuario(id: number, usuarioData: any) {
+    this.cargando = true;
+    
+    const usuarioDto: UsuarioDTO = {
+      id: id,
+      username: usuarioData.username,
+      rolUsuario: usuarioData.rolUsuario as RolUsuario,
+      activo: usuarioData.activo,
+      personaId: usuarioData.personaId
+    };
+    
+    this.userService.actualizarUsuario(id, usuarioDto).subscribe({
+      next: (usuarioActualizado) => {
+        console.log('✅ Usuario actualizado exitosamente:', usuarioActualizado);
+        this.cargarUsuarios();
+        alert('Usuario actualizado exitosamente');
+      },
+      error: (error) => {
+        console.error('❌ Error al actualizar usuario:', error);
+        this.cargando = false;
+        alert('Error al actualizar el usuario');
+      }
+    });
+  }
+
+  // ✅ Eliminar usuario
+  eliminarUsuario(usuario: UsuarioDTO) {
+    if (confirm(`¿Está seguro de eliminar al usuario ${usuario.username}?`)) {
+      this.cargando = true;
+      
+      if (usuario.id) {
+        this.userService.eliminarUsuario(usuario.id).subscribe({
+          next: () => {
+            console.log('✅ Usuario eliminado exitosamente');
+            this.cargarUsuarios();
+            alert('Usuario eliminado exitosamente');
+          },
+          error: (error) => {
+            console.error('❌ Error al eliminar usuario:', error);
+            this.cargando = false;
+            alert('Error al eliminar el usuario');
+          }
+        });
+      } else {
+        console.error('❌ No se puede eliminar: usuario sin ID');
+        this.cargando = false;
+        alert('Error: usuario sin ID');
+      }
+    }
+  }
+
+  // ✅ Clases para badges
   getBadgeClassRol(rol: string): string {
-  switch (rol) {
-    case 'ADMINISTRADOR': return 'badge badge-administrador'; 
-    case 'MOZO': return 'badge badge-mozo'; 
-    case 'COCINA': return 'badge badge-cocina'; 
-    default: return 'badge badge-baja'; // fallback si el rol no coincide
+    switch (rol) {
+      case 'ADMINISTRADOR': return 'badge badge-administrador'; 
+      case 'MOZO': return 'badge badge-mozo'; 
+      case 'COCINA': return 'badge badge-cocina'; 
+      case 'ENCARGADO': return 'badge badge-encargado';
+      default: return 'badge badge-baja';
+    }
   }
-}
 
-
+  getBadgeClassEstado(activo: boolean): string {
+    return activo ? 'badge badge-activo' : 'badge badge-baja';
+  }
 }

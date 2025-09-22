@@ -7,6 +7,7 @@ export interface Persona {
   documento: string;
   tipo: TipoPersona;
   fechaBaja?: string;
+  activo?: boolean;
 }
 
 export interface PostPersonaDto {

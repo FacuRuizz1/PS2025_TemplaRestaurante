@@ -44,7 +44,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .password(passwordEncoder.encode(usuarioCreateDTO.getPassword()))
                 .rolUsuario(usuarioCreateDTO.getRolUsuario())
                 .activo(true) // Por defecto activo
-//                .persona(persona) // Asigno la entidad completa, no el ID
+//              .persona(persona) // Asigno la entidad completa, no el ID
                 .build();
 
         // Guardar en la base de datos
