@@ -21,8 +21,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
 
+    private final EmailService emailService;
     private final UsuarioRepository usuarioRepository;
-//    private final PersonaRepository personaRepository;
+    private final PersonaRepository personaRepository;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
@@ -33,10 +34,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (usuarioRepository.existsByUsername(usuarioCreateDTO.getUsername())) {
             throw new IllegalArgumentException("El nombre de usuario ya existe");
         }
-
-        // Buscar la persona asociada
-//        PersonaEntity persona = personaRepository.findById(usuarioCreateDTO.getPersonaId())
-//                .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada con ID: " + usuarioCreateDTO.getPersonaId()));
 
         // Crear la entidad usuario
         UsuarioEntity usuario = UsuarioEntity.builder()
@@ -49,6 +46,12 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // Guardar en la base de datos
         UsuarioEntity usuarioGuardado = usuarioRepository.save(usuario);
+
+        PersonaEntity persona = personaRepository.findById(usuarioCreateDTO.getPersonaId())
+                .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada con ID: " + usuarioCreateDTO.getPersonaId()));
+
+        String nombreCompleto = persona.getNombre() + " " + persona.getApellido();
+        emailService.enviarMailNuevoUsuario(persona.getEmail(), nombreCompleto, usuarioCreateDTO.getUsername(), usuarioCreateDTO.getPassword());
 
         // Convertir a DTO y retornar
         return modelMapper.map(usuarioGuardado, UsuarioDTO.class);
@@ -113,6 +116,4 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         usuarioRepository.deleteById(id);
     }
-
-
 }
