@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JwtService {
     private static final String SECRET_KEY = "cF2xS9M38KkB8Kqx4UTxyHSwjA/ym6R7IoEWRQW8yqk=";
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hora
+    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 8;  // 8 horas
 
     public String generateToken(UserDetails user) {
         return generateToken(new HashMap<>(), user);
