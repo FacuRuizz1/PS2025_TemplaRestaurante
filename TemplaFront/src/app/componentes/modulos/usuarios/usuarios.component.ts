@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { UsuarioModalComponent } from '../../modales/usuario-modal/usuario-modal.component';
 import { UserService } from '../../../services/user.service';
-import { UsuarioDTO, UsuarioCreateDTO, RolUsuario } from '../../models/UsuarioModel';
+import { UsuarioDTO, UsuarioCreateDTO, UsuarioUpdateDTO, RolUsuario } from '../../models/UsuarioModel';
 
 @Component({
   selector: 'app-usuarios',
@@ -220,15 +220,15 @@ export class UsuariosComponent implements OnInit {
   actualizarUsuario(id: number, usuarioData: any) {
     this.cargando = true;
     
-    const usuarioDto: UsuarioDTO = {
-      id: id,
+    // ✅ Usar UsuarioUpdateDTO que coincide con el backend
+    const usuarioUpdateDto: UsuarioUpdateDTO = {
       username: usuarioData.username,
+      password: usuarioData.password || undefined, // Solo se incluye si hay valor
       rolUsuario: usuarioData.rolUsuario as RolUsuario,
-      activo: usuarioData.activo,
-      personaId: usuarioData.personaId
+      activo: usuarioData.activo
     };
     
-    this.userService.actualizarUsuario(id, usuarioDto).subscribe({
+    this.userService.actualizarUsuario(id, usuarioUpdateDto).subscribe({
       next: (usuarioActualizado) => {
         console.log('✅ Usuario actualizado exitosamente:', usuarioActualizado);
         this.cargarUsuarios();

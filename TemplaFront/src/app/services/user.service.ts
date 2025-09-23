@@ -52,7 +52,8 @@ export class UserService {
     
     const httpOptions = {
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     };
 
@@ -60,14 +61,32 @@ export class UserService {
   }
 
   actualizarUsuario(id: number, usuario: any): Observable<UsuarioDTO> {
-    return this.http.put<UsuarioDTO>(`${this.apiUrl}/editar/${id}`, usuario, { 
-      headers: this.getHeaders() 
-    });
+    const token = this.authService.getToken();
+    
+    // ✅ LOGS para debug
+    console.log('Token en actualizarUsuario:', token);  
+    console.log('Usuario DTO:', usuario);
+    console.log('API URL:', `${this.apiUrl}/editar/${id}`);
+    
+    const httpOptions = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+
+    return this.http.put<UsuarioDTO>(`${this.apiUrl}/editar/${id}`, usuario, httpOptions);
   }
 
   eliminarUsuario(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/eliminar/${id}`, { 
-      headers: this.getHeaders() 
-    });
+    const token = this.authService.getToken();
+    
+    const httpOptions = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+
+    return this.http.delete<void>(`${this.apiUrl}/eliminar/${id}`, httpOptions);
   }
 }

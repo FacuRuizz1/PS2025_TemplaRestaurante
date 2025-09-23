@@ -17,11 +17,13 @@
         </div>
       </div>
 
-      <!-- Password (solo para creación) -->
-      <div class="form-row" *ngIf="!isEditMode">
+      <!-- Password (requerida para creación, opcional para edición) -->
+      <div class="form-row">
         <div class="form-group full-width">
           <input type="password" id="password" name="password" class="form-control custom-input"
-                 placeholder="Password" [(ngModel)]="usuario.password" required>
+                 [placeholder]="isEditMode ? 'Nueva Password (opcional)' : 'Password'" 
+                 [(ngModel)]="usuario.password" 
+                 [required]="!isEditMode">
         </div>
       </div>
 

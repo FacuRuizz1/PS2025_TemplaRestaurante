@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UsuarioUpdateDTO {
     private String username;
-    private String password; // Opcional - si viene null, no se actualiza
+    private String password;
     private RolUsuario rolUsuario;
     private Boolean activo;
 }

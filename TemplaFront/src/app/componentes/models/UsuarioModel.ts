@@ -24,6 +24,14 @@ export interface UsuarioDTO {
   personaId?: number;
 }
 
+export interface UsuarioUpdateDTO {
+  username: string;
+  password?:string;
+  rolUsuario: RolUsuario;
+  activo: boolean;
+ 
+}
+
 export enum RolUsuario {
   ADMINISTRADOR = 'ADMINISTRADOR',
   MOZO = 'MOZO',
