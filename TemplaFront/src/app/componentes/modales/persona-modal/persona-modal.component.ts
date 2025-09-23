@@ -45,6 +45,9 @@ export class PersonaModalComponent implements OnInit {
   ngOnInit() {
     if (this.isEditMode && this.personaData) {
       this.persona = { ...this.personaData };
+          if (this.persona.dni && typeof this.persona.dni !== 'string') {
+            this.persona.dni = (this.persona.dni as any).toString();
+          }
     }
   }
 
@@ -58,11 +61,11 @@ export class PersonaModalComponent implements OnInit {
     this.activeModal.close(this.persona);
   }
 
-    isFormValid(): boolean {
+  isFormValid(): boolean {
     return !!(
       this.persona.nombre?.trim() &&
       this.persona.apellido?.trim() &&
-      this.persona.dni?.trim() &&
+      this.persona.dni?.toString()?.trim() && // ✅ CAMBIAR: más seguro
       this.persona.email?.trim() &&
       this.persona.telefono?.trim() &&
       this.persona.tipoPersona 

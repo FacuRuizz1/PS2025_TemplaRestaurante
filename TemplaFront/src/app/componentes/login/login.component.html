@@ -22,15 +22,12 @@
                         placeholder="Usuario" required [(ngModel)]="username"
                         [disabled]="isLoading">
                 </div>
-                <div class="mb-2 w-75">
+                <div class="mb-5 w-75">
                     <input type="password" id="password" name="password" class="form-control custom-input"
                         placeholder="Contraseña" required [(ngModel)]="password"
                         [disabled]="isLoading">
                 </div>
-                <div class="mb-4 w-75 text-start">
-                    <a href="#" class="forgot-password">Olvidó su Contraseña?</a>
-                </div>
-                <button type="submit" class="btn custom-btn w-75" 
+                <button type="submit" class="btn custom-btn w-75 mt-4" 
                         (click)="login()" 
                         [disabled]="isLoading || !username || !password">
                     <span *ngIf="!isLoading">Log In</span>
