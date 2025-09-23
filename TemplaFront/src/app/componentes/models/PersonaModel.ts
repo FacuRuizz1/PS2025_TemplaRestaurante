@@ -4,8 +4,8 @@ export interface Persona {
   apellido: string;
   email: string;
   telefono: string;
-  documento: string;
-  tipo: TipoPersona;
+  dni: string;
+  tipoPersona: TipoPersona | null;
   fechaBaja?: string;
   activo?: boolean;
 }

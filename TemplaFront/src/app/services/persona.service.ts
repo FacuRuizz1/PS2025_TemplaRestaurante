@@ -44,6 +44,7 @@ export class PersonaService {
 
   obtenerPersonasConFiltros(filtros: FiltroPersona): Observable<Page<Persona>> {
     let params = new HttpParams();
+   console.log('🔍 Filtros recibidos en service:', filtros);
 
     if (filtros.page !== undefined) {
       params = params.set('page', filtros.page.toString());
@@ -68,7 +69,12 @@ export class PersonaService {
     if (filtros.activo !== undefined) {
       const estado = filtros.activo ? 'ACTIVOS' : 'BAJA';
       params = params.set('estado', estado);
+      console.log('🔍 Agregando parámetro estado:', estado);
+    } else {
+      console.log('🔍 Sin filtro de estado (TODOS)');
     }
+
+    console.log('🔍 Parámetros finales:', params.toString());
 
     const token = this.authService.getToken();
     

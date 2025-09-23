@@ -1,13 +1,3 @@
-.background {
-    background-color: var(--templa-beige);
-    width: 100%;
-    min-height: calc(100vh - 70px);
-    display: block;
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-}
-
 .header {
     display: flex;
     justify-content: space-between;
@@ -161,11 +151,11 @@
     background-color: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 25px 10px rgba(0, 0, 0, 0.1);
 }
 
 .custom-table thead th {
-    background-color: var(--templa-gold);
+    background-color: var(--templa-brown);
     color: white;
     font-weight: 600;
     border: none;
@@ -187,14 +177,14 @@
     font-weight: 600;
 }
 
-.badge-empleado {
-    background-color: var(--templa-brown);
+.badge-personal {
+    background-color: var(--templa-gold);
     color: white;
 }
 
 .badge-cliente {
-    background-color: var(--templa-gold);
-    color: var(--templa-brown);
+    background-color: var(--templa-brown);
+    color: white;
 }
 
 .badge-activo {

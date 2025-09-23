@@ -58,6 +58,12 @@
   flex: 1;
 }
 
+.form-select.custom-input {
+  background-color: var(--templa-gold)!important;
+  color: white;
+  border:none;
+}
+
 .custom-input,.custom-select {
     background-color: var(--templa-gold);
     border: none;
@@ -74,6 +80,14 @@
 .custom-input::placeholder {
     color: white;
     opacity: 0.8;
+}
+
+.custom-input[disabled] {
+    background-color: var(--templa-brown-disabled) !important;
+    color: var(--templa-beige) !important;
+    border: 2px solid var(--templa-brown-disabled) !important;
+    opacity: 0.8;
+    cursor: not-allowed;
 }
 
 .custom-input:focus {

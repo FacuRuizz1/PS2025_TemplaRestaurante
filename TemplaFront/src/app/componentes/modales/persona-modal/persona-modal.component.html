@@ -10,68 +10,56 @@
       <!-- Primera fila: Nombre y Apellido -->
       <div class="form-row">
         <div class="form-group">
-                <input type="text" id="nombre" name="nombre" class="form-control custom-input"
-                    placeholder="Nombre" [(ngModel)]="persona.nombre">
+          <input type="text" id="nombre" name="nombre" class="form-control custom-input" placeholder="Nombre"
+            [(ngModel)]="persona.nombre">
         </div>
-        
+
         <div class="form-group">
-                <input type="text" id="apellido" name="apellido" class="form-control custom-input"
-                    placeholder="Apellido" [(ngModel)]="persona.apellido">
+          <input type="text" id="apellido" name="apellido" class="form-control custom-input" placeholder="Apellido"
+            [(ngModel)]="persona.apellido">
         </div>
       </div>
 
       <!-- Cuarta fila: Documento -->
-        <div class="form-row">
-            <div class="form-group full-width">
-                <input type="text" 
-                    class="form-control custom-input" 
-                    [(ngModel)]="persona.documento" 
-                    name="documento"
-                    placeholder="DNI">
-            </div>
+      <div class="form-row">
+        <div class="form-group full-width">
+          <input type="text" class="form-control custom-input" [(ngModel)]="persona.dni" name="documento"
+            placeholder="DNI">
         </div>
+      </div>
 
       <!-- Tercera fila: Email y Teléfono -->
       <div class="form-row">
         <div class="form-group">
-          <input type="email" 
-                 class="form-control custom-input" 
-                 [(ngModel)]="persona.email" 
-                 name="email"
-                 placeholder="ejemplo@templa.com">
+          <input type="email" class="form-control custom-input" [(ngModel)]="persona.email" name="email"
+            placeholder="ejemplo@templa.com">
         </div>
-        
+
         <div class="form-group">
-          <input type="tel" 
-                 class="form-control custom-input" 
-                 [(ngModel)]="persona.telefono" 
-                 name="telefono"
-                 placeholder="351811074">
+          <input type="tel" class="form-control custom-input" [(ngModel)]="persona.telefono" name="telefono"
+            placeholder="351811074">
         </div>
       </div>
 
-      <!-- Segunda fila: Tipo y dni -->
+      <!-- Segunda fila: Tipo y fecha baja -->
       <div class="form-row">
         <div class="form-group">
-          <select class="form-select custom-select" 
-                  [(ngModel)]="persona.tipo" 
-                  name="tipo">
-            <option value="" disabled selected>Tipo Persona</option>
-            <option value="PERSONAL">Personal</option>
-            <option value="CLIENTE">Cliente</option>
+          <select class="form-select custom-input" [(ngModel)]="persona.tipoPersona" name="tipoPersona" required>
+            <!-- ✅ CORREGIR - value null para placeholder -->
+            <option [value]="null" disabled>Tipo Persona</option>
+            <option *ngFor="let tipo of tipoPersonaOptions" [value]="tipo">
+              {{ tipo === 'PERSONAL' ? 'Personal' : 'Cliente' }}
+            </option>
           </select>
         </div>
-        
-        <div class="form-group">
-            <div class="toggle-container"> 
-                <label class="toggle-switch">
-                <input type="checkbox" 
-                        [(ngModel)]="persona.activo" 
-                        name="activo">
-                <span class="toggle-slider"></span>
-                </label>
-                <span class="toggle-label">Activo</span>
-          </div>
+
+        <div class="form-group" *ngIf="persona.fechaBaja !== null && isEditMode !== false">
+          <input type="text" 
+                class="form-control custom-input" 
+                [value]="getFechaFormateada(persona.fechaBaja)"
+                name="fechaBaja"
+                disabled
+                readonly>
         </div>
       </div>
     </form>
@@ -79,14 +67,10 @@
 
   <!-- Footer del modal -->
   <div class="modal-footer custom-footer">
-    <button type="button" 
-            class="btn custom-btn-cancel" 
-            (click)="activeModal.dismiss()">
+    <button type="button" class="btn custom-btn-cancel" (click)="activeModal.dismiss()">
       Cancelar
     </button>
-    <button type="button" 
-            class="btn custom-btn-save" 
-            (click)="save()">
+    <button type="button" class="btn custom-btn-save" (click)="save()">
       Guardar
     </button>
   </div>

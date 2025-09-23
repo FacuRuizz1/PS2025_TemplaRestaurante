@@ -7,12 +7,12 @@
   margin-left: 80px; /* Espacio para navbar colapsado */
   /*margin-top: 70px;   Espacio para header */
   flex-grow: 1;
-  background-color: #f8f9fa;
+  background-color:  var(--templa-beige);
   min-height: calc(100vh - 70px);
   transition: margin-left 0.3s ease;
   width: calc(100vw - 80px); /* Asegurar que ocupe el espacio correcto */
   padding: 0;
-  padding-top: 70px;;
+  padding-top: 70px;
   position:relative;
   z-index: 1;
 }

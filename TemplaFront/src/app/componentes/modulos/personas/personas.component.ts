@@ -25,7 +25,6 @@ export class PersonasComponent implements OnInit {
   // ✅ Filtros
   busqueda: string = '';
   tipoSeleccionado: TipoPersona | '' = TipoPersona.PERSONAL;
-  activoSeleccionado: boolean = true;
   estadoSeleccionado: string = 'ACTIVOS';
   
   // ✅ Paginación
@@ -68,17 +67,30 @@ export class PersonasComponent implements OnInit {
     });
   }
 
+  private construirFiltros(pagina: number = 0): FiltroPersona {
+    let activoFiltro: boolean | undefined;
+    
+    if (this.estadoSeleccionado === 'ACTIVOS') {
+      activoFiltro = true;
+    } else if (this.estadoSeleccionado === 'BAJA') {
+      activoFiltro = false;
+    } else {
+      activoFiltro = undefined; // TODOS
+    }
+    
+    return {
+      busqueda: this.busqueda,
+      tipo: this.tipoSeleccionado === '' ? undefined : this.tipoSeleccionado,
+      activo: activoFiltro,
+      page: pagina,
+      size: this.tamanoPagina
+    };
+  }
+
   // ✅ Aplicar filtros
   aplicarFiltros() {
     this.cargando = true;
-    
-    const filtros: FiltroPersona = {
-      busqueda: this.busqueda,
-      tipo: this.tipoSeleccionado,
-      activo: this.activoSeleccionado,
-      page: 0,
-      size: this.tamanoPagina
-    };
+    const filtros = this.construirFiltros(0); // Siempre empezar en página 0
 
     this.personaService.obtenerPersonasConFiltros(filtros).subscribe({
       next: (page) => {
@@ -86,6 +98,7 @@ export class PersonasComponent implements OnInit {
         this.personas = page.content;
         this.paginaActual = page.number;
         this.cargando = false;
+        console.log('✅ Filtros aplicados, personas cargadas:', page.content.length);
       },
       error: (error) => {
         console.error('Error al filtrar personas:', error);
@@ -105,20 +118,10 @@ export class PersonasComponent implements OnInit {
   }
 
   onEstadoChange(estado: string) {
+    console.log('🔍 Estado seleccionado:', estado);
     this.estadoSeleccionado = estado;
-    if (estado === 'todos') {
-      // Manejar lógica para "todos"
-      this.aplicarFiltros();
-    } else {
-      this.activoSeleccionado = estado === 'ACTIVOS';
-      this.aplicarFiltros();
-    }
-  }  
-
-  onActivoChange(activo: boolean) {
-    this.activoSeleccionado = activo;
     this.aplicarFiltros();
-  }
+  } 
 
   obtenerPaginasVisibles(): number[] {
     if (!this.pageInfo) return [];
@@ -149,7 +152,7 @@ export class PersonasComponent implements OnInit {
 
   if (persona) {
     modalRef.componentInstance.isEditMode = true;
-    modalRef.componentInstance.personaData = { ...persona }; // ✅ Copia del objeto
+    modalRef.componentInstance.personaData = persona; // ✅ Copia del objeto
   } else {
     modalRef.componentInstance.isEditMode = false;
   }
@@ -181,8 +184,8 @@ private convertirAPostDto(persona: Persona): PostPersonaDto {
     apellido: persona.apellido,
     email: persona.email,
     telefono: persona.telefono,
-    dni: parseInt(persona.documento) || 0, // ✅ Convertir string a number
-    tipoPersona: persona.tipo, // ✅ El enum ya es correcto
+    dni: parseInt(persona.dni) || 0, // ✅ Convertir string a number
+    tipoPersona: persona.tipoPersona!, // ✅ El enum ya es correcto
     userAlta: userAlta // ✅ ID del usuario que crea
   };
 }
@@ -247,14 +250,7 @@ crearPersona(persona: Persona) {
   irAPagina(pagina: number) {
     if (pagina >= 0 && this.pageInfo && pagina < this.pageInfo.totalPages) {
       this.paginaActual = pagina;
-      
-      const filtros: FiltroPersona = {
-        busqueda: this.busqueda,
-        tipo: this.tipoSeleccionado,
-        activo: this.activoSeleccionado,
-        page: pagina,
-        size: this.tamanoPagina
-      };
+      const filtros = this.construirFiltros(pagina); // Mantener filtros actuales
 
       this.cargando = true;
       this.personaService.obtenerPersonasConFiltros(filtros).subscribe({
