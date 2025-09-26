@@ -92,6 +92,7 @@
                     <tr>
                         <th scope="col">#</th>
                         <th scope="col">Username</th>
+                        <th scope="col">Persona</th>
                         <th scope="col">Rol</th>
                         <th scope="col">Estado</th>
                         <th scope="col">Acciones</th>
@@ -100,7 +101,7 @@
                 <tbody class="table-group-divider">
                     <!-- ✅ Mostrar mensaje si no hay datos -->
                     <tr *ngIf="usuariosPaginados.length === 0">
-                        <td colspan="5" class="text-center text-muted py-4">
+                        <td colspan="6" class="text-center text-muted py-4">
                             No se encontraron usuarios
                         </td>
                     </tr>
@@ -110,6 +111,10 @@
                         <tr>
                             <th scope="row">{{ i + 1 + ((paginaActual - 1) * itemsPorPagina) }}</th>
                             <td>{{ usuario.username }}</td>
+                            <td>
+                                <span class="text-muted" *ngIf="!usuario.personaNombre">Sin asignar</span>
+                                <span *ngIf="usuario.personaNombre">{{ usuario.personaNombre }}</span>
+                            </td>
                             <td>
                                 <span class="badge" [ngClass]="getBadgeClassRol(usuario.rolUsuario)">
                                     {{ usuario.rolUsuario }}

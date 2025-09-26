@@ -15,5 +15,5 @@ public class UsuarioDTO {
     private String username;
     private RolUsuario rolUsuario;
     private Boolean activo;
-    private Integer personaId;
+    private String personaNombre;
 }

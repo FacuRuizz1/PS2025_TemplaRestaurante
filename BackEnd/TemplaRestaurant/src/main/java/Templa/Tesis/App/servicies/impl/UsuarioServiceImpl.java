@@ -30,32 +30,35 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioDTO crearUsuario(UsuarioCreateDTO usuarioCreateDTO) {
-        // Verificar si el username ya existe
         if (usuarioRepository.existsByUsername(usuarioCreateDTO.getUsername())) {
             throw new IllegalArgumentException("El nombre de usuario ya existe");
         }
 
-        // Crear la entidad usuario
+        // Buscar persona por nombre
+        PersonaEntity persona = personaRepository.findByNombreCompleto(usuarioCreateDTO.getPersonaNombre());
+                if(persona == null){
+                    throw new EntityNotFoundException("Persona no encontrada con el nombre: " + usuarioCreateDTO.getPersonaNombre());
+                }
+
         UsuarioEntity usuario = UsuarioEntity.builder()
                 .username(usuarioCreateDTO.getUsername())
                 .password(passwordEncoder.encode(usuarioCreateDTO.getPassword()))
                 .rolUsuario(usuarioCreateDTO.getRolUsuario())
-                .activo(true) // Por defecto activo
-//              .persona(persona) // Asigno la entidad completa, no el ID
+                .activo(true)
+                .persona(persona) // ahora sí asignamos la persona
                 .build();
 
-        // Guardar en la base de datos
         UsuarioEntity usuarioGuardado = usuarioRepository.save(usuario);
-
-        PersonaEntity persona = personaRepository.findById(usuarioCreateDTO.getPersonaId())
-                .orElseThrow(() -> new EntityNotFoundException("Persona no encontrada con ID: " + usuarioCreateDTO.getPersonaId()));
 
         String nombreCompleto = persona.getNombre() + " " + persona.getApellido();
         emailService.enviarMailNuevoUsuario(persona.getEmail(), nombreCompleto, usuarioCreateDTO.getUsername(), usuarioCreateDTO.getPassword());
 
-        // Convertir a DTO y retornar
-        return modelMapper.map(usuarioGuardado, UsuarioDTO.class);
+        // Convertir a DTO
+        UsuarioDTO dto = modelMapper.map(usuarioGuardado, UsuarioDTO.class);
+        dto.setPersonaNombre(nombreCompleto);
+        return dto;
     }
+
 
     @Override
     public UsuarioDTO actualizarUsuario(Integer id, UsuarioUpdateDTO usuarioUpdateDTO) {

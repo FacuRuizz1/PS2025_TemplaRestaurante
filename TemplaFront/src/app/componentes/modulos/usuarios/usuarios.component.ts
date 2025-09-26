@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { UsuarioModalComponent } from '../../modales/usuario-modal/usuario-modal.component';
 import { UserService } from '../../../services/user.service';
+import { PersonaService } from '../../../services/persona.service';
 import { UsuarioDTO, UsuarioCreateDTO, UsuarioUpdateDTO, RolUsuario } from '../../models/UsuarioModel';
 
 @Component({
@@ -19,6 +20,7 @@ export class UsuariosComponent implements OnInit {
   // ✅ Datos
   usuarios: UsuarioDTO[] = [];
   usuariosFiltrados: UsuarioDTO[] = [];
+  personas: any[] = []; // Lista de personas para el dropdown
   
   // ✅ Filtros
   busqueda: string = '';
@@ -38,11 +40,13 @@ export class UsuariosComponent implements OnInit {
 
   constructor(
     private modalService: NgbModal,
-    private userService: UserService
+    private userService: UserService,
+    private personaService: PersonaService
   ) {}
 
   ngOnInit() {
     this.cargarUsuarios();
+    this.cargarPersonas();
   }
 
   // ✅ Carga inicial
@@ -62,6 +66,20 @@ export class UsuariosComponent implements OnInit {
         this.error = 'Error al cargar los usuarios';
         this.cargando = false;
         console.error('Error:', error);
+      }
+    });
+  }
+
+  // ✅ Cargar lista de personas para el dropdown
+  cargarPersonas(): void {
+    this.personaService.obtenerPersonas(0, 1000).subscribe({
+      next: (response) => {
+        this.personas = response.content || [];
+        console.log('Personas cargadas:', this.personas.length);
+      },
+      error: (error) => {
+        console.error('Error al cargar personas:', error);
+        this.personas = [];
       }
     });
   }
@@ -171,6 +189,9 @@ export class UsuariosComponent implements OnInit {
       backdrop: 'static'
     });
 
+    // ✅ Pasar la lista de personas al modal
+    modalRef.componentInstance.personas = this.personas;
+
     if (usuario) {
       modalRef.componentInstance.isEditMode = true;
       modalRef.componentInstance.usuarioData = { ...usuario };
@@ -199,7 +220,7 @@ export class UsuariosComponent implements OnInit {
       username: usuarioData.username,
       password: usuarioData.password,
       rolUsuario: usuarioData.rolUsuario as RolUsuario,
-      personaId: usuarioData.personaId
+      personaNombre: usuarioData.personaNombre
     };
     
     this.userService.crearUsuario(usuarioDto).subscribe({
@@ -225,7 +246,8 @@ export class UsuariosComponent implements OnInit {
       username: usuarioData.username,
       password: usuarioData.password || undefined, // Solo se incluye si hay valor
       rolUsuario: usuarioData.rolUsuario as RolUsuario,
-      activo: usuarioData.activo
+      activo: usuarioData.activo,
+      personaNombre: usuarioData.personaNombre
     };
     
     this.userService.actualizarUsuario(id, usuarioUpdateDto).subscribe({

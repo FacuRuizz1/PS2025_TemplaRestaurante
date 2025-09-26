@@ -21,9 +21,10 @@ export class UsuarioModalComponent implements OnInit {
     password: '',
     rolUsuario: '' as RolUsuario,
     activo: true,
-    personaId: undefined as number | undefined
+    personaNombre: ''
   };
 
+  @Input() personas: any[] = []; // Lista de personas disponibles
   RolUsuario = RolUsuario;
 
   constructor(public activeModal: NgbActiveModal) {}
@@ -32,7 +33,8 @@ export class UsuarioModalComponent implements OnInit {
     if (this.isEditMode && this.usuarioData) {
       this.usuario = { 
         ...this.usuarioData,
-        password: '' // No mostramos la password en edición por seguridad
+        password: '', // No mostramos la password en edición por seguridad
+        personaNombre: '' // Siempre inicia vacío para mostrar el placeholder
       };
     }
   }

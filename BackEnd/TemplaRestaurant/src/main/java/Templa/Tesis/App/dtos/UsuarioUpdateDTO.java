@@ -15,4 +15,5 @@ public class UsuarioUpdateDTO {
     private String password;
     private RolUsuario rolUsuario;
     private Boolean activo;
+    private String personaNombre;
 }

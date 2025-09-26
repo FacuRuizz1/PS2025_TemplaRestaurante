@@ -52,13 +52,17 @@
         </div>
       </div>
 
-      <!-- Persona ID (opcional) -->
+      <!-- Seleccionar Persona (opcional) -->
       <div class="form-row">
         <div class="form-group full-width">
-          <input type="number" class="form-control custom-input" 
-                 [(ngModel)]="usuario.personaId" 
-                 name="personaId"
-                 placeholder="ID de Persona (opcional)">
+          <select class="form-select custom-select" 
+                  [(ngModel)]="usuario.personaNombre" 
+                  name="personaNombre">
+            <option value="" selected>Seleccionar Persona (opcional)</option>
+            <option *ngFor="let persona of personas" [value]="persona.nombre + ' ' + persona.apellido">
+              {{ persona.nombre }} {{ persona.apellido }}
+            </option>
+          </select>
         </div>
       </div>
     </form>

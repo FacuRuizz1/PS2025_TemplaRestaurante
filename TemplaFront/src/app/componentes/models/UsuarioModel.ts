@@ -12,7 +12,7 @@ export interface UsuarioCreateDTO {
   username: string;
   password: string;
   rolUsuario: RolUsuario;
-  personaId?: number;
+  personaNombre?: string;
 }
 
 // Interface que coincide con lo que devuelve tu backend
@@ -21,15 +21,15 @@ export interface UsuarioDTO {
   username: string;
   rolUsuario: RolUsuario;
   activo: boolean;
-  personaId?: number;
+  personaNombre?: string;
 }
 
 export interface UsuarioUpdateDTO {
   username: string;
-  password?:string;
+  password?: string;
   rolUsuario: RolUsuario;
   activo: boolean;
- 
+  personaNombre?: string;
 }
 
 export enum RolUsuario {
