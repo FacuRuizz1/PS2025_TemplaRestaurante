@@ -67,6 +67,9 @@ public class SecurityConfig {
                         // Endpoints de persona solo ADMINISTRADOR
                         .requestMatchers("/api/persona/**").hasAuthority("ADMINISTRADOR")
 
+                        // Endpoints de producto solo para ADMINISTRADOR
+                        .requestMatchers("/api/producto/**").hasAuthority("ADMINISTRADOR")
+
                         // Cualquier otro endpoint requiere autenticación
                         .anyRequest().authenticated()
                 )
