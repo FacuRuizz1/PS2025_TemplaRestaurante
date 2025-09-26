@@ -7,6 +7,7 @@ import { UsuarioModalComponent } from '../../modales/usuario-modal/usuario-modal
 import { UserService } from '../../../services/user.service';
 import { PersonaService } from '../../../services/persona.service';
 import { UsuarioDTO, UsuarioCreateDTO, UsuarioUpdateDTO, RolUsuario } from '../../models/UsuarioModel';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-usuarios',
@@ -227,12 +228,24 @@ export class UsuariosComponent implements OnInit {
       next: (usuarioCreado) => {
         console.log('✅ Usuario creado exitosamente:', usuarioCreado);
         this.cargarUsuarios();
-        alert('Usuario creado exitosamente');
+        Swal.fire({
+          title: '¡Éxito!',
+          text: 'Usuario creado exitosamente',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#28a745'
+        });
       },
       error: (error) => {
         console.error('❌ Error al crear usuario:', error);
         this.cargando = false;
-        alert('Error al crear el usuario');
+        Swal.fire({
+          title: 'Error',
+          text: 'Error al crear el usuario',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#dc3545'
+        });
       }
     });
   }
@@ -254,40 +267,82 @@ export class UsuariosComponent implements OnInit {
       next: (usuarioActualizado) => {
         console.log('✅ Usuario actualizado exitosamente:', usuarioActualizado);
         this.cargarUsuarios();
-        alert('Usuario actualizado exitosamente');
+        Swal.fire({
+          title: '¡Éxito!',
+          text: 'Usuario actualizado exitosamente',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#28a745'
+        });
       },
       error: (error) => {
         console.error('❌ Error al actualizar usuario:', error);
         this.cargando = false;
-        alert('Error al actualizar el usuario');
+        Swal.fire({
+          title: 'Error',
+          text: 'Error al actualizar el usuario',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#dc3545'
+        });
       }
     });
   }
 
   // ✅ Eliminar usuario
   eliminarUsuario(usuario: UsuarioDTO) {
-    if (confirm(`¿Está seguro de eliminar al usuario ${usuario.username}?`)) {
-      this.cargando = true;
-      
-      if (usuario.id) {
-        this.userService.eliminarUsuario(usuario.id).subscribe({
-          next: () => {
-            console.log('✅ Usuario eliminado exitosamente');
-            this.cargarUsuarios();
-            alert('Usuario eliminado exitosamente');
-          },
-          error: (error) => {
-            console.error('❌ Error al eliminar usuario:', error);
-            this.cargando = false;
-            alert('Error al eliminar el usuario');
-          }
-        });
-      } else {
-        console.error('❌ No se puede eliminar: usuario sin ID');
-        this.cargando = false;
-        alert('Error: usuario sin ID');
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: `¿Desea eliminar al usuario ${usuario.username}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.cargando = true;
+        
+        if (usuario.id) {
+          this.userService.eliminarUsuario(usuario.id).subscribe({
+            next: () => {
+              console.log('✅ Usuario eliminado exitosamente');
+              this.cargarUsuarios();
+              Swal.fire({
+                title: '¡Eliminado!',
+                text: 'Usuario eliminado exitosamente',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#28a745'
+              });
+            },
+            error: (error) => {
+              console.error('❌ Error al eliminar usuario:', error);
+              this.cargando = false;
+              Swal.fire({
+                title: 'Error',
+                text: 'Error al eliminar el usuario',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc3545'
+              });
+            }
+          });
+        } else {
+          console.error('❌ No se puede eliminar: usuario sin ID');
+          this.cargando = false;
+          Swal.fire({
+            title: 'Error',
+            text: 'Error: usuario sin ID',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#dc3545'
+          });
+        }
       }
-    }
+    });
   }
 
   // ✅ Clases para badges

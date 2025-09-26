@@ -7,6 +7,7 @@ import { PersonaService } from '../../../services/persona.service';
 import { Page } from '../../models/CommonModels';
 import { Persona, TipoPersona, FiltroPersona, PostPersonaDto } from '../../models/PersonaModel';
 import { AuthService } from '../../../services/auth.service';
+import Swal from 'sweetalert2';
 
 
 @Component({
@@ -201,12 +202,24 @@ crearPersona(persona: Persona) {
     next: (personaCreada) => {
       console.log('✅ Persona creada exitosamente:', personaCreada);
       this.cargarEmpleadosIniciales();
-      alert('Persona creada exitosamente');
+      Swal.fire({
+        title: '¡Éxito!',
+        text: 'Persona creada exitosamente',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#28a745'
+      });
     },
     error: (error) => {
       console.error('❌ Error al crear persona:', error);
       this.cargando = false;
-      alert('Error al crear la persona');
+      Swal.fire({
+        title: 'Error',
+        text: 'Error al crear la persona',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#dc3545'
+      });
     }
   });
 }
@@ -217,33 +230,69 @@ crearPersona(persona: Persona) {
       next: (personaActualizada) => {
         console.log('✅ Persona actualizada exitosamente:', personaActualizada);
         this.aplicarFiltros(); // Recargar con filtros actuales
-        alert('Persona actualizada exitosamente');
+        Swal.fire({
+          title: '¡Éxito!',
+          text: 'Persona actualizada exitosamente',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#28a745'
+        });
       },
       error: (error) => {
         console.error('❌ Error al actualizar persona:', error);
         this.cargando = false;
-        alert('Error al actualizar la persona');
+        Swal.fire({
+          title: 'Error',
+          text: 'Error al actualizar la persona',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#dc3545'
+        });
       }
     });
   }
 
   // ✅ COMPLETAR EL MÉTODO DE ELIMINAR
   eliminarPersona(persona: Persona) {
-    if (confirm(`¿Está seguro de eliminar a ${persona.nombre} ${persona.apellido}?`)) {
-      this.cargando = true;
-      this.personaService.eliminarPersona(persona.id!).subscribe({
-        next: () => {
-          console.log('✅ Persona eliminada exitosamente');
-          this.aplicarFiltros(); // Recargar lista
-          alert('Persona eliminada exitosamente');
-        },
-        error: (error) => {
-          console.error('❌ Error al eliminar persona:', error);
-          this.cargando = false;
-          alert('Error al eliminar la persona');
-        }
-      });
-    }
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: `¿Desea eliminar a ${persona.nombre} ${persona.apellido}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.cargando = true;
+        this.personaService.eliminarPersona(persona.id!).subscribe({
+          next: () => {
+            console.log('✅ Persona eliminada exitosamente');
+            this.aplicarFiltros(); // Recargar lista
+            Swal.fire({
+              title: '¡Eliminada!',
+              text: 'Persona eliminada exitosamente',
+              icon: 'success',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#28a745'
+            });
+          },
+          error: (error) => {
+            console.error('❌ Error al eliminar persona:', error);
+            this.cargando = false;
+            Swal.fire({
+              title: 'Error',
+              text: 'Error al eliminar la persona',
+              icon: 'error',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#dc3545'
+            });
+          }
+        });
+      }
+    });
   }
 
   // ✅ COMPLETAR EL MÉTODO DE PAGINACIÓN
