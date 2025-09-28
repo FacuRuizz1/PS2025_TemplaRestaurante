@@ -6,3 +6,6 @@ VALUES (30,'Admin', 'Sistema', 'admin@gmail.com', '0000000000', 99999999, 'PERSO
 INSERT INTO usuarios (username, password, rol, activo, id_persona)
 VALUES ('admin','$2a$10$NewaJBkpaQZu/1xsTnpAqOr5nSnIbmVAV0IqPq6kP/SDtfeQJ83Xy',  -- "admin123" ENCRIPTADO
            'ADMINISTRADOR',true,30);
+
+INSERT INTO productos (nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo)
+VALUES ('Harina de Trigo', 'INSUMO', 'KILOGRAMO', 50.0, 10.0, 100.0, true);

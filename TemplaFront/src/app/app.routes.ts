@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './componentes/login/login.component';
 import { PersonasComponent } from './componentes/modulos/personas/personas.component';
 import { UsuariosComponent } from './componentes/modulos/usuarios/usuarios.component';
+import { ProductosComponent } from './componentes/modulos/productos/productos.component';
 import { AuthGuard as authGuard } from './guards/auth-guard.guard';
 
 export const routes: Routes = [
@@ -40,6 +41,19 @@ export const routes: Routes = [
       showInMenu: true, 
       parentMenu: 'personas',
       menuLabel: 'Usuarios'
+    }
+  },
+
+  // Rutas de productos (PROTEGIDAS)
+  { 
+    path: 'productos', 
+    component: ProductosComponent,
+    canActivate: [authGuard],
+    data: { 
+      showInMenu: true, 
+      menuLabel: 'Productos', 
+      icon: '📦',
+      order: 2
     }
   },
 
