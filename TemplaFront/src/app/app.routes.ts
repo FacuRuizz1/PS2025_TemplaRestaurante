@@ -18,8 +18,10 @@ export const routes: Routes = [
       showInMenu: true, 
       menuLabel: 'Personas', 
       icon: '👥',
-      order: 1
-    }
+      order: 1,
+      isPrincipal: true,
+      hasSubmenu: true
+    } 
   },
   
   // Subrutas de personas (PROTEGIDAS)
@@ -53,7 +55,9 @@ export const routes: Routes = [
       showInMenu: true, 
       menuLabel: 'Productos', 
       icon: '📦',
-      order: 2
+      order: 2,
+      isPrincipal: true,
+      hasSubmenu: true
     }
   },
 

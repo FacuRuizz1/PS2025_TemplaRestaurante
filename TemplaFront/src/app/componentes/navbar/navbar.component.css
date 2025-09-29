@@ -27,7 +27,7 @@
 }
 
 .navbar-toggle {
-  width: 80px; /* Ancho fijo para que no se mueva */
+  width: 80px;
   height: 50px;
   padding: 0;
   margin-bottom: 30px;
@@ -35,11 +35,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative; /* Para mantener posición fija */
+  position: relative;
 }
 
 /* ===== ANIMACIÓN HAMBURGUESA/X ===== */
-/* ===== ESTILOS SVG HAMBURGUESA ===== */
 .ham {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -59,7 +58,7 @@
 .line {
   fill: none;
   transition: stroke-dasharray 400ms, stroke-dashoffset 400ms;
-  stroke: white; /* ✅ Color blanco para el navbar */
+  stroke: white;
   stroke-width: 5.5;
   stroke-linecap: round;
 }
@@ -95,11 +94,11 @@
   stroke-dashoffset: -64px;
 }
 
-/* Efecto hover */
 .navbar-toggle:hover .ham .line {
   stroke: var(--templa-gold);
 }
 
+/* ===== MENÚ PRINCIPAL ===== */
 .navbar-menu {
   display: flex;
   flex-direction: column;
@@ -109,12 +108,84 @@
   padding: 0 15px;
 }
 
-.menu-item-container {
-  width: 100%;
+/* ✅ ICONOS PRINCIPALES (colapsado) */
+.direct-icons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.nav-item-wrapper {
-  width: 100%;
+.direct-icon {
+  width: 50px;
+  height: 50px;
+  background-color: #8B6F47;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: white;
+  font-size: 20px;
+  position: relative;
+}
+
+.direct-icon:hover {
+  background-color: #A0845C;
+  transform: translateY(-1px);
+}
+
+.direct-icon.active {
+  background-color: var(--templa-gold);
+  color: var(--templa-brown);
+}
+
+/* ✅ SUBMENU COLAPSADO (solo iconos) */
+.collapsed-submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  margin-top: 4px; /* ✅ Solo margin-top */
+}
+
+.collapsed-submenu.visible {
+  max-height: 200px;
+}
+
+.submenu-icon {
+  width: 50px; /* ✅ CAMBIAR: mismo ancho que direct-icon */
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: white;
+  margin-bottom: 4px;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.submenu-icon:hover {
+  background-color: var(--templa-gold);
+}
+
+.submenu-icon.active {
+  background-color: var(--templa-brown-light);
+}
+
+/* ===== MENÚ EXPANDIDO ===== */
+.expanded-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .nav-item {
@@ -136,19 +207,13 @@
   font-family: 'Amiko', sans-serif;
 }
 
-.nav-item-button {
-  background: none !important;
-}
-
 .nav-item:hover {
   background-color: #A0845C;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .nav-item.active {
   background-color: var(--templa-gold);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   color: var(--templa-brown);
 }
 
@@ -188,7 +253,7 @@
   transform: rotate(90deg);
 }
 
-/* Submenús */
+/* Submenús expandidos */
 .submenu {
   max-height: 0;
   overflow: hidden;
@@ -221,6 +286,7 @@
   font-weight: 600;
 }
 
+/* ===== BOTÓN SALIR ===== */
 .navbar-bottom {
   margin-top: auto;
   width: 100%;
@@ -235,7 +301,7 @@
   background-color: #8B6F47;
 }
 
-/* Estilos para el header superior */
+/* ===== HEADER ===== */
 .header-container {
   background-color: var(--templa-brown);
   height: 70px;
@@ -249,7 +315,7 @@
   left: 80px;
   right: 0;
   transition: left 0.3s ease;
-  z-index: 999
+  z-index: 999;
 }
 
 .header-container.expanded {

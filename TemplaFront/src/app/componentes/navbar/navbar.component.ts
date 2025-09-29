@@ -25,6 +25,21 @@ export class NavbarComponent implements OnInit {
     private menuService: MenuService
   ) { }
 
+  // ✅ CORREGIR: Getter para módulos principales (CON y SIN submenu)
+  get modulosPrincipales(): MenuItem[] {
+    return this.menuItems.filter(item => item.isPrincipal); // ← QUITAR && !item.hasSubmenu
+  }
+
+  // ✅ CORREGIR: Getter para módulos principales CON submenu
+  get modulosPrincipalesConSubmenu(): MenuItem[] {
+    return this.menuItems.filter(item => item.isPrincipal && item.hasSubmenu);
+  }
+
+  // ✅ MANTENER: Getter para módulos secundarios  
+  get modulosSecundarios(): MenuItem[] {
+    return this.menuItems.filter(item => !item.isPrincipal);
+  }
+
   ngOnInit() {
     this.loadMenu();
     this.resetNavbarState();
@@ -49,6 +64,19 @@ export class NavbarComponent implements OnInit {
     if (!this.isExpanded) {
       this.expandedSubmenu = null;
     }
+  }
+
+  getSubmenuIcon(label: string): string {
+    const iconMap: { [key: string]: string } = {
+      'Empleados': '📋',
+      'Usuarios': '👤',
+      'Listado': '📋', 
+      'Usuarios Sistema': '🔧',
+      'Reportes': '📊',
+      'Configuración': '⚙️'
+    };
+    
+    return iconMap[label] || '📄';
   }
 
   toggleSubmenu(itemId: string) {

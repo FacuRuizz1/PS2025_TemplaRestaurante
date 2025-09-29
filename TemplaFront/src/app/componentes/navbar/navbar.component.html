@@ -14,33 +14,101 @@
 
     <!-- Menú de navegación -->
     <div class="navbar-menu">
-      <div *ngFor="let item of menuItems" class="menu-item-container">
 
-        <!-- Item principal -->
-        <div class="nav-item-wrapper" [class.has-submenu]="item.hasSubmenu"
-          [class.submenu-open]="expandedSubmenu === item.id">
+      <!-- ✅ Iconos principales con submenu en navbar colapsado -->
+      <div class="direct-icons" *ngIf="modulosPrincipales.length > 0 && !isExpanded">
+        <div *ngFor="let item of modulosPrincipales" class="nav-item-wrapper">
 
-          <!-- Si NO tiene submenú, es un link directo -->
-          <a *ngIf="!item.hasSubmenu" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+          <!-- Si NO tiene submenú, es link directo -->
+          <a *ngIf="!item.hasSubmenu" [routerLink]="item.route" routerLinkActive="active" class="nav-item direct-icon">
             <span class="nav-icon">{{item.icon}}</span>
             <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
           </a>
 
-          <!-- Si tiene submenú, es un botón -->
-          <button *ngIf="item.hasSubmenu" class="nav-item nav-item-button" (click)="toggleSubmenu(item.id)">
-            <span class="nav-icon">{{item.icon}}</span>
-            <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
-            <span class="submenu-arrow" [class.visible]="isExpanded"
-              [class.rotated]="expandedSubmenu === item.id">▶</span>
-          </button>
+          <!-- ✅ Si tiene submenú y navbar colapsado -->
+          <div *ngIf="item.hasSubmenu" class="nav-item-with-submenu">
+            <!-- Botón principal -->
+            <button class="nav-item direct-icon" [class.submenu-active]="expandedSubmenu === item.id"
+              (click)="toggleSubmenu(item.id)">
+              <span class="nav-icon">{{item.icon}}</span>
+              <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
+            </button>
+
+            <!-- ✅ Submenu colapsado (solo iconos, sin expandir navbar) -->
+            <div class="collapsed-submenu" [class.visible]="expandedSubmenu === item.id && !isExpanded"
+              *ngIf="item.submenu && item.submenu.length > 0">
+              <a *ngFor="let subItem of item.submenu" [routerLink]="subItem.route" routerLinkActive="active"
+                class="nav-item submenu-icon" [title]="subItem.label">
+                <span class="nav-icon">{{getSubmenuIcon(subItem.label)}}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Menú expandido completo (solo visible cuando navbar está abierto) -->
+      <div *ngIf="isExpanded" class="expanded-menu">
+
+        <!-- ✅ AGREGAR: Módulos principales en el menú expandido -->
+        <div *ngFor="let item of modulosPrincipales" class="menu-item-container">
+
+          <!-- Item principal -->
+          <div class="nav-item-wrapper" [class.has-submenu]="item.hasSubmenu"
+            [class.submenu-open]="expandedSubmenu === item.id">
+
+            <!-- Si NO tiene submenú, es un link directo -->
+            <a *ngIf="!item.hasSubmenu" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">{{item.icon}}</span>
+              <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
+            </a>
+
+            <!-- Si tiene submenú, es un botón -->
+            <button *ngIf="item.hasSubmenu" class="nav-item nav-item-button" (click)="toggleSubmenu(item.id)">
+              <span class="nav-icon">{{item.icon}}</span>
+              <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
+              <span class="submenu-arrow" [class.visible]="isExpanded"
+                [class.rotated]="expandedSubmenu === item.id">▶</span>
+            </button>
+          </div>
+
+          <!-- Submenú expandido (con texto completo) -->
+          <div class="submenu" [class.visible]="isExpanded && expandedSubmenu === item.id" *ngIf="item.hasSubmenu">
+            <a *ngFor="let subItem of item.submenu" [routerLink]="subItem.route" routerLinkActive="active"
+              class="submenu-item">
+              {{subItem.label}}
+            </a>
+          </div>
         </div>
 
-        <!-- Submenú -->
-        <div class="submenu" [class.visible]="isExpanded && expandedSubmenu === item.id" *ngIf="item.hasSubmenu">
-          <a *ngFor="let subItem of item.submenu" [routerLink]="subItem.route" routerLinkActive="active"
-            class="submenu-item">
-            {{subItem.label}}
-          </a>
+        <!-- ✅ MANTENER: Módulos secundarios -->
+        <div *ngFor="let item of modulosSecundarios" class="menu-item-container">
+
+          <!-- Item principal -->
+          <div class="nav-item-wrapper" [class.has-submenu]="item.hasSubmenu"
+            [class.submenu-open]="expandedSubmenu === item.id">
+
+            <!-- Si NO tiene submenú, es un link directo -->
+            <a *ngIf="!item.hasSubmenu" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">{{item.icon}}</span>
+              <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
+            </a>
+
+            <!-- Si tiene submenú, es un botón -->
+            <button *ngIf="item.hasSubmenu" class="nav-item nav-item-button" (click)="toggleSubmenu(item.id)">
+              <span class="nav-icon">{{item.icon}}</span>
+              <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
+              <span class="submenu-arrow" [class.visible]="isExpanded"
+                [class.rotated]="expandedSubmenu === item.id">▶</span>
+            </button>
+          </div>
+
+          <!-- Submenú expandido (con texto completo) -->
+          <div class="submenu" [class.visible]="isExpanded && expandedSubmenu === item.id" *ngIf="item.hasSubmenu">
+            <a *ngFor="let subItem of item.submenu" [routerLink]="subItem.route" routerLinkActive="active"
+              class="submenu-item">
+              {{subItem.label}}
+            </a>
+          </div>
         </div>
       </div>
     </div>
