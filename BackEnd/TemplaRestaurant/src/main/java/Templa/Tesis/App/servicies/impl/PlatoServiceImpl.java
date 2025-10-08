@@ -71,6 +71,7 @@ public class PlatoServiceImpl implements IPlatoService {
 
         Specification<PlatoEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.isNull(root.get("fechaBaja"))); // Excluir platos dados de baja
 
             // ✅ Filtro por estado (igual que personas)
             if (estado != null && !estado.isEmpty()) {
@@ -79,13 +80,13 @@ public class PlatoServiceImpl implements IPlatoService {
                     predicates.add(cb.isNull(root.get("fechaBaja")));
                 } else if ("NO_DISPONIBLES".equals(estado)) {
                     predicates.add(cb.equal(root.get("disponible"), false));
-                } else if ("BAJA".equals(estado)) {
-                    predicates.add(cb.isNotNull(root.get("fechaBaja")));
-                } // 'TODOS' no agrega predicate
+                } //else if ("BAJA".equals(estado)) {
+//                    predicates.add(cb.isNotNull(root.get("fechaBaja")));
+//                } // 'TODOS' no agrega predicate
             }
 
             // ✅ Filtro por buscarFiltro (nombre y precio)
-            if (buscarFiltro != null && !buscarFiltro.isEmpty()) {
+            if (buscarFiltro != null && !buscarFiltro.isEmpty() && !"TODOS".equals(tipoPlato)) {
                 String pattern = "%" + buscarFiltro.toLowerCase() + "%";
 
                 // Buscar por nombre y descripción
@@ -120,6 +121,7 @@ public class PlatoServiceImpl implements IPlatoService {
         Page<PlatoEntity> filtrados = platoRepository.findAll(spec, pageable);
         return filtrados.map(this::convertToDto);
     }
+
 
     @Override
     @Transactional

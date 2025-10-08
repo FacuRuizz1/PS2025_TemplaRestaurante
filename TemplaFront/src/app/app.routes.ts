@@ -4,6 +4,7 @@ import { PersonasComponent } from './componentes/modulos/personas/personas.compo
 import { UsuariosComponent } from './componentes/modulos/usuarios/usuarios.component';
 import { ProductosComponent } from './componentes/modulos/productos/productos.component';
 import { AuthGuard as authGuard } from './guards/auth-guard.guard';
+import { PlatosComponent } from './componentes/modulos/platos/platos.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -56,8 +57,21 @@ export const routes: Routes = [
       menuLabel: 'Productos', 
       icon: '📦',
       order: 2,
-      isPrincipal: true,
-      hasSubmenu: true
+      isPrincipal: true
+    }
+  },
+
+    // Rutas de Platos (PROTEGIDAS)
+  { 
+    path: 'platos', 
+    component: PlatosComponent,
+    canActivate: [authGuard],
+    data: { 
+      showInMenu: true, 
+      menuLabel: 'Platos', 
+      icon: '🍽️',
+      order: 3,
+      isPrincipal: true
     }
   },
 

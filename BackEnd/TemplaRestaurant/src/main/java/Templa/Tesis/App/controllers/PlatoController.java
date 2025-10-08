@@ -24,7 +24,7 @@ public class PlatoController {
         return ResponseEntity.ok(platoService.getPlatos(page, size));
     }
 
-    @PostMapping
+    @PostMapping("/crear")
     public ResponseEntity<GetPlatoDto> createPlato(@RequestBody PostPlatoDto platoNuevo) {
         return ResponseEntity.ok(platoService.createPlato(platoNuevo));
     }
@@ -53,8 +53,8 @@ public class PlatoController {
             @RequestParam(required = false) String estado     // ✅ AGREGAR: parámetro estado
     ) {
         if (tipoPlato != null && !tipoPlato.isEmpty() &&
-                !tipoPlato.matches("^(ENTRADA|PRINCIPAL|POSTRE|BEBIDA)$")) { // Ajustar según tus enum values
-            throw new IllegalArgumentException("tipoPlato debe ser 'ENTRADA', 'PRINCIPAL', 'POSTRE' o 'BEBIDA'");
+                !tipoPlato.matches("^(ENTRADA|PRINCIPAL|POSTRE|BEBIDA|TODOS)$")) { // Ajustar según tus enum values
+            throw new IllegalArgumentException("tipoPlato debe ser 'ENTRADA', 'PRINCIPAL', 'POSTRE' o 'BEBIDA' o 'TODOS'");
         }
 
         if (estado != null && !estado.isEmpty() &&
