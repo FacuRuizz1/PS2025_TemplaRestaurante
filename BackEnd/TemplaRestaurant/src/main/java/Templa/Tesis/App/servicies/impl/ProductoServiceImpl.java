@@ -108,4 +108,16 @@ public class ProductoServiceImpl implements IProductoService {
 
         productoRepository.delete(producto);
     }
+
+    @Override
+    public Page<ProductoDTO> traerInsumos(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending());
+
+        Specification<ProductoEntity> spec = Specification.where(
+                (root, query, cb) -> cb.equal(root.get("tipo"), TipoProducto.INSUMO)
+        );
+
+        Page<ProductoEntity> entities = productoRepository.findAll(spec, pageable);
+        return entities.map(entity -> modelMapper.map(entity, ProductoDTO.class));
+    }
 }

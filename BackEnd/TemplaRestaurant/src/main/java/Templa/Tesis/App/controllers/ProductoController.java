@@ -67,4 +67,12 @@ public class ProductoController {
                 productoService.traerProductos(page, size, filtros.getBuscar(), tipo, activo)
         );
     }
+
+    // ✅ Traer solo insumos paginados
+    @GetMapping("/insumos")
+    public ResponseEntity<Page<ProductoDTO>> listarInsumos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(productoService.traerInsumos(page, size));
+    }
 }

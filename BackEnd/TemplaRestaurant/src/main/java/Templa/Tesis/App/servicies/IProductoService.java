@@ -13,5 +13,6 @@ public interface IProductoService {
     ProductoDTO actualizarProducto(Integer id, ProductoDTO productoDTO);
     Page<ProductoDTO> traerProductos(int page, int size);
     Page<ProductoDTO> traerProductos(int page, int size, String buscar, TipoProducto tipo, Boolean activo);
+    Page<ProductoDTO> traerInsumos(int page, int size);
     void eliminarProducto(Integer id);
 }

@@ -4,4 +4,5 @@ public enum TipoProducto {
     INSUMO,
     ACOMPAÑANTE,
     BEBIDA;
+
 }
