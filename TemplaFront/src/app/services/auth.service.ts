@@ -48,4 +48,32 @@ export class AuthService {
       'Content-Type': 'application/json'
     };
   }
+
+  // ✅ NUEVO: Decodificar el payload del JWT (sin validar la firma)
+  private decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      const decodedPayload = atob(payload);
+      return JSON.parse(decodedPayload);
+    } catch (error) {
+      console.error('Error al decodificar token:', error);
+      return null;
+    }
+  }
+
+  // ✅ NUEVO: Obtener información del usuario desde el token
+  getUserInfo(): any {
+    const token = this.getToken();
+    if (!token) return null;
+    
+    const decoded = this.decodeToken(token);
+    return decoded;
+  }
+
+  // ✅ NUEVO: Obtener el nombre de usuario desde el token
+  getUsername(): string {
+    const userInfo = this.getUserInfo();
+    return userInfo?.sub || userInfo?.username || userInfo?.name || 'Usuario';
+  }
+
 }

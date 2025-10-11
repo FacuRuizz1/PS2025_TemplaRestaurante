@@ -125,6 +125,24 @@ export class ProductoService {
     });
   }
 
+  // ✅ Obtener solo productos de tipo INSUMO (para ingredientes de platos)
+  obtenerInsumos(page: number = 0, size: number = 10): Observable<Page<ProductoDTO>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    const token = this.authService.getToken();
+    
+    const httpOptions = {
+      params,
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+
+    return this.http.get<Page<ProductoDTO>>(`${this.apiUrl}/insumos`, httpOptions);
+  }
+
   // ✅ Obtener producto por ID (endpoint no implementado aún en el backend)
   // obtenerProductoPorId(id: number): Observable<ProductoDTO> {
   //   return this.http.get<ProductoDTO>(`${this.apiUrl}/${id}`, { 

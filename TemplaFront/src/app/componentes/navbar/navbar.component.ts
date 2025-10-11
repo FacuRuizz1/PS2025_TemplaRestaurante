@@ -3,6 +3,7 @@ import { Component, EventEmitter, Output, OnInit} from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from '../models/menu-model';
 import { MenuService } from '../../services/menu.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -12,7 +13,7 @@ import { MenuService } from '../../services/menu.service';
   styleUrl: './navbar.component.css'
 })
 export class NavbarComponent implements OnInit {
-  username = 'ChefAna';
+  username = 'Usuario';
   notificationCount = 3;
   isExpanded = false;
   menuItems: MenuItem[] = [];
@@ -22,7 +23,8 @@ export class NavbarComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private menuService: MenuService
+    private menuService: MenuService,
+    private authService: AuthService
   ) { }
 
   // ✅ CORREGIR: Getter para módulos principales (CON y SIN submenu)
@@ -42,7 +44,25 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit() {
     this.loadMenu();
+    this.loadUserInfo();
     this.resetNavbarState();
+  }
+
+  private loadUserInfo() {
+    // Obtener username del token JWT
+    this.username = this.authService.getUsername();
+    
+    // Opcional: Si quieres más información del usuario desde el backend
+    // this.authService.getUserProfile().subscribe({
+    //   next: (userProfile) => {
+    //     this.username = userProfile.nombre || userProfile.username || 'Usuario';
+    //   },
+    //   error: (error) => {
+    //     console.log('No se pudo cargar el perfil del usuario:', error);
+    //     // Fallback al token
+    //     this.username = this.authService.getUsername();
+    //   }
+    // });
   }
 
   private resetNavbarState() {
@@ -89,7 +109,7 @@ export class NavbarComponent implements OnInit {
 
   logout() {
     console.log('Logout clicked');
-    this.router.navigate(['/login']);
+    this.authService.logout(); // Esto ya navega a /login y limpia el token
   }
 
   showNotifications() {

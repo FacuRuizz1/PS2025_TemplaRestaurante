@@ -49,7 +49,7 @@ export class PlatosComponent implements OnInit {
   }
 
   cargarProductos(): void {
-    this.productoService.obtenerProductos(0, 1000).subscribe({
+    this.productoService.obtenerInsumos(0, 1000).subscribe({
       next: (response) => {
         this.productos = response.content;
         // Crear mapa para acceso rápido por ID
@@ -58,10 +58,10 @@ export class PlatosComponent implements OnInit {
             this.productosMap.set(producto.id, producto);
           }
         });
-        console.log('Productos cargados:', this.productos.length);
+        console.log('Insumos cargados para platos:', this.productos.length);
       },
       error: (error) => {
-        console.error('Error al cargar productos:', error);
+        console.error('Error al cargar insumos:', error);
       }
     });
   }
