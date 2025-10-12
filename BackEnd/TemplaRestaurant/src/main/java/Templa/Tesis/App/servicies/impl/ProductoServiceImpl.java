@@ -6,6 +6,7 @@ import Templa.Tesis.App.dtos.ProductoDTO;
 import Templa.Tesis.App.entities.ProductoEntity;
 import Templa.Tesis.App.repositories.ProductoRepository;
 import Templa.Tesis.App.servicies.IProductoService;
+import Templa.Tesis.App.servicies.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -24,6 +25,7 @@ public class ProductoServiceImpl implements IProductoService {
 
     private final ModelMapper modelMapper;
     private final ProductoRepository productoRepository;
+    private final NotificationService notificationService;
 
     @Override
     public ProductoDTO registrarProducto(PostProductoDTO nuevoProducto) {
@@ -45,8 +47,13 @@ public class ProductoServiceImpl implements IProductoService {
 
         try{
             ProductoEntity producto = modelMapper.map(nuevoProducto,ProductoEntity.class);
-            productoRepository.save(producto);
-            return modelMapper.map(producto,ProductoDTO.class);
+            ProductoEntity productoGuardado = productoRepository.save(producto);
+            ProductoDTO productoDTO = modelMapper.map(productoGuardado,ProductoDTO.class);
+
+            // Enviar notificación de nuevo producto
+            notificationService.enviarNotificacionNuevoProducto(productoDTO);
+
+            return productoDTO;
         }
         catch (Exception e){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Error al guardar el producto");
@@ -66,7 +73,12 @@ public class ProductoServiceImpl implements IProductoService {
         productoExistente.setActivo(productoDTO.isActivo());
 
         ProductoEntity productoActualizado = productoRepository.save(productoExistente);
-        return modelMapper.map(productoActualizado,ProductoDTO.class);
+        ProductoDTO productoActualizadoDTO = modelMapper.map(productoActualizado,ProductoDTO.class);
+
+        // Enviar notificación de producto actualizado
+        notificationService.enviarNotificacionProductoActualizado(productoActualizadoDTO);
+
+        return productoActualizadoDTO;
     }
 
     @Override
@@ -106,7 +118,11 @@ public class ProductoServiceImpl implements IProductoService {
         ProductoEntity producto = productoRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Producto no encontrado con el ID: " + id));
 
+        String nombreProducto = producto.getNombre();
         productoRepository.delete(producto);
+
+        // Enviar notificación de producto eliminado
+        notificationService.enviarNotificacionProductoEliminado(nombreProducto);
     }
 
     @Override

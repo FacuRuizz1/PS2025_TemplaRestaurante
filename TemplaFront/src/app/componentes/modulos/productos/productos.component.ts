@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductoModalComponent } from '../../modales/producto-modal/producto-modal.component';
 import { ProductoService } from '../../../services/producto.service';
+import { NotificationService } from '../../../services/notification.service';
 import { ProductoDTO, PostProductoDTO, TipoProducto, FiltroProducto } from '../../models/ProductoModel';
 import { Page } from '../../models/CommonModels';
 import Swal from 'sweetalert2';
@@ -42,7 +43,8 @@ export class ProductosComponent implements OnInit {
 
   constructor(
     private modalService: NgbModal,
-    private productoService: ProductoService
+    private productoService: ProductoService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -232,6 +234,14 @@ export class ProductosComponent implements OnInit {
     this.productoService.crearProducto(productoDto).subscribe({
       next: (productoCreado) => {
         console.log('✅ Producto creado exitosamente:', productoCreado);
+        
+        // ✅ NUEVO: Enviar notificación
+        this.notificationService.addProductNotification(
+          'NUEVO_PRODUCTO',
+          `Se ha registrado un nuevo producto: ${productoCreado.nombre}`,
+          productoCreado
+        );
+        
         this.cargarProductosIniciales();
         Swal.fire({
           title: '¡Éxito!',
@@ -262,6 +272,14 @@ export class ProductosComponent implements OnInit {
     this.productoService.actualizarProducto(id, productoData).subscribe({
       next: (productoActualizado) => {
         console.log('✅ Producto actualizado exitosamente:', productoActualizado);
+        
+        // ✅ NUEVO: Enviar notificación
+        this.notificationService.addProductNotification(
+          'PRODUCTO_ACTUALIZADO',
+          `Se ha actualizado el producto: ${productoActualizado.nombre}`,
+          productoActualizado
+        );
+        
         this.aplicarFiltros(); // Recargar con filtros actuales
         Swal.fire({
           title: '¡Éxito!',
@@ -305,6 +323,13 @@ export class ProductosComponent implements OnInit {
           this.productoService.eliminarProducto(producto.id).subscribe({
             next: () => {
               console.log('✅ Producto eliminado exitosamente');
+              
+              // ✅ NUEVO: Enviar notificación
+              this.notificationService.addProductNotification(
+                'PRODUCTO_ELIMINADO',
+                `Se ha eliminado el producto: ${producto.nombre}`
+              );
+              
               this.aplicarFiltros(); // Recargar lista
               Swal.fire({
                 title: '¡Eliminado!',
