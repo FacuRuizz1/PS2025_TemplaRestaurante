@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "platosDetalle")
 public class PlatoDetalleEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

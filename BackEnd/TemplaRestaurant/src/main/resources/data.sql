@@ -1,11 +1,18 @@
 -- Insertar persona administrador
-INSERT INTO personas (id,nombre, apellido, email, telefono, dni, tipo_persona, fecha_alta, user_alta, fecha_baja, user_baja_id)
-VALUES (30,'Admin', 'Sistema', 'admin@gmail.com', '0000000000', 99999999, 'PERSONAL', NOW(), 0, NULL, NULL);
+INSERT INTO personas (nombre, apellido, email, telefono, dni, tipo_persona, fecha_alta, user_alta, fecha_baja, user_baja_id)
+VALUES ('Admin', 'Sistema', 'admin@gmail.com', '0000000000', 99999999, 'PERSONAL', NOW(), 0, NULL, NULL);
 
 -- Insertar usuario administrador con password ENCRIPTADA
 INSERT INTO usuarios (username, password, rol, activo, id_persona)
 VALUES ('admin','$2a$10$NewaJBkpaQZu/1xsTnpAqOr5nSnIbmVAV0IqPq6kP/SDtfeQJ83Xy',  -- "admin123" ENCRIPTADO
-           'ADMINISTRADOR',true,30);
+           'ADMINISTRADOR',true,1);
 
-INSERT INTO productos (id,nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo)
-VALUES (30,'Harina de Trigo', 'INSUMO', 'KILOGRAMO', 50.0, 10.0, 100.0, true);
+INSERT INTO productos (nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo)
+VALUES ('Harina de Trigo', 'INSUMO', 'KILOGRAMO', 50.0, 10.0, 100.0, true);
+
+INSERT INTO platos (nombre, descripcion, precio, descuento, disponible, tipo_plato, foto, fecha_alta, user_alta, fecha_baja, user_baja)
+VALUES ('Milanesa Napolitana', 'Milanesa de ternera con salsa de tomate, jamón y queso gratinado.', 10000.00, 7500.00, TRUE, 'PRINCIPAL', 'https://templarestaurante.s3.us-east-1.amazonaws.com/platos/5f783b1e-7422-44ac-8252-959cb9cfc158_WhatsApp+Image+2025-10-12+at+8.29.48+PM.jpeg',
+        NOW(), 1, NULL, NULL);
+
+INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
+VALUES (1, 1, 0.2);  -- 200 gramos de harina

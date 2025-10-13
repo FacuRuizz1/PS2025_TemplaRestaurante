@@ -14,6 +14,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "platos")
 public class PlatoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
