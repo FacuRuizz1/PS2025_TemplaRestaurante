@@ -26,7 +26,6 @@ export interface PostPlatoDto {
     descripcion: string;
     precio: number;
     tipoPlato: TipoPlato;
-    foto: string;
     ingredientes: PostIngredientesDto[];
 }
 

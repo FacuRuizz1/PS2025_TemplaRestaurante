@@ -49,9 +49,8 @@
                     <div class="toggle-container">
                         <!-- ✅ CAMBIAR: Usar método personalizado en lugar del FormControl -->
                         <label class="toggle-switch" (click)="confirmarToggleDisponibilidad()">
-                            <input type="checkbox" 
-                                   formControlName="disponible" 
-                                   (change)="confirmarToggleDisponibilidad()">
+                            <input type="checkbox" formControlName="disponible"
+                                (change)="confirmarToggleDisponibilidad()">
                             <span class="toggle-slider"></span>
                         </label>
                         <span class="toggle-label">
@@ -71,13 +70,29 @@
                 </div>
             </div>
 
-            <!-- Quinta fila: Foto 
             <div class="form-row">
-                <div class="form-group full-width">
-                    <input type="text" class="form-control custom-input" formControlName="foto"
-                        placeholder="URL de la foto (opcional)">
+                <div class="form-group">
+                    <label for="imagen" class="form-label">Imagen del Plato</label>
+                    <div class="imagen-upload-container">
+                        <!-- Input de archivo -->
+                        <input type="file" id="imagen" class="form-control custom-input" accept="image/*"
+                            (change)="onImagenSeleccionada($event)">
+
+                        <!-- Preview de la imagen -->
+                        <div class="imagen-preview" *ngIf="imagenPreview">
+                            <img [src]="imagenPreview" alt="Preview" class="img-preview">
+                            <button type="button" class="btn-remove-image" (click)="removerImagen()">
+                                ❌
+                            </button>
+                        </div>
+
+                        <!-- Mensaje de ayuda -->
+                        <small class="form-text text-muted">
+                            Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 5MB
+                        </small>
+                    </div>
                 </div>
-            </div>-->
+            </div>
 
             <!-- Sexta fila: Ingredientes -->
             <div class="form-row">

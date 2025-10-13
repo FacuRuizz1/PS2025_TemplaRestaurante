@@ -7,7 +7,7 @@ import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class PlatoService {
     private readonly http: HttpClient = inject(HttpClient);
@@ -56,14 +56,40 @@ export class PlatoService {
         return this.http.get<Page<GetPlatoDto>>(`${this.apiUrl}/filtrar`, this.getHttpOptions(params));
     }
 
-    createPlato(plato: PostPlatoDto): Observable<GetPlatoDto> {
-        // ✅ Usar método helper
-        return this.http.post<GetPlatoDto>(`${this.apiUrl}/crear`, plato, this.getHttpOptions());
+    createPlato(plato: PostPlatoDto, imagen?: File): Observable<GetPlatoDto> {
+        const formData = new FormData();
+
+        // 🔧 Enviamos el JSON como un Blob con tipo application/json
+        formData.append('plato', new Blob([JSON.stringify(plato)], { type: 'application/json' }));
+
+        // 📸 Imagen opcional
+        if (imagen) {
+            formData.append('imagen', imagen, imagen.name);
+        }
+
+        const token = this.authService.getToken();
+        const headers = new HttpHeaders({
+            Authorization: `Bearer ${token}`
+        });
+
+        return this.http.post<GetPlatoDto>(`${this.apiUrl}/crear`, formData, { headers });
     }
 
-    actualizarPlato(plato: GetPlatoDto): Observable<GetPlatoDto> {
-        // ✅ Usar método helper
-        return this.http.put<GetPlatoDto>(`${this.apiUrl}/actualizar`, plato, this.getHttpOptions());
+    actualizarPlato(plato: GetPlatoDto, imagen?: File): Observable<GetPlatoDto> {
+        const formData = new FormData();
+
+        formData.append('plato', new Blob([JSON.stringify(plato)], { type: 'application/json' }));
+
+        if (imagen) {
+            formData.append('imagen', imagen, imagen.name);
+        }
+
+        const token = this.authService.getToken();
+        const headers = new HttpHeaders({
+            Authorization: `Bearer ${token}`
+        });
+
+        return this.http.put<GetPlatoDto>(`${this.apiUrl}/actualizar`, formData, { headers });
     }
 
     activarDesactivarPlato(id: number): Observable<void> {

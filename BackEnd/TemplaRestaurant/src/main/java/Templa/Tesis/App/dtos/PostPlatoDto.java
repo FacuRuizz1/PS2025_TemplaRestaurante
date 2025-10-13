@@ -15,6 +15,5 @@ public class PostPlatoDto {
     private String descripcion;
     private Double precio;
     private TipoPlato tipoPlato;
-    private String foto;
     private List<PostIngredientesDto> ingredientes;
 }

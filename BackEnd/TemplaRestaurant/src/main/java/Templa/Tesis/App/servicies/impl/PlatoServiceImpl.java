@@ -1,10 +1,7 @@
 package Templa.Tesis.App.servicies.impl;
 
 import Templa.Tesis.App.Enums.TipoPlato;
-import Templa.Tesis.App.dtos.GetIngredientesDto;
-import Templa.Tesis.App.dtos.GetPlatoDto;
-import Templa.Tesis.App.dtos.PostIngredientesDto;
-import Templa.Tesis.App.dtos.PostPlatoDto;
+import Templa.Tesis.App.dtos.*;
 import Templa.Tesis.App.entities.PlatoDetalleEntity;
 import Templa.Tesis.App.entities.PlatoEntity;
 import Templa.Tesis.App.entities.ProductoEntity;
@@ -23,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -41,6 +39,8 @@ public class PlatoServiceImpl implements IPlatoService {
     private PlatoDetalleRepository platoDetalleRepository;
     @Autowired
     private ProductoRepository productoRepository;
+    @Autowired
+    private S3Service s3Service;
 
     @Override
     public Page<GetPlatoDto> getPlatos(int page, int size) {
@@ -125,7 +125,7 @@ public class PlatoServiceImpl implements IPlatoService {
 
     @Override
     @Transactional
-    public GetPlatoDto createPlato(PostPlatoDto platoNuevo) {
+    public GetPlatoDto createPlato(PostPlatoDto platoNuevo, MultipartFile imagen) {
         if(platoNuevo.getNombre().isBlank()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar un nombre válido");
         }
@@ -145,7 +145,14 @@ public class PlatoServiceImpl implements IPlatoService {
         }
 
         try{
+            String urlImagen = null;
+            if (imagen != null && !imagen.isEmpty()) {
+                urlImagen = s3Service.uploadFile(imagen);
+            }
+
+
             PlatoEntity nuevoPlato = modelMapper.map(platoNuevo, PlatoEntity.class);
+            nuevoPlato.setFoto(urlImagen);
             nuevoPlato.setDisponible(true);
             nuevoPlato.setFechaAlta(LocalDateTime.now());
             nuevoPlato.setUserAlta(2);
@@ -173,7 +180,7 @@ public class PlatoServiceImpl implements IPlatoService {
     }
 
     @Override
-    public GetPlatoDto updatePlato(GetPlatoDto platoActualizado) {
+    public GetPlatoDto updatePlato(GetPlatoDto platoActualizado, MultipartFile imagen) {
 
         if(platoActualizado.getNombre().isBlank()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar un nombre válido");
@@ -183,18 +190,29 @@ public class PlatoServiceImpl implements IPlatoService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar un precio válido");
         }
 
-        PlatoEntity platoExistente = platoRepository.findById(platoActualizado.getIdPlato())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plato no encontrado"));
-
-
         PlatoEntity platoConMismoNombre = platoRepository.findByNombre(platoActualizado.getNombre());
         if (platoConMismoNombre != null && !platoConMismoNombre.getIdPlato().equals(platoActualizado.getIdPlato())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe otro plato con ese nombre");
         }
 
+        PlatoEntity platoExistente = platoRepository.findById(platoActualizado.getIdPlato())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plato no encontrado"));
+
+
         try {
+
+            String urlImagen = null;
+            if (imagen != null && !imagen.isEmpty()) {
+                s3Service.deleteFile(platoExistente.getFoto());
+                urlImagen = s3Service.uploadFile(imagen);
+            }
+
             modelMapper.map(platoActualizado, platoExistente);
+
+            platoExistente.setFoto(urlImagen != null ? urlImagen : platoActualizado.getFoto());
+
             PlatoEntity platoGuardado = platoRepository.save(platoExistente);
+
 
 
             updateIngredientes(platoGuardado, platoActualizado.getIngredientes());
@@ -256,6 +274,7 @@ public class PlatoServiceImpl implements IPlatoService {
         plato.setFechaBaja(LocalDateTime.now());
         plato.setUserBaja(2);
         plato.setDisponible(false);
+        s3Service.deleteFile(plato.getFoto());
         platoRepository.save(plato);
     }
 }

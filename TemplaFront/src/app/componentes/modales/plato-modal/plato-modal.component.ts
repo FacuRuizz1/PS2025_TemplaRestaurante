@@ -21,6 +21,9 @@ export class PlatoModalComponent implements OnInit {
   platoForm!: FormGroup; // ✅ NUEVO: FormGroup reactivo
   tiposPlatoOptions = Object.values(TipoPlato);
 
+  imagenSeleccionada: File | null = null;
+  imagenPreview: string | ArrayBuffer | null = null;
+
   constructor(
     public activeModal: NgbActiveModal,
     private formBuilder: FormBuilder // ✅ NUEVO: FormBuilder
@@ -212,7 +215,8 @@ export class PlatoModalComponent implements OnInit {
       // ✅ Devolver acción normal de guardado
       this.activeModal.close({
         accion: 'guardar',
-        plato: platoParaGuardar
+        plato: platoParaGuardar,
+        imagen: this.imagenSeleccionada
       });
     } else {
       console.log('❌ Formulario inválido');
@@ -323,6 +327,44 @@ export class PlatoModalComponent implements OnInit {
       return producto ? this.getUnidadAbreviada(producto.unidadMedida) : 'u';
     }
     return 'u';
+  }
+
+
+    onImagenSeleccionada(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor selecciona un archivo de imagen válido');
+        return;
+      }
+      
+      // Validar tamaño (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('La imagen debe ser menor a 5MB');
+        return;
+      }
+      
+      this.imagenSeleccionada = file;
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.imagenPreview = e.target?.result || null;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // ✅ NUEVO: Método para remover imagen
+  removerImagen(): void {
+    this.imagenSeleccionada = null;
+    this.imagenPreview = null;
+    // Limpiar el input
+    const inputElement = document.getElementById('imagen') as HTMLInputElement;
+    if (inputElement) {
+      inputElement.value = '';
+    }
   }
 
 }  

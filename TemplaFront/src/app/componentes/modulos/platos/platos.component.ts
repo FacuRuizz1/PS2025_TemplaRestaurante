@@ -185,18 +185,18 @@ export class PlatosComponent implements OnInit {
     modalRef.componentInstance.productos = this.productos;
 
     modalRef.result.then((resultado) => {
-        console.log('🔍 Resultado completo del modal:', resultado);
-        
-        if (resultado) {
-          if (resultado.accion && resultado.plato) {
-            console.log('🔍 Creando plato desde estructura:', resultado.plato);
-            this.crearPlato(resultado.plato);
-          } else {
-            console.log('🔍 Creando plato directo:', resultado);
-            this.crearPlato(resultado);
-          }
+      console.log('🔍 Resultado completo del modal:', resultado);
+
+      if (resultado) {
+        if (resultado.accion && resultado.plato) {
+          console.log('🔍 Creando plato desde estructura:', resultado.plato);
+          this.crearPlato(resultado);
+        } else {
+          console.log('🔍 Creando plato directo:', resultado);
+          this.crearPlato(resultado);
         }
-      }).catch((error) => {
+      }
+    }).catch((error) => {
       console.log('Modal cancelado' + error);
     });
   }
@@ -215,10 +215,10 @@ export class PlatosComponent implements OnInit {
         // ✅ NUEVO: Verificar si viene con acción específica
         if (resultado.accion) {
           console.log('Acción recibida desde modal:', resultado.accion);
-          
+
           switch (resultado.accion) {
             case 'guardar':
-              this.actualizarPlato(resultado.plato);
+              this.actualizarPlato(resultado);
               break;
             case 'toggleDisponibilidad':
               this.ejecutarToggleDesdeModal(resultado.plato);
@@ -300,9 +300,35 @@ export class PlatosComponent implements OnInit {
     });
   }
 
-  private crearPlato(platoDto: any): void {
+  private crearPlato(resultado: any): void {
     this.cargando = true;
-    console.log('Creando plato:', platoDto);
+    console.log('Creando plato:', resultado);
+
+    const platoDto = resultado.plato || resultado;
+    const imagen = resultado.imagen || null;
+
+    console.log('🔍 Plato DTO:', platoDto);
+    console.log('🔍 Imagen seleccionada:', imagen);
+
+    if (!platoDto) {
+      console.error('❌ platoDto es null o undefined');
+      this.cargando = false;
+      return;
+    }
+
+    // Validar ingredientes
+    if (!platoDto.ingredientes || platoDto.ingredientes.length === 0) {
+      console.error('❌ No hay ingredientes para crear el plato');
+      this.cargando = false;
+      Swal.fire({
+        title: 'Error',
+        text: 'El plato debe tener al menos un ingrediente',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#dc3545'
+      });
+      return;
+    }
 
     // Transformar al formato que espera el backend
     const platoParaCrear: PostPlatoDto = {
@@ -310,7 +336,6 @@ export class PlatosComponent implements OnInit {
       descripcion: platoDto.descripcion,
       precio: parseFloat(platoDto.precio),
       tipoPlato: platoDto.tipoPlato,
-      foto: platoDto.foto || '',
       ingredientes: (platoDto.ingredientes || []).map((ing: any) => {
         console.log('🔍 Ingrediente individual:', ing); // ✅ Debug cada ingrediente
         return {
@@ -320,9 +345,9 @@ export class PlatosComponent implements OnInit {
       })
     };
 
-    console.log('🔍 Plato transformado para backend:', platoParaCrear); // ✅ Ver el resultado
+    console.log('🔍 JSON que se enviará:', JSON.stringify(platoParaCrear, null, 2));
 
-    this.platoService.createPlato(platoParaCrear).subscribe({
+    this.platoService.createPlato(platoParaCrear, imagen).subscribe({
       next: (platoCreado) => {
         console.log('✅ Plato creado exitosamente:', platoCreado);
         this.cargarPlatos();
@@ -348,44 +373,64 @@ export class PlatosComponent implements OnInit {
     });
   }
 
-  private actualizarPlato(plato: any): void {
-    this.cargando = true; 
-    console.log('Actualizando plato:', plato);
+private actualizarPlato(resultado: any): void {
+  this.cargando = true;
+  console.log('🔍 ACTUALIZAR PLATO - Resultado recibido:', resultado);
 
-    const platoParaActualizar = {
-      ...plato,
-      precio: parseFloat(plato.precio),
-      ingredientes: plato.ingredientes?.map((ing: any) => ({
-        idProducto: parseInt(ing.idProducto),
-        cantidad: parseFloat(ing.cantidad)
-      })) || []
-    };
+  // ✅ NUEVO: Extraer plato e imagen del resultado (igual que en crear)
+  let platoDto: any;
+  let imagen: File | undefined = undefined;
 
-    this.platoService.actualizarPlato(platoParaActualizar).subscribe({
-      next: (platoActualizado) => {
-        console.log('✅ Plato actualizado exitosamente:', platoActualizado);
-        this.cargarPlatos(); 
-        Swal.fire({
-          title: '¡Éxito!',
-          text: 'Plato actualizado exitosamente',
-          icon: 'success',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
-        });
-      },
-      error: (error) => {
-        console.error('❌ Error al actualizar plato:', error);
-        this.cargando = false; 
-        Swal.fire({
-          title: 'Error',
-          text: 'Error al actualizar el plato',
-          icon: 'error',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
-        });
-      }
-    });
+  if (resultado.accion && resultado.plato) {
+    // Caso: { accion: 'guardar', plato: {...}, imagen: File }
+    platoDto = resultado.plato;
+    imagen = resultado.imagen || undefined;
+  } else {
+    // Caso: plato directo (fallback)
+    platoDto = resultado;
+    imagen = undefined;
   }
+
+  console.log('🔍 Plato DTO para actualizar:', platoDto);
+  console.log('🔍 Nueva imagen:', imagen?.name || 'Sin cambios de imagen');
+
+  const platoParaActualizar = {
+    ...platoDto,
+    precio: parseFloat(platoDto.precio),
+    ingredientes: platoDto.ingredientes?.map((ing: any) => ({
+      idProducto: parseInt(ing.idProducto),
+      cantidad: parseFloat(ing.cantidad)
+    })) || []
+  };
+
+  console.log('🔍 Plato transformado para actualización:', platoParaActualizar);
+
+  // ✅ CAMBIAR: Usar el método actualizado del service con imagen
+  this.platoService.actualizarPlato(platoParaActualizar, imagen).subscribe({
+    next: (platoActualizado) => {
+      console.log('✅ Plato actualizado exitosamente:', platoActualizado);
+      this.cargarPlatos();
+      Swal.fire({
+        title: '¡Éxito!',
+        text: 'Plato actualizado exitosamente',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#28a745'
+      });
+    },
+    error: (error) => {
+      console.error('❌ Error al actualizar plato:', error);
+      this.cargando = false;
+      Swal.fire({
+        title: 'Error',
+        text: 'Error al actualizar el plato',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#dc3545'
+      });
+    }
+  });
+}
 
   onModalCerrado(): void {
     console.log('Modal cerrado');

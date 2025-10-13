@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+
 
 @RestController
 @RequestMapping("/api/platos")
@@ -24,14 +27,18 @@ public class PlatoController {
         return ResponseEntity.ok(platoService.getPlatos(page, size));
     }
 
-    @PostMapping("/crear")
-    public ResponseEntity<GetPlatoDto> createPlato(@RequestBody PostPlatoDto platoNuevo) {
-        return ResponseEntity.ok(platoService.createPlato(platoNuevo));
+    @PostMapping(value = "/crear", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<GetPlatoDto> createPlato(
+            @RequestPart("plato") PostPlatoDto platoNuevo,
+            @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
+
+        return ResponseEntity.ok(platoService.createPlato(platoNuevo, imagen));
     }
 
-    @PutMapping("/actualizar")
-    public ResponseEntity<GetPlatoDto> actualizarPlato(@RequestBody GetPlatoDto plato) {
-        return ResponseEntity.ok(platoService.updatePlato(plato));
+    @PutMapping(value ="/actualizar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<GetPlatoDto> actualizarPlato(@RequestPart("plato") GetPlatoDto plato,
+                                                       @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
+        return ResponseEntity.ok(platoService.updatePlato(plato, imagen));
     }
 
     @DeleteMapping("/activarDesactivarPlato/{id}")
