@@ -73,6 +73,9 @@ public class SecurityConfig {
                         // Endpoints de plato solo para ADMINISTRADOR
                         .requestMatchers("/api/platos/**").hasAuthority("ADMINISTRADOR")
 
+                        //Endpoint de Menu solo para ADMINISTRADOR
+                        .requestMatchers("/api/menu/**").hasAuthority("ADMINISTRADOR")
+
                         // Cualquier otro endpoint requiere autenticación
                         .anyRequest().authenticated()
                 )
