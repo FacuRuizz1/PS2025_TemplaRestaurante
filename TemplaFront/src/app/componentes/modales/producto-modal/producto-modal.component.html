@@ -29,6 +29,7 @@
         <div class="form-group">
           <select class="form-select custom-select" 
                   [(ngModel)]="producto.tipo" 
+                  (ngModelChange)="onTipoChange()"
                   name="tipo" required>
             <option value="" disabled>Seleccionar Tipo</option>
             <option *ngFor="let tipo of tiposProducto" [value]="tipo.value">
@@ -49,6 +50,21 @@
         </div>
       </div>
 
+      <!-- Precio del producto -->
+      <div class="form-row" *ngIf="producto.tipo !== 'INSUMO'">
+        <div class="form-group full-width">
+          <label for="precio" class="form-label">Precio</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input type="number" id="precio" name="precio" 
+                   class="form-control custom-input"
+                   placeholder="0.00" 
+                   [(ngModel)]="producto.precio" 
+                   min="0" step="0.01" required>
+          </div>
+        </div>
+      </div>
+
       <!-- Stock Actual -->
       <div class="form-row">
         <div class="form-group full-width">
@@ -61,7 +77,8 @@
                    min="0" step="0.01" required>
             <span class="input-group-text">
               {{ producto.unidadMedida === 'KILOGRAMO' ? 'kg' : 
-                 producto.unidadMedida === 'LITRO' ? 'lt' : 'g' }}
+                 producto.unidadMedida === 'LITRO' ? 'lt' : 
+                 producto.unidadMedida === 'GRAMO' ? 'g' : 'u' }}
             </span>
           </div>
         </div>
@@ -79,7 +96,8 @@
                    min="0" step="0.01" required>
             <span class="input-group-text">
               {{ producto.unidadMedida === 'KILOGRAMO' ? 'kg' : 
-                 producto.unidadMedida === 'LITRO' ? 'lt' : 'g' }}
+                 producto.unidadMedida === 'LITRO' ? 'lt' : 
+                 producto.unidadMedida === 'GRAMO' ? 'g' : 'u' }}
             </span>
           </div>
         </div>
@@ -94,7 +112,8 @@
                    min="0" step="0.01" required>
             <span class="input-group-text">
               {{ producto.unidadMedida === 'KILOGRAMO' ? 'kg' : 
-                 producto.unidadMedida === 'LITRO' ? 'lt' : 'g' }}
+                 producto.unidadMedida === 'LITRO' ? 'lt' : 
+                 producto.unidadMedida === 'GRAMO' ? 'g' : 'u' }}
             </span>
           </div>
         </div>

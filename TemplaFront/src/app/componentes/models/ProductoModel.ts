@@ -7,6 +7,7 @@ export interface Producto {
     stockMinimo: number;
     stockMaximo: number;
     activo?: boolean;
+    precio: number;
 }
 
 export interface PostProductoDTO {
@@ -17,6 +18,7 @@ export interface PostProductoDTO {
     stockMinimo: number;
     stockMaximo: number;
     activo?: boolean;
+    precio: number;
 }
 
 export interface ProductoDTO {
@@ -28,6 +30,7 @@ export interface ProductoDTO {
     stockMinimo: number;
     stockMaximo: number;
     activo?: boolean;
+    precio: number;
 }
 
 // ✅ DTO para filtros que coincide con tu backend
@@ -57,5 +60,6 @@ export enum TipoProducto {
 export enum UnidadMedida {
     KILOGRAMO = 'KILOGRAMO',
     LITRO = 'LITRO',
-    GRAMO = 'GRAMO'
+    GRAMO = 'GRAMO',
+    UNIDAD = 'UNIDAD'
 }

@@ -20,4 +20,5 @@ public class ProductoDTO {
     private Double stockMinimo;
     private Double stockMaximo;
     private boolean activo;
+    private Double precio;
 }

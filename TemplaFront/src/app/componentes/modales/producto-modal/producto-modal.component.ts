@@ -22,7 +22,8 @@ export class ProductoModalComponent implements OnInit {
     stockActual: 0,
     stockMinimo: 0,
     stockMaximo: 0,
-    activo: true
+    activo: true,
+    precio: 0
   };
 
   // Enums disponibles para los selects
@@ -39,7 +40,8 @@ export class ProductoModalComponent implements OnInit {
   unidadesMedida = [
     { value: UnidadMedida.KILOGRAMO, label: 'Kilogramo (kg)' },
     { value: UnidadMedida.LITRO, label: 'Litro (lt)' },
-    { value: UnidadMedida.GRAMO, label: 'Gramo (g)' }
+    { value: UnidadMedida.GRAMO, label: 'Gramo (g)' },
+    { value: UnidadMedida.UNIDAD, label: 'Unidad (u)' }
   ];
 
   constructor(public activeModal: NgbActiveModal) {}
@@ -54,7 +56,7 @@ export class ProductoModalComponent implements OnInit {
 
   // ✅ Validaciones
   get isFormValid(): boolean {
-    return !!(
+    const baseValidation = !!(
       this.producto.nombre &&
       this.producto.nombre.trim() &&
       this.producto.tipo &&
@@ -63,6 +65,14 @@ export class ProductoModalComponent implements OnInit {
       this.producto.stockMinimo >= 0 &&
       this.producto.stockMaximo >= 0
     );
+
+    // Si es INSUMO, no requiere precio
+    if (this.producto.tipo === 'INSUMO') {
+      return baseValidation;
+    }
+    
+    // Si es BEBIDA o ACOMPAÑANTE, requiere precio válido
+    return baseValidation && this.producto.precio >= 0;
   }
 
   // ✅ Validación simple para nombre
@@ -75,6 +85,29 @@ export class ProductoModalComponent implements OnInit {
     if (this.producto.nombre) {
       this.producto.nombre = this.producto.nombre.trim();
     }
+  }
+
+  // ✅ Auto-selección de unidad de medida basada en el tipo
+  onTipoChange() {
+    console.log('Tipo cambiado a:', this.producto.tipo);
+    
+    switch (this.producto.tipo) {
+      case TipoProducto.INSUMO:
+        this.producto.unidadMedida = UnidadMedida.GRAMO;
+        this.producto.precio = 0; // Los insumos no tienen precio
+        break;
+      case TipoProducto.ACOMPAÑANTE:
+        this.producto.unidadMedida = UnidadMedida.KILOGRAMO;
+        break;
+      case TipoProducto.BEBIDA:
+        this.producto.unidadMedida = UnidadMedida.LITRO;
+        break;
+      default:
+        this.producto.unidadMedida = '' as any;
+    }
+    
+    console.log('Unidad auto-seleccionada:', this.producto.unidadMedida);
+    console.log('Precio establecido:', this.producto.precio);
   }
 
 

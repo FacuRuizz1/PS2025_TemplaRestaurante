@@ -217,10 +217,19 @@
   color: var(--templa-brown);
 }
 
+.nav-item.active .nav-icon {
+  /* Cuando el item está activo, mantener el icono con el mismo filtro pero más visible */
+  filter: brightness(0.9) contrast(1) saturate(0.8) sepia(0.1);
+  opacity: 1;
+}
+
 .nav-icon {
   font-size: 20px;
   min-width: 20px;
   text-align: center;
+  /* Normalizar el color de todos los emojis/iconos para que se vean uniformes */
+  filter: brightness(0.8) contrast(0.9) saturate(0.7) sepia(0.1);
+  opacity: 0.85;
 }
 
 .nav-label {
@@ -355,6 +364,27 @@
 
 .notification-btn:hover {
   background-color: rgba(244, 234, 221, 0.1);
+}
+
+.menu-btn {
+  background-color: transparent;
+  border: none;
+  color: var(--templa-beige);
+  font-size: 20px;
+  cursor: pointer;
+  position: relative;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+  margin-right: 10px;
+}
+
+.menu-btn:hover {
+  background-color: rgba(244, 234, 221, 0.1);
+}
+
+.menu-icon {
+  font-size: 24px;
 }
 
 .notification-icon {

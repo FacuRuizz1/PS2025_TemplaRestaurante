@@ -88,6 +88,7 @@
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Nombre</th>
+                    <th scope="col">Precio</th>
                     <th scope="col">Tipo</th>
                     <th scope="col">Unidad</th>
                     <th scope="col">Stock Actual</th>
@@ -100,7 +101,7 @@
             <tbody class="table-group-divider">
                 <!-- ✅ Mostrar mensaje si no hay datos -->
                 <tr *ngIf="productos.length === 0">
-                    <td colspan="9" class="text-center text-muted py-4">
+                    <td colspan="10" class="text-center text-muted py-4">
                         No se encontraron productos
                     </td>
                 </tr>
@@ -111,6 +112,14 @@
                         <th scope="row">{{ i + 1 + ((paginaActual) * tamanoPagina) }}</th>
                         <td>
                             <strong>{{ producto.nombre }}</strong>
+                        </td>
+                        <td>
+                            <span *ngIf="producto.tipo === 'INSUMO'" class="text-muted">
+                                --
+                            </span>
+                            <span *ngIf="producto.tipo !== 'INSUMO'" class="text-success fw-bold">
+                                ${{ producto.precio | number:'1.2-2' }}
+                            </span>
                         </td>
                         <td>
                             <span class="badge" [ngClass]="getBadgeClassTipo(producto.tipo)">

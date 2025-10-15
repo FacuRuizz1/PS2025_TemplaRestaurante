@@ -228,7 +228,8 @@ export class ProductosComponent implements OnInit {
       stockActual: productoData.stockActual,
       stockMinimo: productoData.stockMinimo,
       stockMaximo: productoData.stockMaximo,
-      activo: productoData.activo
+      activo: productoData.activo,
+      precio: productoData.precio
     };
     
     this.productoService.crearProducto(productoDto).subscribe({
@@ -385,7 +386,8 @@ export class ProductosComponent implements OnInit {
     switch (unidad) {
       case 'KILOGRAMO': return 'kg';
       case 'LITRO': return 'lt';
-      case 'UNIDAD': return 'un';
+      case 'GRAMO': return 'g';
+      case 'UNIDAD': return 'u';
       default: return unidad;
     }
   }

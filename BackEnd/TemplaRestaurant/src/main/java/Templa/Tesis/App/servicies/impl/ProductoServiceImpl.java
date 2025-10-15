@@ -38,6 +38,9 @@ public class ProductoServiceImpl implements IProductoService {
         if(nuevoProducto.getUnidadMedida() == null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Debe ingresar la unidad de medida");
         }
+        if(nuevoProducto.getPrecio() == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Debe ingresar el precio");
+        }
 
         ProductoEntity existe = productoRepository.findByNombre(nuevoProducto.getNombre());
 
@@ -71,6 +74,7 @@ public class ProductoServiceImpl implements IProductoService {
         productoExistente.setStockMinimo(productoDTO.getStockMinimo());
         productoExistente.setStockMaximo(productoDTO.getStockMaximo());
         productoExistente.setActivo(productoDTO.isActivo());
+        productoExistente.setPrecio(productoDTO.getPrecio());
 
         ProductoEntity productoActualizado = productoRepository.save(productoExistente);
         ProductoDTO productoActualizadoDTO = modelMapper.map(productoActualizado,ProductoDTO.class);

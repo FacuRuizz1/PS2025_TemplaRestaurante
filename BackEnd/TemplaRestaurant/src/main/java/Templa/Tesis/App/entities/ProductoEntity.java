@@ -40,5 +40,7 @@ public class ProductoEntity {
 
     private boolean activo;
 
+    private Double precio;
+
 
 }

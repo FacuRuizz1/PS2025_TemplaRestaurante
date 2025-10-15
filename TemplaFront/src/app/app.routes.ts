@@ -5,6 +5,7 @@ import { UsuariosComponent } from './componentes/modulos/usuarios/usuarios.compo
 import { ProductosComponent } from './componentes/modulos/productos/productos.component';
 import { AuthGuard as authGuard } from './guards/auth-guard.guard';
 import { PlatosComponent } from './componentes/modulos/platos/platos.component';
+import { MenuComponent } from './componentes/modulos/menu/menu.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -71,6 +72,20 @@ export const routes: Routes = [
       menuLabel: 'Platos', 
       icon: '🍽️',
       order: 3,
+      isPrincipal: true
+    }
+  },
+
+  // Rutas de Menú (PROTEGIDAS)
+  { 
+    path: 'menu', 
+    component: MenuComponent,
+    canActivate: [authGuard],
+    data: { 
+      showInMenu: true, 
+      menuLabel: 'Menú', 
+      icon: '📜',
+      order: 4,
       isPrincipal: true
     }
   },
