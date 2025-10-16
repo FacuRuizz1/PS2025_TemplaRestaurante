@@ -1,10 +1,106 @@
-<div class="menu-container">
-  <div class="header pt-3 px-3">
+<div class="header pt-3 px-3">
+    <!-- Título a la izquierda -->
     <div class="header-left">
-      <h1 class="texto-elegante">Menú del Restaurante</h1>
+        <h1 class="texto-elegante">Menus</h1>
     </div>
-  </div>
 
-  <hr class="header-divider">
+    <!-- Controles a la derecha -->
+    <div class="header-right">
+        <!-- Input de búsqueda -->
+        <div class="search-container">
+            <input type="text" id="busqueda" name="busqueda" class="form-control custom-input" 
+                   (input)="onBusquedaChange()"
+                   placeholder="🔎Buscar menu..." [(ngModel)]="busqueda">
+        </div>
 
+        <div class="btn-group filter-group" role="group" aria-label="Filtro por estado">
+            <input type="radio" class="btn-check" name="estado" id="ACTIVOS" value="ACTIVOS" 
+                   (change)="onEstadoChange('ACTIVOS')"
+                   [(ngModel)]="estadoSeleccionado" autocomplete="off">
+            <label class="btn custom-radio" for="ACTIVOS">Activos</label>
+
+            <input type="radio" class="btn-check" name="estado" id="TODOS_ESTADO" value="TODOS" 
+                   (change)="onEstadoChange('TODOS')"
+                   [(ngModel)]="estadoSeleccionado" autocomplete="off">
+            <label class="btn custom-radio" for="TODOS_ESTADO">Todos</label>
+
+            <input type="radio" class="btn-check" name="estado" id="INACTIVOS" value="INACTIVOS" 
+                   (change)="onEstadoChange('INACTIVOS')"
+                   [(ngModel)]="estadoSeleccionado" autocomplete="off">
+            <label class="btn custom-radio" for="INACTIVOS">Inactivos</label>
+        </div>
+    </div>
 </div>
+
+<hr class="header-divider">
+
+<div class="body mt-5 px-5">
+    <!-- ✅ Loading spinner -->
+    <div *ngIf="cargando" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <!-- ✅ Grid de menús -->
+    <div *ngIf="!cargando" class="menus-grid">
+        <div class="menu-card" *ngFor="let menu of menus" (click)="abrirModalEditarMenu(menu)">
+            <!-- ✅ Header con nombre y badge -->
+            <div class="menu-header">
+                <h3 class="menu-nombre">{{ menu.nombre }}</h3>
+                <div class="estado-badge" [ngClass]="getEstadoBadgeClass(menu)">
+                    {{ getEstadoTexto(menu) }}
+                </div>
+            </div>
+
+            <!-- ✅ Línea divisora debajo del título -->
+            <div class="menu-title-divider"></div>
+
+            <!-- ✅ Contenido -->
+            <div class="menu-content">
+                <!-- Descripción -->
+                <p class="menu-descripcion">{{ menu.descripcion }}</p>
+
+                <!-- ✅ Disponibilidad por fechas -->
+                <div class="menu-disponibilidad" *ngIf="menu.disponibleDesde || menu.disponibleHasta">
+                    <span class="disponibilidad-titulo">Disponibilidad:</span>
+                    <div class="disponibilidad-lista">
+                        Desde: {{ menu.disponibleDesde }}
+                        <span *ngIf="menu.disponibleHasta"> hasta: {{ menu.disponibleHasta }}</span>
+                    </div>
+                </div>
+
+                <!-- ✅ Contenidos como en platos -->
+                <div class="menu-contenidos" *ngIf="formatearContenidos(menu)">
+                    <span class="contenidos-titulo">Contenidos:</span>
+                    <div class="contenidos-lista">
+                        {{ formatearContenidos(menu) }}
+                    </div>
+                </div>
+
+                <!-- ✅ Precio -->
+                <div class="menu-info">
+                    <span class="menu-precio-label">Precio:</span>
+                    <span class="menu-precio">${{ menu.precio | number:'1.2-2' }}</span>
+                </div>
+            </div>
+
+            <!-- ✅ Indicador visual de que es clickeable -->
+            <div class="click-indicator">
+                <span>Click para editar</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ Mensaje cuando no hay menús -->
+    <div *ngIf="!cargando && (!menus || menus.length === 0)" class="no-menus">
+        <div class="text-center py-5">
+            <h4 class="text-muted">No se encontraron menús</h4>
+            <p class="text-muted">Intenta ajustar los filtros o agrega un nuevo menú</p>
+        </div>
+    </div>
+</div>
+
+<button class="floating-btn" (click)="abrirModalNuevoMenu()">
+    ➕
+</button>
