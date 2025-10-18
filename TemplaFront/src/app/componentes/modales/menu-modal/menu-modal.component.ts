@@ -88,6 +88,56 @@ export class MenuModalComponent implements OnInit {
     };
     
     this.activo = this.menu.activo;
+    
+    // ✅ CARGAR ITEMS EXISTENTES del menú
+    this.cargarItemsExistentes();
+  }
+
+  // ✅ Cargar items que ya tiene el menú para mostrarlos en edición
+  private cargarItemsExistentes(): void {
+    if (!this.menu?.productos || !Array.isArray(this.menu.productos)) {
+      console.log('No hay productos existentes para cargar');
+      return;
+    }
+
+    console.log('🔄 Cargando items existentes del menú:', this.menu.productos);
+    this.itemsAgregados = [];
+
+    this.menu.productos.forEach((producto: any) => {
+      let item: ItemMenu | null = null;
+
+      // Si es un plato
+      if (producto.idPlato && producto.idPlato > 0) {
+        const plato = this.platos.find(p => p.idPlato === producto.idPlato);
+        if (plato && plato.idPlato) {
+          item = {
+            id: plato.idPlato,
+            nombre: plato.nombre,
+            tipo: 'PLATO' as const,
+            tipoEspecifico: plato.tipoPlato
+          };
+        }
+      }
+      // Si es un producto puro (sin plato asociado)
+      else if (producto.idProducto && producto.idProducto > 0) {
+        const prod = this.productos.find(p => p.id === producto.idProducto);
+        if (prod && prod.id) {
+          item = {
+            id: prod.id,
+            nombre: prod.nombre,
+            tipo: 'PRODUCTO' as const,
+            tipoEspecifico: prod.tipo
+          };
+        }
+      }
+
+      if (item) {
+        this.itemsAgregados.push(item);
+        console.log('✅ Item cargado:', item);
+      }
+    });
+
+    console.log('🎯 Items agregados cargados:', this.itemsAgregados);
   }
 
   // ✅ Cuando cambia el tipo seleccionado, cargar items correspondientes

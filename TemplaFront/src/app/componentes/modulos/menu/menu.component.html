@@ -71,10 +71,10 @@
                 </div>
 
                 <!-- ✅ Contenidos como en platos -->
-                <div class="menu-contenidos" *ngIf="formatearContenidos(menu)">
+                <div class="menu-contenidos" *ngIf="menu.nombrePlato || menu.nombreProducto">
                     <span class="contenidos-titulo">Contenidos:</span>
                     <div class="contenidos-lista">
-                        {{ formatearContenidos(menu) }}
+                        <span *ngIf="menu.nombrePlato">{{ menu.nombrePlato }}</span><span *ngIf="menu.nombrePlato && menu.nombreProducto">, </span><span *ngIf="menu.nombreProducto">{{ menu.nombreProducto }}</span>
                     </div>
                 </div>
 

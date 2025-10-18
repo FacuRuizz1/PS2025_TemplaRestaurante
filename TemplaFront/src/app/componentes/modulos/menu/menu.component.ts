@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { GetMenuDTO, MenuConDetalles } from '../../models/MenuModel';
@@ -44,7 +44,8 @@ export class MenuComponent implements OnInit {
   constructor(
     private modalService: NgbModal,
     private platoService: PlatoService,
-    private productoService: ProductoService
+    private productoService: ProductoService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -198,10 +199,19 @@ export class MenuComponent implements OnInit {
 
   // ✅ Método para formatear los contenidos (usando datos de ejemplo)
   formatearContenidos(menu: MenuConDetalles): string {
+    console.log(`📋 Formateando contenidos para menú "${menu.nombre}":`, {
+      id: menu.id,
+      nombrePlato: menu.nombrePlato,
+      nombreProducto: menu.nombreProducto
+    });
+    
     let contenidos = [];
     if (menu.nombrePlato) contenidos.push(menu.nombrePlato);
     if (menu.nombreProducto) contenidos.push(menu.nombreProducto);
-    return contenidos.join(', ');
+    
+    const resultado = contenidos.join(', ');
+    console.log(`📋 Resultado formateado: "${resultado}"`);
+    return resultado;
   }
 
   // ✅ Método para verificar disponibilidad por fechas
@@ -309,41 +319,113 @@ export class MenuComponent implements OnInit {
 
   // ✅ Actualizar menú específico en la lista
   actualizarMenuEnLista(menuId: number, menuActualizado: any): void {
+    console.log('=== ACTUALIZANDO MENÚ EN LISTA ===');
+    console.log('Menu ID:', menuId);
+    console.log('Menu actualizado recibido:', menuActualizado);
+    console.log('Platos disponibles:', this.platosDisponibles.length);
+    console.log('Productos disponibles:', this.productosDisponibles.length);
+    
     const index = this.menus.findIndex(m => m.id === menuId);
     if (index !== -1) {
-      // Mantener el ID original y actualizar el resto
+      console.log('Menú encontrado en índice:', index);
+      console.log('Menú anterior:', this.menus[index]);
+      
+      // Calcular nuevos nombres con debug
+      const nombrePlato = this.obtenerNombrePlatos(menuActualizado) || '';
+      const nombreProducto = this.obtenerNombreProductos(menuActualizado) || '';
+      
+      console.log('Nombres calculados:');
+      console.log('- Platos:', `"${nombrePlato}"`);
+      console.log('- Productos:', `"${nombreProducto}"`);
+      
+      // Mantener el ID original y actualizar el resto - FORZAR valores vacíos si no hay contenido
       const menuParaVista: MenuConDetalles = {
         ...menuActualizado,
         id: menuId, // Mantener ID original
-        nombrePlato: this.obtenerNombrePlatos(menuActualizado),
-        nombreProducto: this.obtenerNombreProductos(menuActualizado)
+        nombrePlato: nombrePlato, // Forzar cadena vacía si no hay platos
+        nombreProducto: nombreProducto // Forzar cadena vacía si no hay productos
       };
       
+      // ✅ Actualizar el menú en el array
       this.menus[index] = menuParaVista;
+      
+      // ✅ Crear completamente nuevo array con objetos nuevos para forzar re-render
+      this.menus = this.menus.map((m, i) => i === index ? { 
+        ...menuParaVista, 
+        _updateKey: Date.now() // Clave única para forzar actualización
+      } : { ...m });
+      
+      // ✅ Forzar detección de cambios y marcar para revisar
+      this.cdr.detectChanges();
+      this.cdr.markForCheck();
+      
       console.log('Menú actualizado en la lista:', menuParaVista);
+      console.log('Array actualizado:', this.menus[index]);
+      console.log('Estado completo del array después de actualizar:');
+      this.menus.forEach((m, i) => {
+        console.log(`  ${i}: ID=${m.id}, Nombre="${m.nombre}", Platos="${m.nombrePlato}", Productos="${m.nombreProducto}"`);
+      });
+      console.log('=== FIN ACTUALIZACIÓN ===');
+    } else {
+      console.log('ERROR: Menú no encontrado con ID:', menuId);
     }
   }
 
   // ✅ Obtener nombres de platos del menú
   private obtenerNombrePlatos(menu: any): string {
+    console.log('🍽️ Obteniendo nombres de platos para:', menu.nombre);
+    console.log('Productos del menú:', menu.productos);
+    
+    // ✅ Si no hay productos, devolver cadena vacía
+    if (!menu.productos || !Array.isArray(menu.productos) || menu.productos.length === 0) {
+      console.log('❌ No hay productos en el menú - devolviendo cadena vacía');
+      return '';
+    }
+    
     const platos = menu.productos
-      ?.filter((p: any) => p.idPlato && p.idPlato > 0)
-      ?.map((p: any) => {
+      .filter((p: any) => {
+        // ✅ Verificar que realmente tenga un idPlato válido
+        const esPlato = p.idPlato && p.idPlato > 0;
+        console.log(`Evaluando producto: idPlato=${p.idPlato || 'undefined'}, idProducto=${p.idProducto || 'undefined'}, es plato: ${esPlato}`);
+        return esPlato;
+      })
+      .map((p: any) => {
         const plato = this.platosDisponibles.find(pl => pl.idPlato === p.idPlato);
-        return plato?.nombre || 'Plato desconocido';
+        console.log(`🔍 Buscando plato con ID ${p.idPlato}:`, plato?.nombre || 'NO ENCONTRADO');
+        return plato?.nombre || `Plato #${p.idPlato}`;
       });
-    return platos?.join(', ') || '';
+    
+    const resultado = platos.length > 0 ? platos.join(', ') : '';
+    console.log('✅ Nombres de platos resultado:', `"${resultado}"`);
+    return resultado;
   }
 
   // ✅ Obtener nombres de productos del menú
   private obtenerNombreProductos(menu: any): string {
+    console.log('🥤 Obteniendo nombres de productos para:', menu.nombre);
+    
+    // ✅ Si no hay productos, devolver cadena vacía
+    if (!menu.productos || !Array.isArray(menu.productos) || menu.productos.length === 0) {
+      console.log('❌ No hay productos en el menú - devolviendo cadena vacía');
+      return '';
+    }
+    
     const productos = menu.productos
-      ?.filter((p: any) => p.idProducto && p.idProducto > 0 && !p.idPlato)
-      ?.map((p: any) => {
+      .filter((p: any) => {
+        // ✅ Verificar que sea un producto puro (sin idPlato) y tenga idProducto válido
+        const esProducto = p.idProducto && p.idProducto > 0 && (!p.idPlato || p.idPlato === 0);
+        console.log(`Evaluando para productos: idPlato=${p.idPlato || 'undefined'}, idProducto=${p.idProducto || 'undefined'}, es producto: ${esProducto}`);
+        return esProducto;
+      })
+      .map((p: any) => {
         const producto = this.productosDisponibles.find(pr => pr.id === p.idProducto);
-        return producto?.nombre || 'Producto desconocido';
+        console.log(`🔍 Buscando producto con ID ${p.idProducto}:`, producto?.nombre || 'NO ENCONTRADO');
+        return producto?.nombre || `Producto #${p.idProducto}`;
       });
-    return productos?.join(', ') || '';
+    
+    const resultado = productos.length > 0 ? productos.join(', ') : '';
+    console.log('✅ Nombres de productos resultado:', `"${resultado}"`);
+    return resultado;
   }
 
 }
