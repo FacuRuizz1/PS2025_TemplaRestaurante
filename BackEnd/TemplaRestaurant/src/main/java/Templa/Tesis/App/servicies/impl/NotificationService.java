@@ -1,4 +1,4 @@
-package Templa.Tesis.App.servicies;
+package Templa.Tesis.App.servicies.impl;
 
 import Templa.Tesis.App.dtos.NotificacionDTO;
 import Templa.Tesis.App.dtos.ProductoDTO;

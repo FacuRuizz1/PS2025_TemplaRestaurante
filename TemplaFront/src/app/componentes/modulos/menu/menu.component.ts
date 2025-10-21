@@ -8,6 +8,7 @@ import { GetPlatoDto, TipoPlato } from '../../models/PlatoModel';
 import { ProductoDTO, TipoProducto, UnidadMedida, FiltroProducto } from '../../models/ProductoModel';
 import { PlatoService } from '../../../services/plato.service';
 import { ProductoService } from '../../../services/producto.service';
+import { AlertService } from '../../../services/alert.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -19,8 +20,12 @@ import Swal from 'sweetalert2';
 })
 export class MenuComponent implements OnInit {
 
-  // ✅ Datos de ejemplo (luego conectarás con el backend)
+  // ✅ Datos mostrados (resultado de aplicar filtros)
   menus: MenuConDetalles[] = [];
+  
+  // ✅ Datos temporales (solo en memoria, sin persistencia)
+  private menusTemporales: MenuConDetalles[] = [];
+  pageInfo: any = null;
   
   // ✅ Filtros
   busqueda: string = '';
@@ -45,12 +50,14 @@ export class MenuComponent implements OnInit {
     private modalService: NgbModal,
     private platoService: PlatoService,
     private productoService: ProductoService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private alertService: AlertService
   ) { }
 
   ngOnInit(): void {
     console.log('Componente de Menú cargado');
-    this.cargarMenusDeEjemplo();
+    this.cargarMenusDesdeStorage(); // ✅ Cargar datos temporales de la sesión
+    this.cargarMenusIniciales();
     this.cargarPlatosDisponibles();
     this.cargarProductosDisponibles();
   }
@@ -61,10 +68,14 @@ export class MenuComponent implements OnInit {
       next: (response: any) => {
         if (response?.content) {
           this.platosDisponibles = response.content;
+          // ✅ Si los platos se cargan exitosamente, el backend está funcionando
+          this.marcarBackendDisponible();
         }
       },
       error: (error) => {
         console.error('Error al cargar platos:', error);
+        // ✅ Si falla cargar platos, el backend no está disponible
+        this.manejarBackendNoDisponible();
       }
     });
   }
@@ -83,109 +94,207 @@ export class MenuComponent implements OnInit {
       next: (response: any) => {
         if (response?.content) {
           this.productosDisponibles = response.content;
+          // ✅ Si los productos se cargan exitosamente, el backend está funcionando
+          this.marcarBackendDisponible();
         }
       },
       error: (error) => {
         console.error('Error al cargar productos:', error);
+        // ✅ Si falla cargar productos, el backend no está disponible
+        this.manejarBackendNoDisponible();
       }
     });
   }
 
-  // ✅ Datos de ejemplo para mostrar el diseño
-  private cargarMenusDeEjemplo(): void {
-    this.menus = [
-      {
-        id: 1,
-        nombre: 'Menú Ejecutivo',
-        descripcion: 'Menú completo perfecto para el almuerzo',
-        precio: 15.50,
-        activo: true,
-        disponibleDesde: '2024-01-01',
-        disponibleHasta: '2024-12-31',
-        productos: [
-          { idPlato: 1, idProducto: 101 },
-          { idProducto: 201 }, // Solo producto (bebida)
-          { idProducto: 301 }  // Solo producto (acompañante)
-        ],
-        // Información enriquecida para la UI
-        nombrePlato: 'Milanesa con papas fritas',
-        nombreProducto: 'Coca Cola 500ml, Ensalada mixta'
-      },
-      {
-        id: 2,
-        nombre: 'Menú Vegetariano',
-        descripcion: 'Opción saludable y deliciosa',
-        precio: 12.00,
-        activo: true,
-        disponibleDesde: '2024-01-01',
-        disponibleHasta: '2024-12-31',
-        productos: [
-          { idPlato: 2, idProducto: 102 },
-          { idProducto: 202 },
-          { idProducto: 302 }
-        ],
-        nombrePlato: 'Ensalada César',
-        nombreProducto: 'Agua con gas, Pan integral'
-      },
-      {
-        id: 3,
-        nombre: 'Menú del Día',
-        descripcion: 'La especialidad de hoy',
-        precio: 18.00,
-        activo: false,
-        disponibleDesde: '2024-01-01',
-        disponibleHasta: '2024-06-30',
-        productos: [
-          { idPlato: 3, idProducto: 103 },
-          { idProducto: 203 },
-          { idProducto: 303 }
-        ],
-        nombrePlato: 'Pescado a la plancha',
-        nombreProducto: 'Jugo natural, Puré de papas'
+  // ✅ Cargar menús desde sessionStorage (solo para navegación entre componentes)
+  private cargarMenusDesdeStorage(): void {
+    try {
+      // Solo cargar si el backend estaba disponible en la sesión anterior
+      if (this.verificarBackendDisponible()) {
+        const menusGuardados = sessionStorage.getItem('menusTemporales');
+        if (menusGuardados) {
+          this.menusTemporales = JSON.parse(menusGuardados);
+          console.log('✅ Menús temporales cargados desde sessionStorage:', this.menusTemporales.length);
+        }
+      } else {
+        console.log('🔄 Backend no estaba disponible - iniciando con lista vacía');
+        this.menusTemporales = [];
       }
-    ];
+    } catch (error) {
+      console.error('Error al cargar menús desde sessionStorage:', error);
+      this.menusTemporales = [];
+    }
+  }
+
+  // ✅ Guardar menús en sessionStorage (solo durante navegación)
+  private guardarMenusEnStorage(): void {
+    try {
+      sessionStorage.setItem('menusTemporales', JSON.stringify(this.menusTemporales));
+      console.log('✅ Menús temporales guardados en sessionStorage');
+    } catch (error) {
+      console.error('Error al guardar menús en sessionStorage:', error);
+    }
+  }
+
+  // ✅ Marcar que el backend está disponible
+  private marcarBackendDisponible(): void {
+    sessionStorage.setItem('backendDisponible', 'true');
+    console.log('✅ Backend marcado como disponible');
+  }
+
+  // ✅ Manejar cuando el backend no está disponible
+  private manejarBackendNoDisponible(): void {
+    console.log('❌ Backend no disponible - limpiando datos temporales');
+    // Limpiar datos temporales cuando el backend no está disponible
+    this.menusTemporales = [];
+    sessionStorage.removeItem('menusTemporales');
+    sessionStorage.removeItem('backendDisponible');
+    this.aplicarFiltros();
+    
+    // ✅ Mostrar error con SweetAlert (igual que en mesas)
+    this.alertService.menu.loadError();
+  }
+
+  // ✅ Verificar si el backend estaba disponible en la sesión anterior
+  private verificarBackendDisponible(): boolean {
+    return sessionStorage.getItem('backendDisponible') === 'true';
+  }
+
+  // ✅ Carga inicial - verificar backend y cargar datos
+  cargarMenusIniciales(): void {
+    this.cargando = true;
+    
+    // Simular intento de conexión al backend
+    setTimeout(() => {
+      // Si no hay datos temporales y no hay backend disponible, mostrar error
+      if (this.menusTemporales.length === 0 && !this.verificarBackendDisponible()) {
+        console.log('📭 No hay menús disponibles y backend no accesible');
+        // El error ya se muestra en manejarBackendNoDisponible() cuando fallan platos/productos
+      }
+      
+      this.aplicarFiltros();
+      this.cargando = false;
+      
+      // TODO: Implementar cuando el servicio de menús esté disponible
+      /*
+      this.menuService.getMenus(0, this.tamanoPagina).subscribe({
+        next: (page) => {
+          this.menusTemporales = page.content;
+          this.pageInfo = page;
+          this.menus = page.content;
+          this.paginaActual = page.number;
+          this.guardarMenusEnStorage(); // ✅ Guardar en sessionStorage para navegación
+          this.cargando = false;
+        },
+        error: (error) => {
+          console.error('Error al cargar menús:', error);
+          this.cargando = false;
+          // Si hay error del backend pero tenemos datos temporales, usar esos
+          if (this.menusTemporales.length === 0) {
+            this.alertService.menu.loadError();
+          }
+        }
+      });
+      */
+    }, 500);
   }
 
   // ✅ Métodos de filtros
   onBusquedaChange(): void {
     console.log('Buscar:', this.busqueda);
+    this.paginaActual = 0; // Reset pagination when searching
     this.aplicarFiltros();
   }
 
   onEstadoChange(estado: string): void {
     console.log('Estado seleccionado:', estado);
     this.estadoSeleccionado = estado;
+    this.paginaActual = 0; // Reset pagination when filtering
     this.aplicarFiltros();
   }
 
-  // ✅ Aplicar filtros a la lista de menús
-  aplicarFiltros(): void {
-    // Recargar datos desde el ejemplo base
-    this.cargarMenusDeEjemplo();
-    
-    // Aplicar filtros
-    let menusFiltrados = [...this.menus];
+  // ✅ Método para limpiar filtros
+  limpiarFiltros(): void {
+    this.busqueda = '';
+    this.estadoSeleccionado = 'TODOS';
+    this.paginaActual = 0;
+    this.aplicarFiltros();
+  }
 
+  // ✅ Métodos de paginación
+  paginaAnterior(): void {
+    if (this.paginaActual > 0) {
+      this.paginaActual--;
+      this.aplicarFiltros();
+    }
+  }
+
+  paginaSiguiente(): void {
+    const totalPaginas = Math.ceil(this.menusTemporales.length / this.tamanoPagina);
+    if (this.paginaActual < totalPaginas - 1) {
+      this.paginaActual++;
+      this.aplicarFiltros();
+    }
+  }
+
+  // ✅ Obtener total de páginas
+  getTotalPaginas(): number {
+    return Math.ceil(this.menusTemporales.length / this.tamanoPagina);
+  }
+
+  // ✅ Aplicar filtros (sin persistencia, igual que otros componentes)
+  aplicarFiltros(): void {
+    console.log('Aplicando filtros...');
+    console.log('Busqueda:', this.busqueda);
+    console.log('Estado:', this.estadoSeleccionado);
+    console.log('Menús temporales disponibles:', this.menusTemporales.length);
+    
+    // Filtrar directamente (sin simulación de backend ni storage)
+    let menusFiltrados = [...this.menusTemporales];
+    
     // Filtro por búsqueda
-    if (this.busqueda && this.busqueda.trim()) {
-      const terminoBusqueda = this.busqueda.toLowerCase().trim();
+    if (this.busqueda && this.busqueda.trim() !== '') {
+      const busquedaLower = this.busqueda.toLowerCase().trim();
       menusFiltrados = menusFiltrados.filter(menu => 
-        menu.nombre.toLowerCase().includes(terminoBusqueda) ||
-        menu.descripcion?.toLowerCase().includes(terminoBusqueda) ||
-        menu.nombrePlato?.toLowerCase().includes(terminoBusqueda) ||
-        menu.nombreProducto?.toLowerCase().includes(terminoBusqueda)
+        menu.nombre.toLowerCase().includes(busquedaLower) ||
+        (menu.descripcion && menu.descripcion.toLowerCase().includes(busquedaLower)) ||
+        (menu.nombrePlato && menu.nombrePlato.toLowerCase().includes(busquedaLower)) ||
+        (menu.nombreProducto && menu.nombreProducto.toLowerCase().includes(busquedaLower))
       );
     }
-
+    
     // Filtro por estado
-    if (this.estadoSeleccionado !== 'TODOS') {
-      const estadoBoolean = this.estadoSeleccionado === 'ACTIVOS';
-      menusFiltrados = menusFiltrados.filter(menu => menu.activo === estadoBoolean);
+    if (this.estadoSeleccionado && this.estadoSeleccionado !== 'TODOS') {
+      menusFiltrados = menusFiltrados.filter(menu => {
+        if (this.estadoSeleccionado === 'ACTIVOS') {
+          return menu.activo === true;
+        } else if (this.estadoSeleccionado === 'INACTIVOS') {
+          return menu.activo === false;
+        }
+        return true;
+      });
     }
-
-    // Actualizar la lista
-    this.menus = menusFiltrados;
-    console.log(`Filtros aplicados: ${menusFiltrados.length} menús encontrados`);
+    
+    // Aplicar paginación
+    const totalElements = menusFiltrados.length;
+    const totalPages = Math.ceil(totalElements / this.tamanoPagina);
+    const inicio = this.paginaActual * this.tamanoPagina;
+    const fin = inicio + this.tamanoPagina;
+    
+    // Crear estructura de página (igual que otros componentes)
+    this.pageInfo = {
+      content: menusFiltrados.slice(inicio, fin),
+      number: this.paginaActual,
+      totalElements: totalElements,
+      totalPages: totalPages
+    };
+    
+    // Asignar resultados
+    this.menus = this.pageInfo.content;
+    this.paginaActual = this.pageInfo.number;
+    
+    console.log('✅ Filtros aplicados, menús cargados:', this.menus.length);
+    console.log('📊 Total elementos:', totalElements, 'Total páginas:', totalPages);
   }
 
   // ✅ Método para obtener clase CSS del badge de estado
@@ -247,16 +356,8 @@ export class MenuComponent implements OnInit {
     modalRef.result.then((result) => {
       if (result?.action === 'updated' && menu.id) {
         console.log('Menú actualizado:', result.menu);
-        this.actualizarMenuEnLista(menu.id, result.menu); // ✅ Actualizar específico
-        
-        // ✅ Mostrar mensaje de éxito
-        Swal.fire({
-          title: '¡Éxito!',
-          text: 'Menú actualizado correctamente',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-          confirmButtonColor: '#8bc34a'
-        });
+        this.actualizarMenuEnLista(menu.id, result.menu);
+        this.alertService.menu.updated();
       }
     }).catch((error) => {
       console.log('Modal cerrado sin guardar');
@@ -279,16 +380,8 @@ export class MenuComponent implements OnInit {
     modalRef.result.then((result) => {
       if (result?.action === 'created') {
         console.log('Menú creado:', result.menu);
-        this.agregarMenuALista(result.menu); // ✅ Agregar a la lista
-        
-        // ✅ Mostrar mensaje de éxito
-        Swal.fire({
-          title: '¡Éxito!',
-          text: 'Menú creado correctamente',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-          confirmButtonColor: '#8bc34a'
-        });
+        this.agregarMenuALista(result.menu);
+        this.alertService.menu.created();
       }
     }).catch((error) => {
       console.log('Modal cerrado sin guardar');
@@ -298,8 +391,29 @@ export class MenuComponent implements OnInit {
   // ✅ Método para recargar la lista de menús
   recargarMenus(): void {
     console.log('Recargando lista de menús...');
-    this.cargarMenusDeEjemplo(); // Por ahora recarga los ejemplos
-    // TODO: Aquí llamarías al servicio de menús cuando esté implementado
+    // Resetear filtros y recargar
+    this.busqueda = '';
+    this.estadoSeleccionado = 'TODOS';
+    this.paginaActual = 0;
+    this.cargarMenusIniciales();
+  }
+
+  // ✅ Método para limpiar datos temporales
+  limpiarDatosLocales(): void {
+    this.menusTemporales = [];
+    this.aplicarFiltros();
+    console.log('✅ Datos temporales limpiados');
+  }
+
+  // ✅ Método para eliminar un menú específico
+  eliminarMenu(menuId: number): void {
+    const index = this.menusTemporales.findIndex((m: MenuConDetalles) => m.id === menuId);
+    if (index !== -1) {
+      this.menusTemporales.splice(index, 1);
+      this.guardarMenusEnStorage(); // ✅ Persistir cambios en sessionStorage
+      this.aplicarFiltros();
+      console.log('✅ Menú eliminado:', menuId);
+    }
   }
 
   // ✅ Agregar nuevo menú a la lista
@@ -307,14 +421,22 @@ export class MenuComponent implements OnInit {
     // Convertir a formato de visualización
     const menuParaVista: MenuConDetalles = {
       ...nuevoMenu,
-      id: this.menus.length + 1, // ID temporal
+      id: Date.now(), // ID único basado en timestamp
       nombrePlato: this.obtenerNombrePlatos(nuevoMenu),
       nombreProducto: this.obtenerNombreProductos(nuevoMenu)
     };
     
-    // Agregar al inicio de la lista
-    this.menus.unshift(menuParaVista);
-    console.log('Menú agregado a la lista:', menuParaVista);
+    // Agregar al almacén temporal
+    this.menusTemporales.unshift(menuParaVista);
+    
+    // ✅ Persistir cambios en sessionStorage para navegación
+    this.guardarMenusEnStorage();
+    
+    // Reaplicar filtros para mostrar el nuevo menú
+    this.aplicarFiltros();
+    
+    console.log('Menú agregado temporalmente:', menuParaVista);
+    console.log('Total menús temporales:', this.menusTemporales.length);
   }
 
   // ✅ Actualizar menú específico en la lista
@@ -325,10 +447,11 @@ export class MenuComponent implements OnInit {
     console.log('Platos disponibles:', this.platosDisponibles.length);
     console.log('Productos disponibles:', this.productosDisponibles.length);
     
-    const index = this.menus.findIndex(m => m.id === menuId);
-    if (index !== -1) {
-      console.log('Menú encontrado en índice:', index);
-      console.log('Menú anterior:', this.menus[index]);
+    // Actualizar en el almacén temporal
+    const indexLocal = this.menusTemporales.findIndex((m: MenuConDetalles) => m.id === menuId);
+    if (indexLocal !== -1) {
+      console.log('Menú encontrado en almacén temporal, índice:', indexLocal);
+      console.log('Menú anterior:', this.menusTemporales[indexLocal]);
       
       // Calcular nuevos nombres con debug
       const nombrePlato = this.obtenerNombrePlatos(menuActualizado) || '';
@@ -338,33 +461,30 @@ export class MenuComponent implements OnInit {
       console.log('- Platos:', `"${nombrePlato}"`);
       console.log('- Productos:', `"${nombreProducto}"`);
       
-      // Mantener el ID original y actualizar el resto - FORZAR valores vacíos si no hay contenido
+      // Mantener el ID original y actualizar el resto
       const menuParaVista: MenuConDetalles = {
         ...menuActualizado,
         id: menuId, // Mantener ID original
-        nombrePlato: nombrePlato, // Forzar cadena vacía si no hay platos
-        nombreProducto: nombreProducto // Forzar cadena vacía si no hay productos
+        nombrePlato: nombrePlato,
+        nombreProducto: nombreProducto
       };
       
-      // ✅ Actualizar el menú en el array
-      this.menus[index] = menuParaVista;
+      // ✅ Actualizar el menú en el almacén temporal
+      this.menusTemporales[indexLocal] = menuParaVista;
       
-      // ✅ Crear completamente nuevo array con objetos nuevos para forzar re-render
-      this.menus = this.menus.map((m, i) => i === index ? { 
-        ...menuParaVista, 
-        _updateKey: Date.now() // Clave única para forzar actualización
-      } : { ...m });
+      // ✅ Persistir cambios en sessionStorage para navegación
+      this.guardarMenusEnStorage();
       
-      // ✅ Forzar detección de cambios y marcar para revisar
+      // ✅ Reaplicar filtros para reflejar los cambios en la vista
+      this.aplicarFiltros();
+      
+      // ✅ Forzar detección de cambios
       this.cdr.detectChanges();
       this.cdr.markForCheck();
       
-      console.log('Menú actualizado en la lista:', menuParaVista);
-      console.log('Array actualizado:', this.menus[index]);
-      console.log('Estado completo del array después de actualizar:');
-      this.menus.forEach((m, i) => {
-        console.log(`  ${i}: ID=${m.id}, Nombre="${m.nombre}", Platos="${m.nombrePlato}", Productos="${m.nombreProducto}"`);
-      });
+      console.log('Menú actualizado temporalmente:', menuParaVista);
+      console.log('Total menús temporales:', this.menusTemporales.length);
+      console.log('Menús visibles después de filtros:', this.menus.length);
       console.log('=== FIN ACTUALIZACIÓN ===');
     } else {
       console.log('ERROR: Menú no encontrado con ID:', menuId);

@@ -23,19 +23,7 @@ export class NotificationService {
   public unreadCount$ = this.unreadCountSubject.asObservable();
 
   constructor() {
-    // Por ahora, simularemos las notificaciones hasta que instalemos las dependencias WebSocket
-    this.initializeMockNotifications();
-  }
-
-  private initializeMockNotifications(): void {
-    // Simular algunas notificaciones para probar la UI
-    setTimeout(() => {
-      this.addNotification({
-        tipo: 'NUEVO_PRODUCTO',
-        mensaje: 'Sistema de notificaciones inicializado correctamente',
-        timestamp: new Date().toISOString()
-      });
-    }, 2000);
+    // Constructor vacío - las notificaciones se agregarán cuando sea necesario
   }
 
   // Método para simular la llegada de una notificación (útil para testing)

@@ -287,15 +287,50 @@ export class MenuModalComponent implements OnInit {
       activo: this.activo
     };
 
-    // Simular guardado (aquí conectarás con el backend)
-    setTimeout(() => {
-      console.log('Guardando menú:', menuCompleto);
-      this.guardando = false;
-      this.activeModal.close({
-        action: this.esEdicion ? 'updated' : 'created',
-        menu: menuCompleto
+    // TODO: Implementar cuando el servicio de menús esté disponible
+    console.log('Guardando menú:', menuCompleto);
+    this.guardando = false;
+    this.activeModal.close({
+      action: this.esEdicion ? 'updated' : 'created',
+      menu: menuCompleto
+    });
+    
+    // Código para cuando se implemente el servicio:
+    /*
+    if (this.esEdicion && this.menu?.id) {
+      // Actualizar menú existente
+      this.menuService.updateMenu(this.menu.id, menuCompleto).subscribe({
+        next: (menuActualizado) => {
+          this.guardando = false;
+          this.activeModal.close({
+            action: 'updated',
+            menu: menuActualizado
+          });
+        },
+        error: (error) => {
+          console.error('Error al actualizar menú:', error);
+          this.guardando = false;
+          // El error se manejará en el componente padre
+        }
       });
-    }, 1000);
+    } else {
+      // Crear nuevo menú
+      this.menuService.createMenu(menuCompleto).subscribe({
+        next: (menuCreado) => {
+          this.guardando = false;
+          this.activeModal.close({
+            action: 'created',
+            menu: menuCreado
+          });
+        },
+        error: (error) => {
+          console.error('Error al crear menú:', error);
+          this.guardando = false;
+          // El error se manejará en el componente padre
+        }
+      });
+    }
+    */
   }
 
   // ✅ Cancelar

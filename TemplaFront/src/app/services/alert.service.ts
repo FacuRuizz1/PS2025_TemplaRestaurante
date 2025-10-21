@@ -146,4 +146,15 @@ export class AlertService {
     loadError: () => this.crud.loadError('las personas'),
     confirmDelete: (name: string) => this.crud.confirmDelete('la persona', name)
   };
+
+  // ✅ Mensajes específicos para menús
+  menu = {
+    created: () => this.crud.created('el menú'),
+    updated: () => this.crud.updated('el menú'),
+    statusChanged: (newStatus: string) => this.crud.statusChanged('el menú', newStatus),
+    createError: () => this.crud.createError('el menú'),
+    updateError: () => this.crud.updateError('el menú'),
+    statusChangeError: () => this.showError('Error de Estado', 'No se pudo cambiar el estado del menú'),
+    loadError: () => this.showError('Menús No Encontrados', 'No se pudieron cargar los menús. Por favor, inténtelo de nuevo.')
+  };
 }
