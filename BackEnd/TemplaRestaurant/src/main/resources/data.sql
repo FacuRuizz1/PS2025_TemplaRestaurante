@@ -28,3 +28,12 @@ VALUES ('Milanesa Napolitana', 'Milanesa de ternera con salsa de tomate, jamón 
 
 INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
 VALUES (1, 1, 0.2);  -- 200 gramos de harina
+
+INSERT INTO mesas (numero_mesa, estado_mesa)
+VALUES ('2', 'DISPONIBLE');
+
+
+-- Insertar disponibilidad - NOMBRES DE COLUMNAS CORREGIDOS
+INSERT INTO disponibilidades (fecha, cupos_ocupados, cupos_maximos, activo)
+VALUES (NOW(), 20, 30, true);
+

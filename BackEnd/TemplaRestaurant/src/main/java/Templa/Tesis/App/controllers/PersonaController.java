@@ -52,7 +52,7 @@ public class PersonaController {
 
 
     @PostMapping("/crear")
-    public ResponseEntity<PersonaDto> crearPersona(@RequestBody PostPersonaDto nuevaPersona) {
+    public ResponseEntity<PersonaDto> crearPersona( @RequestBody PostPersonaDto nuevaPersona) {
         return ResponseEntity.ok(personaService.insertarPersona(nuevaPersona));
     }
 

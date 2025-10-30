@@ -76,6 +76,12 @@ public class SecurityConfig {
                         //Endpoint de Menu solo para ADMINISTRADOR
                         .requestMatchers("/api/menu/**").hasAuthority("ADMINISTRADOR")
 
+                        //Endpoint de Reserva solo para ADMINISTRADOR
+                        .requestMatchers("/api/reserva/**").hasAuthority("ADMINISTRADOR")
+
+                        //Endpoint de Disponibilidad solo para ADMINISTRADOR
+                        .requestMatchers("/api/disponibilidad/**").hasAuthority("ADMINISTRADOR")
+
                         // Cualquier otro endpoint requiere autenticación
                         .anyRequest().authenticated()
                 )

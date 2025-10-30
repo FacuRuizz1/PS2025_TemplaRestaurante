@@ -20,6 +20,7 @@ public class MesaEntity {
     private String numeroMesa;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private EstadoMesa estadoMesa;
 
 }
