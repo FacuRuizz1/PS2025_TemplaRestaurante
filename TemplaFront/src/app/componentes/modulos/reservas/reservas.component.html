@@ -1,0 +1,456 @@
+<div class="reservas-container">
+  <!-- Vista Nueva Reserva -->
+  <div *ngIf="currentView === 'nueva'" class="nueva-reserva-view">
+    <div class="multi-step-header">
+      <h2>{{ isEditMode ? 'Editar Reserva' : 'Nueva Reserva' }}</h2>
+    <div class="step-indicator">
+      <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+        <span class="step-number">1</span>
+        <span class="step-title">Comensales</span>
+      </div>
+      <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+        <span class="step-number">2</span>
+        <span class="step-title">Fecha</span>
+      </div>
+      <div class="step" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3">
+        <span class="step-number">3</span>
+        <span class="step-title">Evento</span>
+      </div>
+      <div class="step" [class.active]="currentStep >= 4" [class.completed]="currentStep > 4">
+        <span class="step-number">4</span>
+        <span class="step-title">Horario</span>
+      </div>
+      <div class="step" [class.active]="currentStep >= 5" [class.completed]="currentStep > 5">
+        <span class="step-number">5</span>
+        <span class="step-title">Cliente y Mesa</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <div class="step-title">
+      <h3>{{ getStepTitle() }}</h3>
+    </div>
+
+    <!-- Paso 1: Cantidad de Comensales -->
+    <div *ngIf="currentStep === 1" class="step-content">
+      <form [formGroup]="comensalesForm" class="comensales-form">
+        <div class="form-group">
+          <label for="cantidadComensales">¿Para cuántas personas?</label>
+          <div class="number-input-container">
+            <button type="button" class="btn-number" 
+                    (click)="decrementarComensales()">
+              -
+            </button>
+            <input type="number" 
+                   id="cantidadComensales" 
+                   formControlName="cantidadComensales" 
+                   class="form-control number-input"
+                   min="1" 
+                   max="20">
+            <button type="button" class="btn-number" 
+                    (click)="incrementarComensales()">
+              +
+            </button>
+          </div>
+          <div *ngIf="comensalesForm.get('cantidadComensales')?.invalid && comensalesForm.get('cantidadComensales')?.touched" 
+               class="error-message">
+            La cantidad debe ser entre 1 y 20 personas
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Paso 2: Fecha -->
+    <div *ngIf="currentStep === 2" class="step-content">
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button type="button" class="nav-btn" (click)="mesAnterior()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <h3 class="month-year">{{ meses[mesActual.getMonth()] }} {{ mesActual.getFullYear() }}</h3>
+          <button type="button" class="nav-btn" (click)="mesSiguiente()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <div class="calendar-grid">
+          <div class="day-header" *ngFor="let dia of diasSemana">{{ dia }}</div>
+          <div 
+            *ngFor="let dia of diasCalendario" 
+            class="calendar-day"
+            [class.other-month]="!dia.esDelMesActual"
+            [class.today]="dia.esHoy"
+            [class.available]="dia.tieneDisponibilidad && dia.esDelMesActual && !dia.esPasado"
+            [class.selected]="esFechaSeleccionada(dia)"
+            [class.past]="dia.esPasado"
+            (click)="seleccionarFecha(dia)">
+            {{ dia.dia }}
+          </div>
+        </div>
+        
+        <div class="calendar-legend">
+          <div class="legend-item">
+            <div class="legend-color available"></div>
+            <span>Disponible</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color selected"></div>
+            <span>Seleccionado</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color past"></div>
+            <span>No disponible</span>
+          </div>
+        </div>
+        
+        <div *ngIf="reservaData.fechaReserva" class="selected-date">
+          <i class="fas fa-calendar-check"></i>
+          Fecha seleccionada: {{ reservaData.fechaReserva | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 3: Tipo de Evento -->
+    <div *ngIf="currentStep === 3" class="step-content">
+      <form [formGroup]="eventoForm" class="evento-form">
+        <div class="form-group">
+          <label>¿Cuál es el motivo de tu reserva?</label>
+          <div class="evento-options">
+            <div *ngFor="let evento of eventosReserva" 
+                 class="evento-option"
+                 [class.selected]="eventoForm.get('evento')?.value === evento"
+                 (click)="eventoForm.patchValue({evento: evento})">
+              <div class="evento-card">
+                <div class="evento-icon">
+                  <i [class]="getEventoIcon(evento)"></i>
+                </div>
+                <div class="evento-name">{{ getEventoDisplayName(evento) }}</div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="eventoForm.get('evento')?.invalid && eventoForm.get('evento')?.touched" 
+               class="error-message">
+            Debe seleccionar un tipo de evento
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Paso 4: Horario -->
+    <div *ngIf="currentStep === 4" class="step-content">
+      <form [formGroup]="horarioForm" class="horario-form">
+        <div class="form-group">
+          <label>Selecciona el horario de tu preferencia</label>
+          <div class="horario-options">
+            <div *ngFor="let horario of horariosDisponibles" 
+                 class="horario-option"
+                 [class.selected]="horarioForm.get('horario')?.value === horario"
+                 (click)="horarioForm.patchValue({horario: horario})">
+              <div class="horario-card">
+                {{ horario }}
+              </div>
+            </div>
+          </div>
+          <div *ngIf="horarioForm.get('horario')?.invalid && horarioForm.get('horario')?.touched" 
+               class="error-message">
+            Debe seleccionar un horario
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Paso 5: Cliente y Mesa -->
+    <div *ngIf="currentStep === 5" class="step-content">
+      <form [formGroup]="personaMesaForm" class="persona-mesa-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="idPersona">Cliente</label>
+            <select id="idPersona" formControlName="idPersona" class="form-control">
+              <option value="0">Seleccione un cliente</option>
+              <option *ngFor="let persona of personas" [value]="persona.id">
+                {{ persona.nombre }} {{ persona.apellido }} - {{ persona.dni }}
+              </option>
+            </select>
+            <div *ngIf="personaMesaForm.get('idPersona')?.invalid && personaMesaForm.get('idPersona')?.touched" 
+                 class="error-message">
+              Debe seleccionar un cliente
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="idMesa">Mesa</label>
+            <select id="idMesa" formControlName="idMesa" class="form-control">
+              <option value="0">Seleccione una mesa</option>
+              <option *ngFor="let mesa of getMesasDisponibles()" [value]="mesa.idMesa">
+                Mesa {{ mesa.numeroMesa }} - {{ mesa.estadoMesa }}
+              </option>
+            </select>
+            <div *ngIf="personaMesaForm.get('idMesa')?.invalid && personaMesaForm.get('idMesa')?.touched" 
+                 class="error-message">
+              Debe seleccionar una mesa
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de la reserva -->
+        <div class="reserva-resumen">
+          <h4>Resumen de tu reserva</h4>
+          <div class="resumen-item">
+            <strong>Comensales:</strong> {{ reservaData.cantidadComensales }} personas
+          </div>
+          <div class="resumen-item">
+            <strong>Fecha:</strong> {{ reservaData.fechaReserva | date:'dd/MM/yyyy' }}
+          </div>
+          <div class="resumen-item">
+            <strong>Evento:</strong> {{ getEventoDisplayName(reservaData.evento) }}
+          </div>
+          <div class="resumen-item">
+            <strong>Horario:</strong> {{ reservaData.horario }}
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="navigation-buttons">
+      <button type="button" 
+              class="btn btn-secondary" 
+              *ngIf="currentStep > 1" 
+              (click)="prevStep()">
+        <i class="fas fa-arrow-left"></i> Anterior
+      </button>
+      
+      <button type="button" 
+              class="btn btn-primary" 
+              *ngIf="currentStep < totalSteps" 
+              [disabled]="!validateCurrentStep()"
+              (click)="nextStep()">
+        Siguiente <i class="fas fa-arrow-right"></i>
+      </button>
+      
+      <button type="button" 
+              class="btn btn-success" 
+              *ngIf="currentStep === totalSteps" 
+              [disabled]="!validateCurrentStep()"
+              (click)="confirmarReserva()">
+        <i class="fas fa-check"></i> {{ isEditMode ? 'Actualizar Reserva' : 'Confirmar Reserva' }}
+      </button>
+    </div>
+  </div>
+  </div>
+
+  <!-- Vista Lista de Reservas -->
+  <div *ngIf="currentView === 'lista'" class="lista-reservas-view">
+    
+    <!-- Header con título y filtros -->
+    <div class="header pt-3 px-3">
+      <!-- Título a la izquierda -->
+      <div class="header-left">
+        <h1 class="texto-elegante">Lista de Reservas</h1>
+      </div>
+
+      <!-- Controles a la derecha -->
+      <div class="header-right">
+        <!-- Input de búsqueda -->
+        <div class="search-container">
+          <input type="text" 
+                 id="busqueda" 
+                 name="busqueda" 
+                 class="form-control custom-input"
+                 placeholder="🔎Buscar reserva..." 
+                 [(ngModel)]="busqueda" 
+                 (ngModelChange)="onBusquedaChange()">
+        </div>
+
+        <!-- Grupo de filtros por evento -->
+        <div class="btn-group filter-group" role="group" aria-label="Filtro por evento">
+          <input type="radio" 
+                 class="btn-check" 
+                 name="evento" 
+                 id="TODOS_EVENTO" 
+                 value=""
+                 [(ngModel)]="eventoSeleccionado"
+                 (ngModelChange)="onEventoChange($event)"
+                 autocomplete="off">
+          <label class="btn custom-radio" for="TODOS_EVENTO">Todos</label>
+
+          <input type="radio" 
+                 class="btn-check" 
+                 name="evento" 
+                 id="ALMUERZO" 
+                 value="ALMUERZO"
+                 [(ngModel)]="eventoSeleccionado"
+                 (ngModelChange)="onEventoChange($event)"
+                 autocomplete="off">
+          <label class="btn custom-radio" for="ALMUERZO">Almuerzo</label>
+
+          <input type="radio" 
+                 class="btn-check" 
+                 name="evento" 
+                 id="CENA" 
+                 value="CENA"
+                 [(ngModel)]="eventoSeleccionado"
+                 (ngModelChange)="onEventoChange($event)"
+                 autocomplete="off">
+          <label class="btn custom-radio" for="CENA">Cena</label>
+
+          <input type="radio" 
+                 class="btn-check" 
+                 name="evento" 
+                 id="CUMPLEANOS" 
+                 value="CUMPLEAÑOS"
+                 [(ngModel)]="eventoSeleccionado"
+                 (ngModelChange)="onEventoChange($event)"
+                 autocomplete="off">
+          <label class="btn custom-radio" for="CUMPLEANOS">Cumpleaños</label>
+
+          <input type="radio" 
+                 class="btn-check" 
+                 name="evento" 
+                 id="VIP" 
+                 value="VIP"
+                 [(ngModel)]="eventoSeleccionado"
+                 (ngModelChange)="onEventoChange($event)"
+                 autocomplete="off">
+          <label class="btn custom-radio" for="VIP">VIP</label>
+        </div>
+
+        <!-- Input de fecha -->
+        <div class="date-filter">
+          <input type="date" 
+                 id="fechaFilter" 
+                 class="form-control custom-input" 
+                 [(ngModel)]="fechaSeleccionada"
+                 (ngModelChange)="onFechaChange($event)">
+        </div>
+      </div>
+    </div>
+
+    <hr class="header-divider">
+
+    <div class="body mt-5 mx-5 px-5">
+      <!-- Botón Nueva Reserva alineado a la derecha -->
+      <div class="mb-3 d-flex justify-content-end">
+        <button class="btn custom-btn" (click)="cambiarVista('nueva')">
+          <span class="btn-icon">➕</span>
+          Nueva Reserva
+        </button>
+      </div>
+
+      <!-- Loading spinner -->
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+
+      <!-- Tabla con datos reales -->
+      <div class="listado" *ngIf="!loading">
+        <table class="table table-hover table-striped custom-table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Nº Reserva</th>
+              <th scope="col">Cliente</th>
+              <th scope="col">Mesa</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Horario</th>
+              <th scope="col">Comensales</th>
+              <th scope="col">Evento</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="table-group-divider">
+            <!-- Mostrar mensaje si no hay datos -->
+            <tr *ngIf="reservas.length === 0">
+              <td colspan="9" class="text-center text-muted py-4">
+                No se encontraron reservas
+              </td>
+            </tr>
+
+            <!-- Iterar sobre las reservas -->
+            <tr *ngFor="let reserva of reservas; let i = index">
+              <th scope="row">{{ i + 1 + (paginaActual * tamanoPagina) }}</th>
+              <td>{{ reserva.nroReserva }}</td>
+              <td>{{ getNombreCliente(reserva.idPersona) }}</td>
+              <td>Mesa {{ getNumeroMesa(reserva.idMesa) }}</td>
+              <td>{{ reserva.fechaReserva | date:'dd/MM/yyyy' }}</td>
+              <td>{{ reserva.horario }}</td>
+              <td>{{ reserva.cantidadComensales }}</td>
+              <td>
+                <span class="badge badge-evento" [class]="'badge-' + reserva.evento.toLowerCase()">
+                  {{ getEventoDisplayName(reserva.evento) }}
+                </span>
+              </td>
+              <td>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-warning" 
+                          (click)="editarReserva(reserva)"
+                          title="Editar reserva">
+                    ✏️
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" 
+                          (click)="eliminarReserva(reserva.id!)"
+                          title="Eliminar reserva">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="!loading && pageInfo && pageInfo.totalPages > 1" class="d-flex justify-content-between align-items-center mt-4">
+        <div class="pagination-info">
+          <small class="text-muted">
+            Mostrando {{ ((pageInfo.number * pageInfo.size) + 1) }} - 
+            {{ Math.min((pageInfo.number + 1) * pageInfo.size, pageInfo.totalElements) }} 
+            de {{ pageInfo.totalElements }} reservas
+          </small>
+        </div>
+        
+        <nav aria-label="Paginación de reservas">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="pageInfo.number === 0">
+              <button class="page-link" (click)="irAPagina(pageInfo.number - 1)" [disabled]="pageInfo.number === 0">
+                Anterior
+              </button>
+            </li>
+            
+            <li class="page-item" 
+                *ngFor="let page of obtenerPaginasVisibles()" 
+                [class.active]="page === pageInfo.number">
+              <button class="page-link" (click)="irAPagina(page)">
+                {{ page + 1 }}
+              </button>
+            </li>
+            
+            <li class="page-item" [class.disabled]="pageInfo.number === pageInfo.totalPages - 1">
+              <button class="page-link" 
+                      (click)="irAPagina(pageInfo.number + 1)" 
+                      [disabled]="pageInfo.number === pageInfo.totalPages - 1">
+                Siguiente
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="page-size-selector">
+          <small class="text-muted me-2">Elementos por página:</small>
+          <select class="form-select form-select-sm" 
+                  [(ngModel)]="tamanoPagina" 
+                  (change)="aplicarFiltros()" 
+                  style="width: auto; display: inline-block;">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

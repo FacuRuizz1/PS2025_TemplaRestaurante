@@ -7,6 +7,7 @@ import { AuthGuard as authGuard } from './guards/auth-guard.guard';
 import { PlatosComponent } from './componentes/modulos/platos/platos.component';
 import { MenuComponent } from './componentes/modulos/menu/menu.component';
 import { MesasComponent } from './componentes/modulos/mesas/mesas.component';
+import { ReservasComponent } from './componentes/modulos/reservas/reservas.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -91,7 +92,7 @@ export const routes: Routes = [
     }
   },
 
-  // Rutas de Menú (PROTEGIDAS)
+  // Rutas de Mesas (PROTEGIDAS)
   {
     path: 'mesas',
     component: MesasComponent,
@@ -100,7 +101,21 @@ export const routes: Routes = [
       showInMenu: true,
       menuLabel: 'Mesas',
       icon: '🪑',
-      order: 4,
+      order: 5,
+      isPrincipal: true
+    }
+  },
+
+  // Rutas de Reservas (PROTEGIDAS)
+  {
+    path: 'reservas',
+    component: ReservasComponent,
+    canActivate: [authGuard],
+    data: {
+      showInMenu: true,
+      menuLabel: 'Reservas',
+      icon: '📅',
+      order: 6,
       isPrincipal: true
     }
   },

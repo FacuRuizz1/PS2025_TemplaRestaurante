@@ -32,8 +32,48 @@ VALUES (1, 1, 0.2);  -- 200 gramos de harina
 INSERT INTO mesas (numero_mesa, estado_mesa)
 VALUES ('2', 'DISPONIBLE');
 
+INSERT INTO mesas (numero_mesa, estado_mesa)
+VALUES ('3', 'DISPONIBLE');
+
+INSERT INTO mesas (numero_mesa, estado_mesa)
+VALUES ('4', 'DISPONIBLE');
+
 
 -- Insertar disponibilidad - NOMBRES DE COLUMNAS CORREGIDOS
 INSERT INTO disponibilidades (fecha, cupos_ocupados, cupos_maximos, activo)
 VALUES (NOW(), 20, 30, true);
 
+-- Disponibilidades para los próximos 30 días usando DATEADD para H2
+INSERT INTO disponibilidades (fecha, cupos_ocupados, cupos_maximos, activo)
+VALUES
+    (CURRENT_DATE, 0, 30, true),
+    (DATEADD('DAY', 1, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 2, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 3, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 4, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 5, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 6, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 7, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 8, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 9, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 10, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 11, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 12, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 13, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 14, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 15, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 16, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 17, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 18, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 19, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 20, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 21, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 22, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 23, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 24, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 25, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 26, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 27, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 28, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 29, CURRENT_DATE), 0, 30, true),
+    (DATEADD('DAY', 30, CURRENT_DATE), 0, 30, true);

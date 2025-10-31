@@ -12,16 +12,22 @@ import Templa.Tesis.App.repositories.PersonaRepository;
 import Templa.Tesis.App.repositories.ReservaRepository;
 import Templa.Tesis.App.servicies.IReservaService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -121,6 +127,31 @@ public class ReservaServiceImpl implements IReservaService {
         return reservas.map(reserva -> modelMapper.map(reserva, ReservaDTO.class));
 
     }
+
+    @Override
+    public Page<ReservaDTO> traerReservas(int page, int size, String evento, LocalDate fecha) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaReserva").descending());
+
+        Specification<ReservaEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Filtro por evento (si se proporciona)
+            if (evento != null && !evento.isEmpty()) {
+                predicates.add(cb.equal(root.get("evento"), evento));
+            }
+
+            // Filtro por fecha (si se proporciona)
+            if (fecha != null) {
+                predicates.add(cb.equal(cb.function("DATE", LocalDate.class, root.get("fechaReserva")), fecha));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<ReservaEntity> reservas = reservaRepository.findAll(spec, pageable);
+        return reservas.map(entity -> modelMapper.map(entity, ReservaDTO.class));
+    }
+
 
     @Override
     @Transactional
