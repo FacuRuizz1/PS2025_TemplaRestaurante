@@ -247,7 +247,7 @@
     <div class="header pt-3 px-3">
       <!-- Título a la izquierda -->
       <div class="header-left">
-        <h1 class="texto-elegante">Lista de Reservas</h1>
+        <h1 class="texto-elegante">Gestión de Reservas</h1>
       </div>
 
       <!-- Controles a la derecha -->
@@ -268,12 +268,12 @@
           <input type="radio" 
                  class="btn-check" 
                  name="evento" 
-                 id="TODOS_EVENTO" 
-                 value=""
+                 id="TODOS" 
+                 value="TODOS"
                  [(ngModel)]="eventoSeleccionado"
-                 (ngModelChange)="onEventoChange($event)"
+                 (change)="onEventoChange('TODOS')"
                  autocomplete="off">
-          <label class="btn custom-radio" for="TODOS_EVENTO">Todos</label>
+          <label class="btn custom-radio" for="TODOS">Todos</label>
 
           <input type="radio" 
                  class="btn-check" 
@@ -281,7 +281,7 @@
                  id="ALMUERZO" 
                  value="ALMUERZO"
                  [(ngModel)]="eventoSeleccionado"
-                 (ngModelChange)="onEventoChange($event)"
+                 (change)="onEventoChange('ALMUERZO')"
                  autocomplete="off">
           <label class="btn custom-radio" for="ALMUERZO">Almuerzo</label>
 
@@ -291,7 +291,7 @@
                  id="CENA" 
                  value="CENA"
                  [(ngModel)]="eventoSeleccionado"
-                 (ngModelChange)="onEventoChange($event)"
+                 (change)="onEventoChange('CENA')"
                  autocomplete="off">
           <label class="btn custom-radio" for="CENA">Cena</label>
 
@@ -301,7 +301,7 @@
                  id="CUMPLEANOS" 
                  value="CUMPLEAÑOS"
                  [(ngModel)]="eventoSeleccionado"
-                 (ngModelChange)="onEventoChange($event)"
+                 (change)="onEventoChange('CUMPLEAÑOS')"
                  autocomplete="off">
           <label class="btn custom-radio" for="CUMPLEANOS">Cumpleaños</label>
 
@@ -311,7 +311,7 @@
                  id="VIP" 
                  value="VIP"
                  [(ngModel)]="eventoSeleccionado"
-                 (ngModelChange)="onEventoChange($event)"
+                 (change)="onEventoChange('VIP')"
                  autocomplete="off">
           <label class="btn custom-radio" for="VIP">VIP</label>
         </div>
@@ -323,6 +323,23 @@
                  class="form-control custom-input" 
                  [(ngModel)]="fechaSeleccionada"
                  (ngModelChange)="onFechaChange($event)">
+          <button type="button" 
+                  class="btn btn-sm btn-outline-secondary mt-1" 
+                  (click)="limpiarFiltroFecha()"
+                  *ngIf="fechaSeleccionada"
+                  title="Limpiar filtro de fecha">
+            ✕ Limpiar
+          </button>
+        </div>
+
+        <!-- Botón para limpiar todos los filtros -->
+        <div class="clear-filters" *ngIf="eventoSeleccionado !== 'TODOS' || fechaSeleccionada || busqueda">
+          <button type="button" 
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="limpiarTodosFiltros()"
+                  title="Limpiar todos los filtros">
+            🗑️ Limpiar filtros
+          </button>
         </div>
       </div>
     </div>

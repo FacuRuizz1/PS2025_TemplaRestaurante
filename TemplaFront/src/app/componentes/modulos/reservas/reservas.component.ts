@@ -91,7 +91,7 @@ export class ReservasComponent implements OnInit {
   
   // ✅ Filtros - siguiendo el patrón estándar
   busqueda: string = '';
-  eventoSeleccionado: string = '';
+  eventoSeleccionado: string = 'TODOS';
   fechaSeleccionada: string = '';
   
   // ✅ Paginación - siguiendo el patrón estándar
@@ -118,10 +118,10 @@ export class ReservasComponent implements OnInit {
   ngOnInit() {
     this.cargarDatos();
     this.generarCalendario();
-    this.cargarReservasIniciales();
+    this.aplicarFiltros(); // Usar filtros desde el inicio como mesas
     
     // Inicializar filtros por defecto
-    this.eventoSeleccionado = '';
+    this.eventoSeleccionado = 'TODOS';
     this.fechaSeleccionada = '';
     this.busqueda = '';
     
@@ -707,11 +707,37 @@ export class ReservasComponent implements OnInit {
     });
   }
 
+  // Método para limpiar filtros y recargar
+  limpiarFiltrosYRecargar() {
+    console.log('🧹 Limpiando filtros y recargando...');
+    this.eventoSeleccionado = 'TODOS';
+    this.fechaSeleccionada = '';
+    this.busqueda = '';
+    this.cargarReservasIniciales();
+  }
+
+  // Método para limpiar todos los filtros pero manteniendo el endpoint de filtros
+  limpiarTodosFiltros() {
+    console.log('🧹 Limpiando todos los filtros pero usando endpoint de filtros...');
+    this.eventoSeleccionado = 'TODOS';
+    this.fechaSeleccionada = '';
+    this.busqueda = '';
+    this.aplicarFiltros();
+  }
+
+  // Método para limpiar solo el filtro de fecha
+  limpiarFiltroFecha() {
+    console.log('🧹 Limpiando filtro de fecha...');
+    this.fechaSeleccionada = '';
+    // Mantener los demás filtros y aplicar cambios
+    this.aplicarFiltros();
+  }
+
   private construirFiltros(pagina: number = 0): any {
     const filtros = {
       page: pagina,
       size: this.tamanoPagina,
-      evento: this.eventoSeleccionado === '' ? undefined : this.eventoSeleccionado,
+      evento: this.eventoSeleccionado,
       fecha: this.fechaSeleccionada === '' ? undefined : this.fechaSeleccionada
       // Nota: El backend actual no soporta búsqueda por texto
     };
@@ -722,12 +748,15 @@ export class ReservasComponent implements OnInit {
       fechaSeleccionada: this.fechaSeleccionada,
       busqueda: this.busqueda
     });
+    console.log('🔧 ¿Filtrando por evento?', this.eventoSeleccionado === 'TODOS' ? 'No - mostrará todos los eventos' : `Sí: ${this.eventoSeleccionado}`);
+    console.log('🔧 ¿Filtrando por fecha?', filtros.fecha ? `Sí: ${filtros.fecha}` : 'No - mostrará todas las fechas');
     return filtros;
   }
 
-  // ✅ Aplicar filtros - siguiendo el patrón estándar
+  // ✅ Aplicar filtros - siguiendo el patrón estándar de mesas
   aplicarFiltros() {
     this.loading = true;
+    this.paginaActual = 0;
     const filtros = this.construirFiltros(0); // Siempre empezar en página 0
     
     console.log('🚀 Aplicando filtros con URL:', `${environment.apiUrl}/reserva/filtrar`);
@@ -748,9 +777,18 @@ export class ReservasComponent implements OnInit {
         console.error('❌ Status:', error.status);
         console.error('❌ Error completo:', error);
         this.loading = false;
+        
+        let mensaje = 'Error al filtrar reservas';
+        if (error.status === 500) {
+          mensaje = 'Error en el servidor. Verifique los filtros aplicados.';
+          if (this.fechaSeleccionada) {
+            mensaje += ` Fecha seleccionada: ${this.fechaSeleccionada}`;
+          }
+        }
+        
         Swal.fire({
           title: 'Error',
-          text: `Error al filtrar reservas: ${error.status}`,
+          text: mensaje,
           icon: 'error',
           confirmButtonText: 'OK'
         });
@@ -760,13 +798,11 @@ export class ReservasComponent implements OnInit {
 
   // ✅ Métodos de filtros - siguiendo el patrón estándar
   onBusquedaChange() {
-    console.log('🔍 Búsqueda cambiada:', this.busqueda);
-    console.log('🔍 Longitud del texto:', this.busqueda?.length || 0);
     this.aplicarFiltros();
   }
 
   onEventoChange(evento: string) {
-    console.log('🎭 Evento cambiado:', evento);
+    console.log('🔍 Evento seleccionado:', evento);
     this.eventoSeleccionado = evento;
     this.aplicarFiltros();
   }
