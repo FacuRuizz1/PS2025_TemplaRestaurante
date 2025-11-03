@@ -347,8 +347,12 @@
     <hr class="header-divider">
 
     <div class="body mt-5 mx-5 px-5">
-      <!-- Botón Nueva Reserva alineado a la derecha -->
-      <div class="mb-3 d-flex justify-content-end">
+      <!-- Botones Nueva Reserva y Reportes alineados a la derecha -->
+      <div class="mb-3 d-flex justify-content-end gap-2">
+        <button class="btn btn-outline-info" (click)="abrirReportes()" title="Ver reportes y gráficos">
+          <span class="btn-icon">📊</span>
+          Reportes
+        </button>
         <button class="btn custom-btn" (click)="cambiarVista('nueva')">
           <span class="btn-icon">➕</span>
           Nueva Reserva
@@ -471,3 +475,6 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de Reportes -->
+<app-reportes-modal #reportesModal></app-reportes-modal>

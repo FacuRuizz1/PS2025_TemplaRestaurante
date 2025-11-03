@@ -1,6 +1,7 @@
 package Templa.Tesis.App.servicies.impl;
 
 import Templa.Tesis.App.dtos.PostReservaDTO;
+import Templa.Tesis.App.dtos.ReporteReservasDTO;
 import Templa.Tesis.App.dtos.ReservaDTO;
 import Templa.Tesis.App.entities.DisponibilidadEntity;
 import Templa.Tesis.App.entities.MesaEntity;
@@ -174,6 +175,22 @@ public class ReservaServiceImpl implements IReservaService {
 
         // Eliminar la reserva
         reservaRepository.delete(reserva);
+    }
+
+    @Override
+    public List<ReporteReservasDTO> getReporteFechasConcurridas(LocalDate fechaInicio, LocalDate fechaFin) {
+        if (fechaInicio == null) fechaInicio = LocalDate.now().minusMonths(1);
+        if (fechaFin == null) fechaFin = LocalDate.now();
+
+        return reservaRepository.findReservasPorFecha(fechaInicio, fechaFin);
+    }
+
+    @Override
+    public List<ReporteReservasDTO> getReporteHorariosConcurridos(LocalDate fechaInicio, LocalDate fechaFin) {
+        if (fechaInicio == null) fechaInicio = LocalDate.now().minusMonths(1);
+        if (fechaFin == null) fechaFin = LocalDate.now();
+
+        return reservaRepository.findReservasPorHorario(fechaInicio, fechaFin);
     }
 }
 

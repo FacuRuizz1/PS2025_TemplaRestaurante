@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReservaService } from '../../../services/reserva.service';
@@ -12,6 +12,7 @@ import { DisponibilidadModel } from '../../models/DisponibilidadModel';
 import { Persona } from '../../models/PersonaModel';
 import { GetMesaDto } from '../../models/MesasModel';
 import { PostReservaModel, ReservaModel } from '../../models/ReservaModel';
+import { ReportesModalComponent } from '../../modales/reportes-modal/reportes-modal.component';
 import { environment } from '../../../../environments/environment';
 import Swal from 'sweetalert2';
 
@@ -29,7 +30,7 @@ interface ReservaData {
 @Component({
   selector: 'app-reservas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ReportesModalComponent],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.css']
 })
@@ -51,6 +52,9 @@ export class ReservasComponent implements OnInit {
   disponibilidades: DisponibilidadModel[] = [];
   personas: Persona[] = [];
   mesas: GetMesaDto[] = [];
+  
+  // Referencia al modal de reportes
+  @ViewChild('reportesModal') reportesModal!: ReportesModalComponent;
   
   // Enums y opciones
   EventoReserva = EventoReserva;
@@ -935,5 +939,10 @@ export class ReservasComponent implements OnInit {
         }
       });
     }
+  }
+
+  // Método para abrir el modal de reportes
+  abrirReportes() {
+    this.reportesModal.show();
   }
 }

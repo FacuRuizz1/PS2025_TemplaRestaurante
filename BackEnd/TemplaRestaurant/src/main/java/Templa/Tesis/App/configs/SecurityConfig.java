@@ -85,6 +85,8 @@ public class SecurityConfig {
                         //Enpoint de Pedido solo para ADMINISTRADOR
                         .requestMatchers("/api/pedido/**").hasAuthority("ADMINISTRADOR")
 
+                        .requestMatchers("/api/reportes/**").hasAuthority("ADMINISTRADOR")
+
                         // Cualquier otro endpoint requiere autenticación
                         .anyRequest().authenticated()
                 )
