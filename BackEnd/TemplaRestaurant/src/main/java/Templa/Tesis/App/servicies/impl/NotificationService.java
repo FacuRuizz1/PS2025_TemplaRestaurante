@@ -67,4 +67,25 @@ public class NotificationService {
             log.error("Error al enviar notificación para producto eliminado: {}", nombreProducto, e);
         }
     }
+
+    public void enviarAlertaStockBajo(ProductoDTO productoDTO) {
+        try {
+            NotificacionDTO notificacion = NotificacionDTO.builder()
+                    .tipo("STOCK_BAJO")
+                    .mensaje(String.format("ALERTA: Stock bajo para el producto '%s'. Stock actual: %d, Stock mínimo: %d",
+                            productoDTO.getNombre(),
+                            productoDTO.getStockActual(),
+                            productoDTO.getStockMinimo()))
+                    .datos(productoDTO)
+                    .timestamp(LocalDateTime.now())
+                    .build();
+
+            messagingTemplate.convertAndSend("/topic/alertas-stock", notificacion);
+
+            log.warn("Alerta de stock bajo enviada para producto: {}", productoDTO.getNombre());
+        } catch (Exception e) {
+            log.error("Error al enviar alerta de stock bajo para producto: {}", productoDTO.getNombre(), e);
+        }
+    }
+
 }
