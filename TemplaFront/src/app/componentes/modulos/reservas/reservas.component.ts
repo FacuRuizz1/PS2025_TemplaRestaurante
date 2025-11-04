@@ -86,6 +86,7 @@ export class ReservasComponent implements OnInit {
   // Propiedades para la lista de reservas
   currentView: 'nueva' | 'lista' = 'lista';
   reservas: ReservaModel[] = [];
+  reservasOriginales: ReservaModel[] = []; // Para filtrado del lado cliente
   pageInfo: any = null;
   loading = false;
   
@@ -96,7 +97,6 @@ export class ReservasComponent implements OnInit {
   // ✅ Filtros - siguiendo el patrón estándar
   busqueda: string = '';
   eventoSeleccionado: string = 'TODOS';
-  fechaSeleccionada: string = '';
   
   // ✅ Paginación - siguiendo el patrón estándar
   paginaActual: number = 0;
@@ -126,12 +126,10 @@ export class ReservasComponent implements OnInit {
     
     // Inicializar filtros por defecto
     this.eventoSeleccionado = 'TODOS';
-    this.fechaSeleccionada = '';
     this.busqueda = '';
     
     console.log('🚀 Componente inicializado, filtros:', {
       evento: this.eventoSeleccionado,
-      fecha: this.fechaSeleccionada,
       busqueda: this.busqueda
     });
   }
@@ -694,6 +692,7 @@ export class ReservasComponent implements OnInit {
         console.log('✅ Respuesta del backend:', page);
         this.pageInfo = page;
         this.reservas = page.content;
+        this.reservasOriginales = [...page.content]; // Guardar copia para filtrado
         this.paginaActual = page.number;
         this.loading = false;
         console.log('✅ Reservas cargadas:', page.content.length);
@@ -715,45 +714,24 @@ export class ReservasComponent implements OnInit {
   limpiarFiltrosYRecargar() {
     console.log('🧹 Limpiando filtros y recargando...');
     this.eventoSeleccionado = 'TODOS';
-    this.fechaSeleccionada = '';
     this.busqueda = '';
     this.cargarReservasIniciales();
-  }
-
-  // Método para limpiar todos los filtros pero manteniendo el endpoint de filtros
-  limpiarTodosFiltros() {
-    console.log('🧹 Limpiando todos los filtros pero usando endpoint de filtros...');
-    this.eventoSeleccionado = 'TODOS';
-    this.fechaSeleccionada = '';
-    this.busqueda = '';
-    this.aplicarFiltros();
-  }
-
-  // Método para limpiar solo el filtro de fecha
-  limpiarFiltroFecha() {
-    console.log('🧹 Limpiando filtro de fecha...');
-    this.fechaSeleccionada = '';
-    // Mantener los demás filtros y aplicar cambios
-    this.aplicarFiltros();
   }
 
   private construirFiltros(pagina: number = 0): any {
     const filtros = {
       page: pagina,
       size: this.tamanoPagina,
-      evento: this.eventoSeleccionado,
-      fecha: this.fechaSeleccionada === '' ? undefined : this.fechaSeleccionada
+      evento: this.eventoSeleccionado
       // Nota: El backend actual no soporta búsqueda por texto
     };
     
     console.log('🔧 Filtros construidos:', filtros);
     console.log('🔧 Estado de variables de filtros:', {
       eventoSeleccionado: this.eventoSeleccionado,
-      fechaSeleccionada: this.fechaSeleccionada,
       busqueda: this.busqueda
     });
     console.log('🔧 ¿Filtrando por evento?', this.eventoSeleccionado === 'TODOS' ? 'No - mostrará todos los eventos' : `Sí: ${this.eventoSeleccionado}`);
-    console.log('🔧 ¿Filtrando por fecha?', filtros.fecha ? `Sí: ${filtros.fecha}` : 'No - mostrará todas las fechas');
     return filtros;
   }
 
@@ -770,10 +748,13 @@ export class ReservasComponent implements OnInit {
       next: (page) => {
         console.log('✅ Respuesta del servidor:', page);
         this.pageInfo = page;
-        this.reservas = page.content;
+        this.reservasOriginales = [...page.content]; // Guardar copia original
         this.paginaActual = page.number;
+        
+        // Aplicar filtrado del lado cliente para búsqueda
+        this.aplicarFiltradoCliente();
         this.loading = false;
-        console.log('✅ Filtros aplicados, reservas cargadas:', page.content.length);
+        console.log('✅ Filtros aplicados, reservas cargadas:', this.reservas.length);
       },
       error: (error) => {
         console.error('❌ Error al filtrar reservas:', error);
@@ -785,9 +766,6 @@ export class ReservasComponent implements OnInit {
         let mensaje = 'Error al filtrar reservas';
         if (error.status === 500) {
           mensaje = 'Error en el servidor. Verifique los filtros aplicados.';
-          if (this.fechaSeleccionada) {
-            mensaje += ` Fecha seleccionada: ${this.fechaSeleccionada}`;
-          }
         }
         
         Swal.fire({
@@ -800,20 +778,40 @@ export class ReservasComponent implements OnInit {
     });
   }
 
+  // Nuevo método para filtrado del lado cliente (especialmente para búsqueda)
+  aplicarFiltradoCliente() {
+    let reservasFiltradas = [...this.reservasOriginales];
+    
+    // Filtrar por búsqueda si hay texto
+    if (this.busqueda && this.busqueda.trim()) {
+      const termino = this.busqueda.toLowerCase().trim();
+      reservasFiltradas = reservasFiltradas.filter(reserva => {
+        const nombreCliente = this.getNombreCliente(reserva.idPersona).toLowerCase();
+        const numeroMesa = this.getNumeroMesa(reserva.idMesa).toLowerCase();
+        const nroReserva = reserva.nroReserva?.toString() || '';
+        const evento = this.getEventoDisplayName(reserva.evento).toLowerCase();
+        
+        return nombreCliente.includes(termino) ||
+               numeroMesa.includes(termino) ||
+               nroReserva.includes(termino) ||
+               evento.includes(termino);
+      });
+    }
+    
+    this.reservas = reservasFiltradas;
+    console.log('🔍 Filtrado del lado cliente aplicado. Reservas mostradas:', this.reservas.length);
+  }
+
   // ✅ Métodos de filtros - siguiendo el patrón estándar
   onBusquedaChange() {
-    this.aplicarFiltros();
+    // Para búsqueda, solo aplicar filtrado del lado cliente
+    console.log('🔍 Búsqueda cambiada a:', this.busqueda);
+    this.aplicarFiltradoCliente();
   }
 
   onEventoChange(evento: string) {
     console.log('🔍 Evento seleccionado:', evento);
     this.eventoSeleccionado = evento;
-    this.aplicarFiltros();
-  }
-
-  onFechaChange(fecha: string) {
-    console.log('📅 Fecha cambiada:', fecha);
-    this.fechaSeleccionada = fecha;
     this.aplicarFiltros();
   }
 
@@ -929,8 +927,9 @@ export class ReservasComponent implements OnInit {
       this.reservaService.obtenerReservasConFiltros(filtros).subscribe({
         next: (page) => {
           this.pageInfo = page;
-          this.reservas = page.content;
+          this.reservasOriginales = [...page.content]; // Actualizar originales
           this.paginaActual = page.number;
+          this.aplicarFiltradoCliente(); // Aplicar filtrado del lado cliente
           this.loading = false;
         },
         error: (error) => {

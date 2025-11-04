@@ -136,14 +136,22 @@ public class ReservaServiceImpl implements IReservaService {
         Specification<ReservaEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Filtro por evento (si se proporciona)
             if (evento != null && !evento.isEmpty()) {
                 predicates.add(cb.equal(root.get("evento"), evento));
             }
 
-            // Filtro por fecha (si se proporciona)
             if (fecha != null) {
-                predicates.add(cb.equal(cb.function("DATE", LocalDate.class, root.get("fechaReserva")), fecha));
+                Class<?> fechaType = root.get("fechaReserva").getJavaType();
+                if (fechaType.equals(java.time.LocalDate.class)) {
+                    predicates.add(cb.equal(root.get("fechaReserva"), fecha));
+                } else if (fechaType.equals(java.time.LocalDateTime.class)) {
+                    java.time.LocalDateTime start = fecha.atStartOfDay();
+                    java.time.LocalDateTime end = fecha.plusDays(1).atStartOfDay().minusNanos(1);
+                    predicates.add(cb.between(root.get("fechaReserva"), start, end));
+                } else {
+                    // fallback: intentar comparar como texto (por si acaso)
+                    predicates.add(cb.equal(cb.function("TO_CHAR", String.class, root.get("fechaReserva"), cb.literal("YYYY-MM-DD")), fecha.toString()));
+                }
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

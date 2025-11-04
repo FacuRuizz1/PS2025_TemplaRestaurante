@@ -263,83 +263,17 @@
                  (ngModelChange)="onBusquedaChange()">
         </div>
 
-        <!-- Grupo de filtros por evento -->
-        <div class="btn-group filter-group" role="group" aria-label="Filtro por evento">
-          <input type="radio" 
-                 class="btn-check" 
-                 name="evento" 
-                 id="TODOS" 
-                 value="TODOS"
-                 [(ngModel)]="eventoSeleccionado"
-                 (change)="onEventoChange('TODOS')"
-                 autocomplete="off">
-          <label class="btn custom-radio" for="TODOS">Todos</label>
-
-          <input type="radio" 
-                 class="btn-check" 
-                 name="evento" 
-                 id="ALMUERZO" 
-                 value="ALMUERZO"
-                 [(ngModel)]="eventoSeleccionado"
-                 (change)="onEventoChange('ALMUERZO')"
-                 autocomplete="off">
-          <label class="btn custom-radio" for="ALMUERZO">Almuerzo</label>
-
-          <input type="radio" 
-                 class="btn-check" 
-                 name="evento" 
-                 id="CENA" 
-                 value="CENA"
-                 [(ngModel)]="eventoSeleccionado"
-                 (change)="onEventoChange('CENA')"
-                 autocomplete="off">
-          <label class="btn custom-radio" for="CENA">Cena</label>
-
-          <input type="radio" 
-                 class="btn-check" 
-                 name="evento" 
-                 id="CUMPLEANOS" 
-                 value="CUMPLEAÑOS"
-                 [(ngModel)]="eventoSeleccionado"
-                 (change)="onEventoChange('CUMPLEAÑOS')"
-                 autocomplete="off">
-          <label class="btn custom-radio" for="CUMPLEANOS">Cumpleaños</label>
-
-          <input type="radio" 
-                 class="btn-check" 
-                 name="evento" 
-                 id="VIP" 
-                 value="VIP"
-                 [(ngModel)]="eventoSeleccionado"
-                 (change)="onEventoChange('VIP')"
-                 autocomplete="off">
-          <label class="btn custom-radio" for="VIP">VIP</label>
-        </div>
-
-        <!-- Input de fecha -->
-        <div class="date-filter">
-          <input type="date" 
-                 id="fechaFilter" 
-                 class="form-control custom-input" 
-                 [(ngModel)]="fechaSeleccionada"
-                 (ngModelChange)="onFechaChange($event)">
-          <button type="button" 
-                  class="btn btn-sm btn-outline-secondary mt-1" 
-                  (click)="limpiarFiltroFecha()"
-                  *ngIf="fechaSeleccionada"
-                  title="Limpiar filtro de fecha">
-            ✕ Limpiar
-          </button>
-        </div>
-
-        <!-- Botón para limpiar todos los filtros -->
-        <div class="clear-filters" *ngIf="eventoSeleccionado !== 'TODOS' || fechaSeleccionada || busqueda">
-          <button type="button" 
-                  class="btn btn-sm btn-outline-danger"
-                  (click)="limpiarTodosFiltros()"
-                  title="Limpiar todos los filtros">
-            🗑️ Limpiar filtros
-          </button>
+        <!-- Grupo de filtros por evento - Cambiar a dropdown -->
+        <div class="dropdown event-filter">
+          <select class="form-select" 
+                  [(ngModel)]="eventoSeleccionado" 
+                  (ngModelChange)="onEventoChange($event)">
+            <option value="TODOS">Todos los eventos</option>
+            <option value="ALMUERZO">Almuerzo</option>
+            <option value="CENA">Cena</option>
+            <option value="CUMPLEAÑOS">Cumpleaños</option>
+            <option value="VIP">VIP</option>
+          </select>
         </div>
       </div>
     </div>

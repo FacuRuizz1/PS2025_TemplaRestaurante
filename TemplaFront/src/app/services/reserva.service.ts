@@ -49,31 +49,19 @@ export class ReservaService {
   }
 
   // Método para obtener reservas con filtros
-  obtenerReservasConFiltros(filtros: { page: number; size: number; evento?: string; fecha?: string }): Observable<any> {
+  obtenerReservasConFiltros(filtros: { page: number; size: number; evento?: string }): Observable<any> {
     let params = new HttpParams()
       .set('page', filtros.page.toString())
       .set('size', filtros.size.toString());
 
     console.log('🔧 ReservaService - Filtros recibidos:', filtros);
 
-    // Manejar filtro de evento igual que en MesaService
-    if (filtros.evento === 'TODOS') {
-      params = params.set('evento', '');
-      console.log('🎭 ReservaService - Filtro TODOS: enviando evento vacío');
-    } else if (filtros.evento && filtros.evento !== 'TODOS') {
+    // Manejar filtro de evento según la lógica del backend
+    if (filtros.evento && filtros.evento !== 'TODOS') {
       params = params.set('evento', filtros.evento);
       console.log('🎭 ReservaService - Agregando filtro evento:', filtros.evento);
-    }
-
-    if (filtros.fecha && filtros.fecha !== '') {
-      // Validar y formatear la fecha
-      const fechaFormateada = this.formatearFechaParaBackend(filtros.fecha);
-      if (fechaFormateada) {
-        params = params.set('fecha', fechaFormateada);
-        console.log('📅 ReservaService - Agregando filtro fecha formateada:', fechaFormateada);
-      } else {
-        console.warn('📅 ReservaService - Fecha inválida, no se incluye en filtros:', filtros.fecha);
-      }
+    } else {
+      console.log('🎭 ReservaService - Filtro TODOS: no enviando parámetro evento');
     }
 
     const url = `${this.baseUrl}/filtrar`;
@@ -81,36 +69,6 @@ export class ReservaService {
     console.log('📋 ReservaService - Parámetros finales:', params.toString());
 
     return this.http.get<any>(url, this.getHttpOptions(params));
-  }
-
-  private formatearFechaParaBackend(fecha: string): string | null {
-    try {
-      // Verificar si la fecha ya está en formato YYYY-MM-DD
-      const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (fechaRegex.test(fecha)) {
-        console.log('📅 Fecha ya está en formato correcto:', fecha);
-        return fecha;
-      }
-      
-      // Si no está en el formato correcto, intentar parsear y formatear
-      const fechaParsed = new Date(fecha);
-      if (isNaN(fechaParsed.getTime())) {
-        console.error('📅 Fecha inválida:', fecha);
-        return null;
-      }
-      
-      // Formatear como YYYY-MM-DD
-      const year = fechaParsed.getFullYear();
-      const month = String(fechaParsed.getMonth() + 1).padStart(2, '0');
-      const day = String(fechaParsed.getDate()).padStart(2, '0');
-      const fechaFormateada = `${year}-${month}-${day}`;
-      
-      console.log('📅 Fecha formateada de', fecha, 'a', fechaFormateada);
-      return fechaFormateada;
-    } catch (error) {
-      console.error('📅 Error al formatear fecha:', error);
-      return null;
-    }
   }
 
   actualizarReserva(id: number, reserva: PostReservaModel): Observable<ReservaModel> {

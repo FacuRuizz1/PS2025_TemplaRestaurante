@@ -1216,3 +1216,37 @@
   background-color: #f8f9fa;
   border-color: #dee2e6;
 }
+
+/* Estilos para el nuevo dropdown de eventos */
+.event-filter {
+  display: flex;
+  align-items: center;
+}
+
+.event-filter .form-select {
+  min-width: 180px;
+  background-color: white;
+  border: 2px solid var(--templa-beige);
+  color: var(--templa-brown);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.event-filter .form-select:focus {
+  border-color: var(--templa-gold);
+  box-shadow: 0 0 0 0.2rem rgba(218, 165, 32, 0.25);
+}
+
+.event-filter .form-select option {
+  color: var(--templa-brown);
+  background-color: white;
+}
+
+/* Mejorar el espaciado en el header */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
