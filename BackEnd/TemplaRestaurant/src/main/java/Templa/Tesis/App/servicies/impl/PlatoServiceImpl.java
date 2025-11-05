@@ -277,4 +277,15 @@ public class PlatoServiceImpl implements IPlatoService {
         s3Service.deleteFile(plato.getFoto());
         platoRepository.save(plato);
     }
+
+    public PlatoEntity obtenerPlatoConIngredientes(Integer idPlato) {
+        PlatoEntity plato = platoRepository.findById(idPlato)
+                .orElseThrow(() -> new RuntimeException("Plato no existe"));
+
+        if (!plato.getDisponible()) {
+            throw new RuntimeException("Plato no disponible");
+        }
+
+        return plato;
+    }
 }

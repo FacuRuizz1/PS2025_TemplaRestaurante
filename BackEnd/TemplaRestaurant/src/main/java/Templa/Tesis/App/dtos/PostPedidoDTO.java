@@ -14,9 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class PostPedidoDTO {
-    private LocalDate fechaPedido;
     private Integer idMesa;
-    private Integer idUsuario;
-    private EstadoPedido estado;
+    private Integer idMozo;
     private List<PostPedidoDetalleDTO> detalles;
 }

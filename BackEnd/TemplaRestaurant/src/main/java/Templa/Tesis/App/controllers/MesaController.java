@@ -46,7 +46,7 @@ public class MesaController {
     }
 
     @PutMapping("/cambiarEstado")
-    public ResponseEntity<GetMesaDto> cambiarEstadoMesa(@RequestParam String id, @RequestParam EstadoMesa nuevoEstado){
+    public ResponseEntity<GetMesaDto> cambiarEstadoMesa(@RequestParam Integer id, @RequestParam EstadoMesa nuevoEstado){
         return ResponseEntity.ok(mesasService.cambiarEstadoMesa(id, nuevoEstado));
     }
 }

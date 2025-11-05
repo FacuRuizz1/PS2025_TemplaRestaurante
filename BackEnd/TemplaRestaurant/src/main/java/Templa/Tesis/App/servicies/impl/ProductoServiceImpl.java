@@ -7,6 +7,7 @@ import Templa.Tesis.App.entities.ProductoEntity;
 import Templa.Tesis.App.repositories.ProductoRepository;
 import Templa.Tesis.App.servicies.IProductoService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -138,5 +139,41 @@ public class ProductoServiceImpl implements IProductoService {
 
         Page<ProductoEntity> entities = productoRepository.findAll(spec, pageable);
         return entities.map(entity -> modelMapper.map(entity, ProductoDTO.class));
+    }
+    @Override
+    @Transactional
+    public ProductoEntity reducirStock(Integer idProducto, double cantidad) {
+        ProductoEntity producto = productoRepository.findByIdWithLock(idProducto)
+                .orElseThrow(() -> new RuntimeException("Producto no existe"));
+
+        if (producto.getStockActual() < cantidad) {
+            throw new RuntimeException("Stock insuficiente");
+        }
+
+        producto.setStockActual(producto.getStockActual() - cantidad);
+
+        if (producto.getStockActual() <= producto.getStockMinimo()) {
+            //TODO: Emitir alerta
+        }
+
+        if (producto.getStockActual() <= 0) {
+            producto.setActivo(false);
+        }
+
+        return productoRepository.save(producto);
+    }
+
+    @Override
+    @Transactional
+    public void aumentarStock(Integer idProducto, double cantidad) {
+        ProductoEntity producto = productoRepository.findByIdWithLock(idProducto)
+                .orElseThrow(() -> new RuntimeException("Producto no existe"));
+
+        producto.setStockActual(producto.getStockActual() + cantidad);
+
+        if (producto.getStockActual() > producto.getStockMinimo()) {
+            producto.setActivo(true);
+        }
+        productoRepository.save(producto);
     }
 }

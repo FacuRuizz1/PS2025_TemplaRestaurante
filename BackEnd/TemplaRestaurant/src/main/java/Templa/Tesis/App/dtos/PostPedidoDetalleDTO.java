@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class PostPedidoDetalleDTO {
-    private Integer idMenu;
     private Integer idPlato;
-    private Integer cantidad;
-    private Double precioUnitario;
-    private boolean entregado;
+    private Integer idMenu;
+    private Integer idProducto;
+    private double cantidad;
 }

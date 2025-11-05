@@ -8,6 +8,7 @@ import Templa.Tesis.App.entities.MesaEntity;
 import Templa.Tesis.App.repositories.MesaRepository;
 import Templa.Tesis.App.servicies.IMesasService;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -87,8 +88,9 @@ public class MesaServiceImpl implements IMesasService {
     }
 
     @Override
-    public GetMesaDto cambiarEstadoMesa(String id, EstadoMesa nuevoEstado) {
-        Optional<MesaEntity> existe = mesaRepository.findById(Integer.parseInt(id));
+    @Transactional
+    public GetMesaDto cambiarEstadoMesa(Integer id, EstadoMesa nuevoEstado) {
+        Optional<MesaEntity> existe = mesaRepository.findById(id);
         if (existe.isEmpty()) {
             throw new RuntimeException("La mesa con el id " + id + " no existe");
         }
@@ -98,5 +100,14 @@ public class MesaServiceImpl implements IMesasService {
         MesaEntity mesa = existe.get();
         mesa.setEstadoMesa(nuevoEstado);
         return modelMapper.map(mesaRepository.save(mesa), GetMesaDto.class);
+    }
+
+    @Override
+    public GetMesaDto getMesaById(Integer id) {
+        Optional<MesaEntity> existe = mesaRepository.findById(id);
+        if (existe.isEmpty()) {
+            throw new RuntimeException("La mesa con el id " + id + " no existe");
+        }
+        return modelMapper.map(existe.get(), GetMesaDto.class);
     }
 }

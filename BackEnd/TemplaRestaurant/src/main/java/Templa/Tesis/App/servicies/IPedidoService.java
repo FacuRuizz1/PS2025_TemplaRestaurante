@@ -8,13 +8,16 @@ import org.springframework.data.domain.Page;
 import java.time.LocalDate;
 
 public interface IPedidoService {
-    PedidoDTO crearPedido(PostPedidoDTO postPedidoDTO);
+    PedidoDTO crearPedido(PostPedidoDTO dto);
     PedidoDTO obtenerPedido(Integer id);
-    Page<PedidoRepository> listarPedidos(int page, int size, String buscarFiltro, String estado,
-                                         LocalDate fechaDesde, LocalDate fechaHasta);
-    PedidoDTO actualizarPedido(Integer id,PostPedidoDTO postPedidoDTO);
-    void eliminarPedido(Integer id);
-    void cancelarDetalle(Integer idPedidoDetalle);
-    void marcarDetalleEntregado(Integer idPedidoDetalle);
+    Page<PedidoDTO> listarPedidos(int page, int size, String buscarFiltro, String estadoPedido,
+                                     LocalDate fechaDesde, LocalDate fechaHasta);
+    PedidoDTO cancelarPedido(Integer idPedido);
+    PedidoDTO cancelarDetalle(Integer idPedido);
+    PedidoDTO marcarDetalleEntregado(Integer idPedido);
+    PedidoDTO iniciarPedido(Integer idPedido);
+    PedidoDTO marcarDetalleParaEntregar(Integer idPedido);
+    PedidoDTO finalizarPedido(Integer idPedido);
+    PedidoDTO insertarDetalles(Integer idPedido, PostPedidoDTO dto);
 
 }

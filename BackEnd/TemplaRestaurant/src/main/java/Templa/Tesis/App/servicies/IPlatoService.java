@@ -2,6 +2,7 @@ package Templa.Tesis.App.servicies;
 
 import Templa.Tesis.App.dtos.GetPlatoDto;
 import Templa.Tesis.App.dtos.PostPlatoDto;
+import Templa.Tesis.App.entities.PlatoEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,4 +13,5 @@ public interface IPlatoService {
     GetPlatoDto updatePlato(GetPlatoDto platoActualizar, MultipartFile imagen);
     void activarDesactivarPlato(Integer id);
     void bajaPlato(Integer id);
+    PlatoEntity obtenerPlatoConIngredientes(Integer idPlato);
 }

@@ -20,8 +20,8 @@ public class PedidoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    private LocalDate fechaPedido;
+    @Column
+    private LocalDateTime fechaPedido;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_mesa",nullable = false)
@@ -29,7 +29,7 @@ public class PedidoEntity {
 
     @ManyToOne
     @JoinColumn(name = "id_usuario",nullable = false)
-    private UsuarioEntity usuario;
+    private UsuarioEntity mozo;
 
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;

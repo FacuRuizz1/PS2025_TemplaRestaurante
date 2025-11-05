@@ -10,5 +10,6 @@ public interface IMesasService {
     GetMesaDto updateMesa(GetMesaDto mesaDto);
     Page<GetMesaDto> getMesas(int page, int size);
     Page<GetMesaDto> getMesas(String buscarFiltro, String estadoMesa,int page, int size);
-    GetMesaDto cambiarEstadoMesa(String id, EstadoMesa nuevoEstado);
+    GetMesaDto cambiarEstadoMesa(Integer id, EstadoMesa nuevoEstado);
+    GetMesaDto getMesaById(Integer id);
 }

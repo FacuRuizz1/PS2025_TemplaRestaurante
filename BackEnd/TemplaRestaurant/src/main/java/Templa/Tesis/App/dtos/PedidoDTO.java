@@ -8,18 +8,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PedidoDTO {
-    private Integer id;
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate fechaPedido;
-    private Integer idMesa;
-    private Integer idUsuario;
-    private EstadoPedido estado;
-
-
+    private Integer idPedido;
+    private String numeroMesa;
+    private String nombreUsuario;
+    private LocalDateTime fechaHora;
+    private String observaciones;
+    private double total;
+    private String estado;
+    private List<GetPedidoDetalleDTO> detalles;
 }

@@ -4,8 +4,11 @@ import Templa.Tesis.App.dtos.PedidoDTO;
 import Templa.Tesis.App.dtos.PostPedidoDTO;
 import Templa.Tesis.App.servicies.IPedidoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/pedido")
@@ -22,17 +25,58 @@ public class PedidoController {
     @GetMapping("/obtener/{id}")
     public ResponseEntity<PedidoDTO> obtenerPedido(@PathVariable Integer id){
         return ResponseEntity.ok(pedidoService.obtenerPedido(id));
+
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<PedidoDTO>> obtenerPedidos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) LocalDate fechaDesde,
+            @RequestParam(required = false) LocalDate fechaHasta,
+            @RequestParam(required = false) String buscarFiltro,
+            @RequestParam(required = false) String estado
+    ){
+        return ResponseEntity.ok(pedidoService.listarPedidos(page,size,buscarFiltro,estado,fechaDesde,fechaHasta));
     }
 
     @PutMapping("/actualizar/{id}")
     public ResponseEntity<PedidoDTO> actualizarPedido(@PathVariable Integer id,
                                                       @RequestBody PostPedidoDTO postPedidoDTO){
-        return ResponseEntity.ok(pedidoService.actualizarPedido(id, postPedidoDTO));
+        if (postPedidoDTO.getDetalles() != null && !postPedidoDTO.getDetalles().isEmpty()) {
+            PedidoDTO updated = pedidoService.insertarDetalles(id, postPedidoDTO);
+            return ResponseEntity.ok(updated);
+        }
+        return ResponseEntity.badRequest().build();
     }
 
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<String> eliminarPedido(@PathVariable Integer id){
-        pedidoService.eliminarPedido(id);
-        return ResponseEntity.ok("Pedido eliminado correctamente");
+    @DeleteMapping("/cancelar/{id}")
+    public ResponseEntity<PedidoDTO> cancelarPedido(@PathVariable Integer id){
+        return ResponseEntity.ok(pedidoService.cancelarPedido(id));
+    }
+
+    @PostMapping("/cancelar-detalles/{id}")
+    public ResponseEntity<PedidoDTO> cancelarDetalles(@PathVariable Integer id){
+        return ResponseEntity.ok(pedidoService.cancelarDetalle(id));
+    }
+
+    @PostMapping("/entregar-detalles/{id}")
+    public ResponseEntity<PedidoDTO> marcarDetallesEntregados(@PathVariable Integer id){
+        return ResponseEntity.ok(pedidoService.marcarDetalleEntregado(id));
+    }
+
+    @PostMapping("/iniciar/{id}")
+    public ResponseEntity<PedidoDTO> iniciarPedido(@PathVariable Integer id){
+        return ResponseEntity.ok(pedidoService.iniciarPedido(id));
+    }
+
+    @PostMapping("/listo-para-entregar/{id}")
+    public ResponseEntity<PedidoDTO> marcarDetallesListosParaEntregar(@PathVariable Integer id){
+        return ResponseEntity.ok(pedidoService.marcarDetalleParaEntregar(id));
+    }
+
+    @PostMapping("/finalizar/{id}")
+    public ResponseEntity<PedidoDTO> finalizarPedido(@PathVariable Integer id){
+        return ResponseEntity.ok(pedidoService.finalizarPedido(id));
     }
 }

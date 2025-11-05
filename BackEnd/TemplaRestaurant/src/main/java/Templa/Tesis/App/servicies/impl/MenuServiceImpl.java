@@ -223,4 +223,24 @@ public class MenuServiceImpl implements IMenuService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu no encontrado con ID: " + id);
         }
     }
+
+    public List<MenuDetalleEntity> obtenerDetallesMenu(Integer idMenu) {
+        List<MenuDetalleEntity> detalles = menuDetalleRepository.findByMenuId(idMenu);
+
+        if (detalles.isEmpty()) {
+            throw new RuntimeException("El menú con id " + idMenu + " no existe o no tiene detalles");
+        }
+
+        return detalles;
+    }
+
+    @Override
+    public GetMenuDTO obtenerMenuPorId(Integer id) {
+        Optional<MenuEntity> menuOptional = menuRepository.findById(id);
+        if (menuOptional.isPresent()) {
+            return convertToDto(menuOptional.get());
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu no encontrado con ID: " + id);
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package Templa.Tesis.App.entities;
 
+import Templa.Tesis.App.Enums.EstadoPedidoDetalle;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,25 +17,25 @@ public class PedidoDetalleEntity {
     private Integer idPedidoDetalle;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_pedido",nullable = false)
+    @JoinColumn(name = "id_pedido")
     private PedidoEntity pedido;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_menu",nullable = false)
+    @JoinColumn(name = "id_menu")
     private MenuEntity menu;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_plato",nullable = false)
+    @JoinColumn(name = "id_plato")
     private PlatoEntity plato;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_producto",nullable = false)
+    @JoinColumn(name = "id_producto")
     private ProductoEntity producto;
-
-    private int cantidad;
-
+    @Column
+    private Double cantidad;
+    @Column
     private Double precioUnitario;
-
-    private boolean entregado;
+    @Enumerated(EnumType.STRING)
+    private EstadoPedidoDetalle estado;
 
 }
