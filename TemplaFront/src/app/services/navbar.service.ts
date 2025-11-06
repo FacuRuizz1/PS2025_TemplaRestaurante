@@ -6,7 +6,7 @@ import { MenuItem, RouteMenuData } from '../componentes/models/menu-model';
 @Injectable({
   providedIn: 'root'
 })
-export class MenuService {
+export class NavbarService {
 
   constructor(private router: Router) { }
 

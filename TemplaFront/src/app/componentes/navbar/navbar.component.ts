@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output, OnInit, OnDestroy} from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from '../models/menu-model';
-import { MenuService } from '../../services/menu.service';
+import { NavbarService } from '../../services/navbar.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService, NotificacionDTO } from '../../services/notification.service';
 import { Subscription } from 'rxjs';
@@ -29,7 +29,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private menuService: MenuService,
+    private navbarService: NavbarService,
     private authService: AuthService,
     private notificationService: NotificationService
   ) { }
@@ -100,7 +100,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private loadMenu() {
-    this.menuService.getMenuItems().subscribe(items => {
+    this.navbarService.getMenuItems().subscribe((items: MenuItem[]) => {
       this.menuItems = items;
       console.log('Menú generado automáticamente:', this.menuItems);
     });
