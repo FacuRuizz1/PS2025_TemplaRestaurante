@@ -5,6 +5,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { GetMenuDTO, PostMenuDTO, PostProductosMenuDto } from '../../models/MenuModel';
 import { GetPlatoDto } from '../../models/PlatoModel';
 import { ProductoDTO } from '../../models/ProductoModel';
+import { MenuService } from '../../../services/menu.service';
+import Swal from 'sweetalert2';
 
 export interface ItemMenu {
   id: number;
@@ -45,9 +47,9 @@ export class MenuModalComponent implements OnInit {
 
   // ✅ Tipos de contenido para el menú
   tiposContenido = [
-    { valor: 'PLATO', texto: 'Plato' },
-    { valor: 'BEBIDA', texto: 'Bebida' },
-    { valor: 'ACOMPAÑANTE', texto: 'Acompañante' }
+    { valor: 'PLATO', texto: 'Todos los Platos' },
+    { valor: 'BEBIDA', texto: 'Bebidas' },
+    { valor: 'ACOMPAÑANTE', texto: 'Acompañantes' }
   ];
 
   // ✅ Items disponibles según el tipo seleccionado
@@ -58,7 +60,10 @@ export class MenuModalComponent implements OnInit {
   itemSeleccionado: number | null = null;
   itemsAgregados: ItemMenu[] = [];
 
-  constructor(public activeModal: NgbActiveModal) {}
+  constructor(
+    public activeModal: NgbActiveModal,
+    private menuService: MenuService
+  ) {}
 
   ngOnInit(): void {
     this.esEdicion = !!this.menu;
@@ -93,166 +98,242 @@ export class MenuModalComponent implements OnInit {
     this.cargarItemsExistentes();
   }
 
-  // ✅ Cargar items que ya tiene el menú para mostrarlos en edición
+  // ✅ Cargar items que ya tiene el menú para mostrarlos en edición - LÓGICA SIMPLIFICADA
   private cargarItemsExistentes(): void {
-    if (!this.menu?.productos || !Array.isArray(this.menu.productos)) {
-      console.log('No hay productos existentes para cargar');
+  if (!this.menu?.productos || !Array.isArray(this.menu.productos)) {
+    console.log('No hay productos existentes para cargar');
+    return;
+  }
+
+  console.log('🔄 Cargando items existentes del menú:', this.menu.productos);
+  this.itemsAgregados = [];
+
+  this.menu.productos.forEach((producto: any, index) => {
+    console.log(`Cargando item ${index}:`, producto);
+    
+    const plato = this.platos.find(p => p.idPlato === producto.idPlato);
+    const prod = this.productos.find(p => p.id === producto.idProducto);
+    
+    if (!plato && !prod) {
+      console.warn('No se encontró ni plato ni producto para:', producto);
       return;
     }
 
-    console.log('🔄 Cargando items existentes del menú:', this.menu.productos);
-    this.itemsAgregados = [];
-
-    this.menu.productos.forEach((producto: any) => {
-      let item: ItemMenu | null = null;
-
-      // Si es un plato
-      if (producto.idPlato && producto.idPlato > 0) {
-        const plato = this.platos.find(p => p.idPlato === producto.idPlato);
-        if (plato && plato.idPlato) {
-          item = {
-            id: plato.idPlato,
-            nombre: plato.nombre,
-            tipo: 'PLATO' as const,
-            tipoEspecifico: plato.tipoPlato
-          };
-        }
-      }
-      // Si es un producto puro (sin plato asociado)
-      else if (producto.idProducto && producto.idProducto > 0) {
-        const prod = this.productos.find(p => p.id === producto.idProducto);
-        if (prod && prod.id) {
-          item = {
-            id: prod.id,
-            nombre: prod.nombre,
-            tipo: 'PRODUCTO' as const,
-            tipoEspecifico: prod.tipo
-          };
-        }
-      }
-
-      if (item) {
-        this.itemsAgregados.push(item);
-        console.log('✅ Item cargado:', item);
-      }
-    });
-
-    console.log('🎯 Items agregados cargados:', this.itemsAgregados);
-  }
-
-  // ✅ Cuando cambia el tipo seleccionado, cargar items correspondientes
-  onTipoChange(): void {
-    console.log('onTipoChange llamado con:', this.tipoSeleccionado);
-    this.itemsDisponibles = [];
-    this.itemSeleccionado = null;
-
-    if (!this.tipoSeleccionado) return;
-
-    switch (this.tipoSeleccionado) {
-      case 'PLATO':
-        console.log('Cargando platos:', this.platos);
-        // Cargar todos los platos
-        this.itemsDisponibles = this.platos.map(plato => ({
+    // LÓGICA CORREGIDA: Determinar si es un plato real o un producto puro
+    // Un plato real es cuando el tipo del plato NO es BEBIDA y el plato existe
+    // Un producto puro es cuando es BEBIDA o ACOMPAÑANTE
+    
+    if (plato && prod) {
+      console.log(`Plato: ${plato.nombre} (${plato.tipoPlato}), Producto: ${prod.nombre} (${prod.tipo})`);
+      
+      // Si el plato NO es de tipo BEBIDA, entonces es un plato real
+      if (plato.tipoPlato !== 'BEBIDA') {
+        const item = {
           id: plato.idPlato,
           nombre: plato.nombre,
           tipo: 'PLATO' as const,
           tipoEspecifico: plato.tipoPlato
-        }));
-        break;
-
-      case 'BEBIDA':
-        console.log('Cargando bebidas - productos:', this.productos.filter(p => p.tipo === 'BEBIDA'));
-        console.log('Cargando bebidas - platos:', this.platos.filter(p => p.tipoPlato === 'BEBIDA'));
-        // Cargar productos tipo BEBIDA + platos tipo BEBIDA
-        const productosBebida = this.productos
-          .filter(p => p.tipo === 'BEBIDA' && p.id)
-          .map(producto => ({
-            id: producto.id!,
-            nombre: producto.nombre,
+        };
+        this.itemsAgregados.push(item);
+        console.log(`→ Cargado como PLATO: ${plato.nombre}`);
+      } else {
+        // Si el plato es de tipo BEBIDA, verificar el producto
+        if (prod.tipo === 'BEBIDA' || prod.tipo === 'ACOMPAÑANTE') {
+          const item = {
+            id: prod.id!,
+            nombre: prod.nombre,
             tipo: 'PRODUCTO' as const,
-            tipoEspecifico: producto.tipo
-          }));
-
-        const platosBebida = this.platos
-          .filter(p => p.tipoPlato === 'BEBIDA')
-          .map(plato => ({
+            tipoEspecifico: prod.tipo
+          };
+          this.itemsAgregados.push(item);
+          console.log(`→ Cargado como PRODUCTO: ${prod.nombre}`);
+        } else {
+          // Caso raro: plato BEBIDA con producto no BEBIDA
+          const item = {
             id: plato.idPlato,
             nombre: plato.nombre,
             tipo: 'PLATO' as const,
             tipoEspecifico: plato.tipoPlato
-          }));
-
-        this.itemsDisponibles = [...productosBebida, ...platosBebida];
-        break;
-
-      case 'ACOMPAÑANTE':
-        console.log('Cargando acompañantes:', this.productos.filter(p => p.tipo === 'ACOMPAÑANTE'));
-        // Cargar productos tipo ACOMPAÑANTE
-        this.itemsDisponibles = this.productos
-          .filter(p => p.tipo === 'ACOMPAÑANTE' && p.id)
-          .map(producto => ({
-            id: producto.id!,
-            nombre: producto.nombre,
-            tipo: 'PRODUCTO' as const,
-            tipoEspecifico: producto.tipo
-          }));
-        break;
+          };
+          this.itemsAgregados.push(item);
+          console.log(`→ Cargado como PLATO (caso especial): ${plato.nombre}`);
+        }
+      }
+    } else if (plato) {
+      // Solo plato
+      const item = {
+        id: plato.idPlato,
+        nombre: plato.nombre,
+        tipo: 'PLATO' as const,
+        tipoEspecifico: plato.tipoPlato
+      };
+      this.itemsAgregados.push(item);
+      console.log(`→ Cargado solo plato: ${plato.nombre}`);
+    } else if (prod) {
+      // Solo producto
+      const item = {
+        id: prod.id!,
+        nombre: prod.nombre,
+        tipo: 'PRODUCTO' as const,
+        tipoEspecifico: prod.tipo
+      };
+      this.itemsAgregados.push(item);
+      console.log(`→ Cargado solo producto: ${prod.nombre}`);
     }
-    
-    console.log('Items disponibles después del switch:', this.itemsDisponibles);
+  });
+
+  // Cargar productos en el formulario también
+  this.menuForm.productos = [...this.menu.productos];
+  
+  console.log('🎯 Items agregados cargados:', this.itemsAgregados);
+}
+
+// ✅ Cuando cambia el tipo seleccionado, cargar items correspondientes
+onTipoChange(): void {
+  console.log('onTipoChange llamado con:', this.tipoSeleccionado);
+  this.itemsDisponibles = [];
+  this.itemSeleccionado = null;
+
+  if (!this.tipoSeleccionado) return;
+
+  switch (this.tipoSeleccionado) {
+    case 'PLATO':
+      console.log('Cargando todos los platos:', this.platos);
+      this.itemsDisponibles = this.platos.map(plato => ({
+        id: plato.idPlato,
+        nombre: plato.nombre,
+        tipo: 'PLATO' as const,
+        tipoEspecifico: plato.tipoPlato
+      }));
+      break;
+
+    case 'BEBIDA':
+      console.log('Cargando bebidas:', this.productos);
+      this.itemsDisponibles = this.productos
+        .filter(producto => producto.tipo === 'BEBIDA')
+        .map(producto => ({
+          id: producto.id!,
+          nombre: producto.nombre,
+          tipo: 'PRODUCTO' as const,
+          tipoEspecifico: producto.tipo
+        }));
+      break;
+
+    case 'ACOMPAÑANTE':
+      console.log('Cargando acompañantes:', this.productos);
+      this.itemsDisponibles = this.productos
+        .filter(producto => producto.tipo === 'ACOMPAÑANTE')
+        .map(producto => ({
+          id: producto.id!,
+          nombre: producto.nombre,
+          tipo: 'PRODUCTO' as const,
+          tipoEspecifico: producto.tipo
+        }));
+      break;
+  }
+  
+  console.log('Items disponibles después del switch:', this.itemsDisponibles);
+}
+
+// ✅ Agregar item al menú - LÓGICA CORREGIDA
+agregarItem(): void {
+  console.log('agregarItem llamado', {
+    itemSeleccionado: this.itemSeleccionado,
+    tipoSeleccionado: this.tipoSeleccionado,
+    itemsDisponibles: this.itemsDisponibles
+  });
+  
+  if (!this.itemSeleccionado || !this.tipoSeleccionado) {
+    console.log('Cancelando - faltan datos');
+    return;
   }
 
-  // ✅ Agregar item al menú
-  agregarItem(): void {
-    console.log('agregarItem llamado', {
-      itemSeleccionado: this.itemSeleccionado,
-      tipoSeleccionado: this.tipoSeleccionado,
-      itemsDisponibles: this.itemsDisponibles
-    });
+  const item = this.itemsDisponibles.find(i => i.id === Number(this.itemSeleccionado));
+  if (!item) {
+    console.log('Item no encontrado');
+    return;
+  }
+
+  console.log('Item encontrado:', item);
+
+  // Verificar duplicados
+  const yaExiste = this.itemsAgregados.some(i => 
+    i.id === item.id && i.tipo === item.tipo
+  );
+  
+  if (yaExiste) {
+    alert('Este item ya está agregado al menú');
+    return;
+  }
+
+  // Agregar a la lista visual
+  this.itemsAgregados.push(item);
+
+  // Agregar al formulario
+  if (item.tipo === 'PLATO') {
+    // Para platos, buscar un producto genérico que no sea del mismo tipo del plato
+    let productoAsociado;
     
-    if (!this.itemSeleccionado || !this.tipoSeleccionado) {
-      console.log('Cancelando - faltan datos');
-      return;
-    }
-
-    const item = this.itemsDisponibles.find(i => i.id === Number(this.itemSeleccionado));
-    if (!item) {
-      console.log('Item no encontrado');
-      return;
-    }
-
-    console.log('Item encontrado:', item);
-
-    // Verificar que no esté ya agregado
-    const yaExiste = this.itemsAgregados.some(i => 
-      i.id === item.id && i.tipo === item.tipo
-    );
-    
-    if (yaExiste) {
-      alert('Este item ya está agregado al menú');
-      return;
-    }
-
-    // Agregar a la lista visual
-    this.itemsAgregados.push(item);
-
-    // Agregar al formulario
-    if (item.tipo === 'PLATO') {
-      this.menuForm.productos.push({
-        idPlato: item.id,
-        idProducto: 0 // Se asignará en el backend
-      });
+    // Buscar un producto que NO sea del mismo tipo que el plato
+    // Esto evita confusiones en la lógica de visualización
+    if (item.tipoEspecifico !== 'BEBIDA') {
+      // Para platos que NO son bebidas, usar cualquier bebida como producto dummy
+      productoAsociado = this.productos.find(p => p.tipo === 'BEBIDA');
     } else {
-      this.menuForm.productos.push({
-        idProducto: item.id
-      });
+      // Para platos de tipo BEBIDA, usar un acompañante
+      productoAsociado = this.productos.find(p => p.tipo === 'ACOMPAÑANTE');
     }
-
-    // Resetear selección
-    this.tipoSeleccionado = '';
-    this.itemSeleccionado = null;
-    this.itemsDisponibles = [];
+    
+    // Fallback
+    if (!productoAsociado) {
+      productoAsociado = this.productos[0];
+    }
+    
+    if (!productoAsociado || !productoAsociado.id) {
+      alert('Error: No hay productos disponibles para asociar al plato');
+      this.itemsAgregados.pop(); // Remover el item agregado
+      return;
+    }
+    
+    const productoMenu = {
+      idPlato: item.id,
+      idProducto: productoAsociado.id
+    };
+    
+    console.log('Agregando plato al menú:', productoMenu);
+    this.menuForm.productos.push(productoMenu);
+    
+  } else {
+    // Para productos puros (BEBIDA o ACOMPAÑANTE)
+    // Buscar un plato de tipo BEBIDA como plato dummy
+    let platoAsociado = this.platos.find(p => p.tipoPlato === 'BEBIDA');
+    
+    if (!platoAsociado) {
+      platoAsociado = this.platos[0];
+    }
+    
+    if (!platoAsociado || !platoAsociado.idPlato) {
+      alert('Error: No hay platos disponibles en el sistema');
+      this.itemsAgregados.pop(); // Remover el item agregado
+      return;
+    }
+    
+    const productoMenu = {
+      idPlato: platoAsociado.idPlato,
+      idProducto: item.id
+    };
+    
+    console.log('Agregando producto puro al menú:', productoMenu);
+    this.menuForm.productos.push(productoMenu);
   }
+
+  console.log('Estado actual del formulario:', this.menuForm);
+
+  // Resetear selección
+  this.tipoSeleccionado = '';
+  this.itemSeleccionado = null;
+  this.itemsDisponibles = [];
+}
 
   // ✅ Quitar item del menú
   quitarItem(index: number): void {
@@ -262,75 +343,170 @@ export class MenuModalComponent implements OnInit {
 
   // ✅ Validar formulario
   esFormularioValido(): boolean {
-    return !!(
+    const valido = !!(
       this.menuForm.nombre.trim() &&
-      (this.menuForm.descripcion || '').trim() &&
       this.menuForm.precio > 0 &&
       this.menuForm.disponibleDesde &&
-      this.menuForm.disponibleHasta &&
       this.menuForm.productos.length > 0
     );
+    
+    console.log('Validación del formulario:', {
+      nombre: this.menuForm.nombre,
+      precio: this.menuForm.precio,
+      disponibleDesde: this.menuForm.disponibleDesde,
+      productos: this.menuForm.productos,
+      valido: valido
+    });
+    
+    return valido;
+  }
+
+  // ✅ Limpiar objeto eliminando campos undefined/null/empty
+  private limpiarObjetoParaEnvio(obj: any): any {
+    const resultado: any = {};
+    
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined && value !== null && value !== '') {
+        resultado[key] = value;
+      }
+    }
+    
+    return resultado;
   }
 
   // ✅ Guardar menú
   onGuardar(): void {
     if (!this.esFormularioValido()) {
-      alert('Por favor complete todos los campos obligatorios');
+      Swal.fire({
+        title: 'Formulario incompleto',
+        text: 'Por favor complete todos los campos obligatorios',
+        icon: 'warning',
+        confirmButtonText: 'Aceptar'
+      });
       return;
     }
 
     this.guardando = true;
 
-    // Crear el objeto completo para enviar
-    const menuCompleto = {
-      ...this.menuForm,
-      activo: this.activo
-    };
-
-    // TODO: Implementar cuando el servicio de menús esté disponible
-    console.log('Guardando menú:', menuCompleto);
-    this.guardando = false;
-    this.activeModal.close({
-      action: this.esEdicion ? 'updated' : 'created',
-      menu: menuCompleto
-    });
-    
-    // Código para cuando se implemente el servicio:
-    /*
     if (this.esEdicion && this.menu?.id) {
-      // Actualizar menú existente
-      this.menuService.updateMenu(this.menu.id, menuCompleto).subscribe({
+      // Actualizar menú existente - usar GetMenuDTO
+      const menuCompleto: GetMenuDTO = {
+        id: this.menu.id,
+        nombre: this.menuForm.nombre,
+        descripcion: this.menuForm.descripcion,
+        precio: this.menuForm.precio,
+        disponibleDesde: this.menuForm.disponibleDesde,
+        disponibleHasta: this.menuForm.disponibleHasta,
+        activo: this.activo,
+        productos: this.menuForm.productos
+      };
+      
+      this.menuService.actualizarMenu(menuCompleto).subscribe({
         next: (menuActualizado) => {
           this.guardando = false;
-          this.activeModal.close({
-            action: 'updated',
-            menu: menuActualizado
+          Swal.fire({
+            title: 'Éxito',
+            text: 'Menú actualizado correctamente',
+            icon: 'success',
+            confirmButtonText: 'Aceptar'
+          }).then(() => {
+            this.activeModal.close({
+              action: 'updated',
+              menu: menuActualizado
+            });
           });
         },
         error: (error) => {
           console.error('Error al actualizar menú:', error);
           this.guardando = false;
-          // El error se manejará en el componente padre
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo actualizar el menú',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+          });
         }
       });
     } else {
-      // Crear nuevo menú
-      this.menuService.createMenu(menuCompleto).subscribe({
+      // Crear nuevo menú - usar PostMenuDTO (sin activo)
+      // Primero limpiar duplicados del formulario
+      this.limpiarDuplicados();
+      
+      const menuBase: PostMenuDTO = {
+        nombre: this.menuForm.nombre,
+        descripcion: this.menuForm.descripcion || undefined,
+        precio: this.menuForm.precio,
+        disponibleDesde: this.menuForm.disponibleDesde || undefined,
+        disponibleHasta: this.menuForm.disponibleHasta || undefined,
+        productos: this.menuForm.productos
+      };
+      
+      // Limpiar campos vacíos
+      const menuParaCrear = this.limpiarObjetoParaEnvio(menuBase);
+      
+      console.log('Menú base:', menuBase);
+      console.log('Menú limpio para envío:', JSON.stringify(menuParaCrear, null, 2));
+      
+      this.menuService.createMenu(menuParaCrear).subscribe({
         next: (menuCreado) => {
           this.guardando = false;
-          this.activeModal.close({
-            action: 'created',
-            menu: menuCreado
+          Swal.fire({
+            title: 'Éxito',
+            text: 'Menú creado correctamente',
+            icon: 'success',
+            confirmButtonText: 'Aceptar'
+          }).then(() => {
+            this.activeModal.close({
+              action: 'created',
+              menu: menuCreado
+            });
           });
         },
         error: (error) => {
-          console.error('Error al crear menú:', error);
+          console.error('Error completo al crear menú:', error);
+          console.error('Error status:', error.status);
+          console.error('Error message:', error.message);
+          console.error('Error body:', error.error);
+          
           this.guardando = false;
-          // El error se manejará en el componente padre
+          
+          let mensajeError = 'No se pudo crear el menú';
+          if (error.error && error.error.message) {
+            mensajeError = error.error.message;
+          } else if (error.message) {
+            mensajeError = error.message;
+          }
+          
+          Swal.fire({
+            title: 'Error',
+            text: mensajeError,
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+          });
         }
       });
     }
-    */
+  }
+
+  // ✅ Limpiar duplicados del formulario
+  private limpiarDuplicados(): void {
+    const productosUnicos: PostProductosMenuDto[] = [];
+    const yaAgregados = new Set<string>();
+    
+    this.menuForm.productos.forEach(producto => {
+      // Crear una clave única para identificar duplicados
+      const clave = `${producto.idPlato || 0}-${producto.idProducto || 0}`;
+      
+      if (!yaAgregados.has(clave)) {
+        yaAgregados.add(clave);
+        productosUnicos.push(producto);
+      }
+    });
+    
+    console.log('Productos antes de limpiar:', this.menuForm.productos);
+    console.log('Productos después de limpiar:', productosUnicos);
+    
+    this.menuForm.productos = productosUnicos;
   }
 
   // ✅ Cancelar

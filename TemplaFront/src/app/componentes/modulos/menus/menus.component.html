@@ -1,7 +1,7 @@
 <div class="header pt-3 px-3">
     <!-- Título a la izquierda -->
     <div class="header-left">
-        <h1 class="texto-elegante">Menus</h1>
+        <h1 class="texto-elegante">Menús</h1>
     </div>
 
     <!-- Controles a la derecha -->
@@ -10,7 +10,7 @@
         <div class="search-container">
             <input type="text" id="busqueda" name="busqueda" class="form-control custom-input" 
                    (input)="onBusquedaChange()"
-                   placeholder="🔎Buscar menu..." [(ngModel)]="busqueda">
+                   placeholder="🔎Buscar menú..." [(ngModel)]="busqueda">
         </div>
 
         <div class="btn-group filter-group" role="group" aria-label="Filtro por estado">
@@ -70,11 +70,11 @@
                     </div>
                 </div>
 
-                <!-- ✅ Contenidos como en platos -->
-                <div class="menu-contenidos" *ngIf="menu.nombrePlato || menu.nombreProducto">
+                <!-- ✅ Contenidos -->
+                <div class="menu-contenidos">
                     <span class="contenidos-titulo">Contenidos:</span>
                     <div class="contenidos-lista">
-                        <span *ngIf="menu.nombrePlato">{{ menu.nombrePlato }}</span><span *ngIf="menu.nombrePlato && menu.nombreProducto">, </span><span *ngIf="menu.nombreProducto">{{ menu.nombreProducto }}</span>
+                        {{ formatearContenidos(menu) }}
                     </div>
                 </div>
 
@@ -101,6 +101,44 @@
     </div>
 </div>
 
+<!-- ✅ Paginación -->
+<div *ngIf="!cargando && pageInfo && pageInfo.totalPages > 1" class="pagination-container">
+    <nav aria-label="Navegación de páginas">
+        <ul class="pagination justify-content-center">
+            <!-- Botón anterior -->
+            <li class="page-item" [class.disabled]="pageInfo.first">
+                <button class="page-link" (click)="irAPagina(pageInfo.number - 1)" [disabled]="pageInfo.first">
+                    Anterior
+                </button>
+            </li>
+
+            <!-- Números de página -->
+            <li class="page-item" *ngFor="let pagina of obtenerPaginasVisibles()" 
+                [class.active]="pagina === pageInfo.number">
+                <button class="page-link" (click)="irAPagina(pagina)">
+                    {{ pagina + 1 }}
+                </button>
+            </li>
+
+            <!-- Botón siguiente -->
+            <li class="page-item" [class.disabled]="pageInfo.last">
+                <button class="page-link" (click)="irAPagina(pageInfo.number + 1)" [disabled]="pageInfo.last">
+                    Siguiente
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Info de paginación -->
+    <div class="pagination-info text-center mt-2">
+        <small class="text-muted">
+            Mostrando {{ pageInfo.numberOfElements }} de {{ pageInfo.totalElements }} menús
+            (Página {{ pageInfo.number + 1 }} de {{ pageInfo.totalPages }})
+        </small>
+    </div>
+</div>
+
+<!-- ✅ Botón flotante para agregar -->
 <button class="floating-btn" (click)="abrirModalNuevoMenu()">
     ➕
 </button>

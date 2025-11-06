@@ -5,7 +5,7 @@ import { UsuariosComponent } from './componentes/modulos/usuarios/usuarios.compo
 import { ProductosComponent } from './componentes/modulos/productos/productos.component';
 import { AuthGuard as authGuard } from './guards/auth-guard.guard';
 import { PlatosComponent } from './componentes/modulos/platos/platos.component';
-import { MenuComponent } from './componentes/modulos/menu/menu.component';
+import { MenusComponent } from './componentes/modulos/menus/menus.component';
 import { MesasComponent } from './componentes/modulos/mesas/mesas.component';
 import { ReservasComponent } from './componentes/modulos/reservas/reservas.component';
 
@@ -81,7 +81,7 @@ export const routes: Routes = [
   // Rutas de Menú (PROTEGIDAS)
   {
     path: 'menu',
-    component: MenuComponent,
+    component: MenusComponent,
     canActivate: [authGuard],
     data: {
       showInMenu: true,
