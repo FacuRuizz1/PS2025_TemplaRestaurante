@@ -12,7 +12,7 @@ export interface GetMenuDTO {
 
 export interface GetProductosMenuDto {
     idPlato?: number;
-    idProducto: number;
+    idProducto?: number;
 }
 
 export interface PostMenuDTO {
@@ -26,7 +26,9 @@ export interface PostMenuDTO {
 
 export interface PostProductosMenuDto {
     idPlato?: number;
-    idProducto: number;
+    idProducto?: number;
+   
+
 }
 
 export interface FiltroMenu {

@@ -216,63 +216,106 @@ export class MenusComponent implements OnInit {
     return true;
   }
 
-  // ✅ Formatear contenidos del menú - LÓGICA SIMPLIFICADA
-  formatearContenidos(menu: GetMenuDTO): string {
+  // ✅ Formatear contenidos del menú - LÓGICA DEFINITIVA
+formatearContenidos(menu: GetMenuDTO): string {
   if (!menu.productos || menu.productos.length === 0) {
     return 'Sin contenidos';
   }
 
   const contenidos: string[] = [];
   
-  menu.productos.forEach((producto, index) => {
-    console.log(`Analizando producto ${index}:`, producto);
+  console.log('🔍 Iniciando formateo de contenidos para menú:', menu.nombre);
+  console.log('Productos disponibles:', this.productosDisponibles?.length || 0);
+  console.log('Platos disponibles:', this.platosDisponibles?.length || 0);
+  
+  // ✅ IDENTIFICAR DUMMIES DE FORMA MÁS ROBUSTA CON FALLBACKS
+  let productoDummy = null;
+  let platoDummy = null;
+  
+  // Buscar producto dummy (adaptado para evitar conflictos)
+  if (this.productosDisponibles && this.productosDisponibles.length > 0) {
+    // ✅ CORRECCIÓN: usar ACOMPAÑANTE (Papas Fritas) como dummy
+    productoDummy = this.productosDisponibles.find(p => p.tipo === 'ACOMPAÑANTE');
     
-    const plato = this.platosDisponibles.find(p => p.idPlato === producto.idPlato);
-    const prod = this.productosDisponibles.find(p => p.id === producto.idProducto);
-    
-    if (!plato && !prod) {
-      console.warn('No se encontró ni plato ni producto para:', producto);
-      return;
+    // Fallback: primer producto disponible
+    if (!productoDummy) {
+      productoDummy = this.productosDisponibles[0];
     }
+  }
+  
+  // Buscar plato dummy (adaptado a tu configuración)
+  if (this.platosDisponibles && this.platosDisponibles.length > 0) {
+    // Ya que no tienes platos tipo BEBIDA, usar el plato PRINCIPAL como dummy
+    platoDummy = this.platosDisponibles.find(p => p.tipoPlato === 'PRINCIPAL');
     
-    if (plato && prod) {
-      console.log(`Plato: ${plato.nombre} (${plato.tipoPlato}), Producto: ${prod.nombre} (${prod.tipo})`);
+    // Fallback: primer plato disponible
+    if (!platoDummy) {
+      platoDummy = this.platosDisponibles[0];
+    }
+  }
+  
+  console.log('🎯 Elementos dummy identificados:');
+  console.log('- Producto dummy:', productoDummy?.nombre, `(ID: ${productoDummy?.id})`);
+  console.log('- Plato dummy:', platoDummy?.nombre, `(ID: ${platoDummy?.idPlato})`);
+  
+  // Si aún no tenemos dummies, intentar mostrar elementos de forma alternativa
+  if (!productoDummy || !platoDummy) {
+    console.warn('⚠️ No se pudieron identificar elementos dummy, usando lógica alternativa');
+    
+    // Lógica alternativa: mostrar todos los elementos encontrados
+    menu.productos.forEach((item, index) => {
+      const plato = this.platosDisponibles?.find(p => p.idPlato === item.idPlato);
+      const producto = this.productosDisponibles?.find(p => p.id === item.idProducto);
       
-      // LÓGICA CORREGIDA:
-      // - Si el plato NO es de tipo BEBIDA, es un plato real → mostrar el plato
-      // - Si el plato es de tipo BEBIDA y el producto es BEBIDA/ACOMPAÑANTE → mostrar el producto
-      
-      if (plato.tipoPlato !== 'BEBIDA') {
-        // Es un plato real (ENTRADA, PRINCIPAL, POSTRE, etc.)
-        contenidos.push(plato.nombre);
-        console.log(`→ Mostrando PLATO: ${plato.nombre}`);
-      } else {
-        // El plato es de tipo BEBIDA, verificar el producto
-        if (prod.tipo === 'BEBIDA' || prod.tipo === 'ACOMPAÑANTE') {
-          // Es un producto puro
-          contenidos.push(prod.nombre);
-          console.log(`→ Mostrando PRODUCTO: ${prod.nombre}`);
-        } else {
-          // Caso raro, mostrar el plato
-          contenidos.push(plato.nombre);
-          console.log(`→ Mostrando PLATO (caso especial): ${plato.nombre}`);
-        }
+      if (plato) contenidos.push(plato.nombre);
+      if (producto && producto.nombre !== plato?.nombre) {
+        contenidos.push(producto.nombre);
       }
-    } else if (plato) {
-      // Solo plato
-      contenidos.push(plato.nombre);
-      console.log(`→ Mostrando solo plato: ${plato.nombre}`);
-    } else if (prod) {
-      // Solo producto
-      contenidos.push(prod.nombre);
-      console.log(`→ Mostrando solo producto: ${prod.nombre}`);
+    });
+    
+    const contenidosUnicos = [...new Set(contenidos)];
+    return contenidosUnicos.length > 0 ? contenidosUnicos.join(', ') : 'Contenidos no identificados';
+  }
+  
+  menu.productos.forEach((item, index) => {
+    console.log(`\n--- Procesando item ${index + 1} del menú "${menu.nombre}" ---`);
+    console.log('Item data:', item);
+    
+    if (item.idPlato && item.idProducto) {
+      const plato = this.platosDisponibles.find(p => p.idPlato === item.idPlato);
+      const producto = this.productosDisponibles.find(p => p.id === item.idProducto);
+      
+      if (!plato || !producto) {
+        console.log(`❌ No se encontraron los elementos: plato=${plato?.nombre}, producto=${producto?.nombre}`);
+        return;
+      }
+      
+      console.log(`Plato: ${plato.nombre} (Tipo: ${plato.tipoPlato})`);
+      console.log(`Producto: ${producto.nombre} (Tipo: ${producto.tipo})`);
+      
+      // ✅ LÓGICA SÚPER SIMPLE: 
+      // Si el plato es PRINCIPAL → mostrar el plato (es Milanesa real)
+      // Si el producto es BEBIDA → mostrar el producto (es Coca Cola real)  
+      // Si el producto es ACOMPAÑANTE → mostrar el producto (es Papas Fritas real)
+      
+      if (plato.tipoPlato === 'PRINCIPAL') {
+        contenidos.push(plato.nombre);
+        console.log(`✅ PLATO agregado: ${plato.nombre}`);
+      }
+      
+      if (producto.tipo === 'BEBIDA' || producto.tipo === 'ACOMPAÑANTE') {
+        contenidos.push(producto.nombre);
+        console.log(`✅ PRODUCTO agregado: ${producto.nombre}`);
+      }
     }
   });
   
-  console.log('Contenidos finales:', contenidos);
-  return contenidos.join(', ') || 'Sin contenidos';
+  // Eliminar duplicados y retornar resultado
+  const contenidosUnicos = [...new Set(contenidos)];
+  console.log('\n🎯 RESULTADO FINAL para el menú:', contenidosUnicos);
+  
+  return contenidosUnicos.length > 0 ? contenidosUnicos.join(', ') : 'Sin contenidos válidos';
 }
-
   // ✅ Modal para nuevo menú
   abrirModalNuevoMenu(): void {
     const modalRef = this.modalService.open(MenuModalComponent, {
@@ -295,6 +338,12 @@ export class MenusComponent implements OnInit {
 
   // ✅ Modal para editar menú
   abrirModalEditarMenu(menu: GetMenuDTO): void {
+    console.log('📝 Abriendo modal para editar menú:', menu.nombre);
+    console.log('Datos del menú:', menu);
+    console.log('Productos del menú:', menu.productos);
+    console.log('Platos disponibles:', this.platosDisponibles.length);
+    console.log('Productos disponibles:', this.productosDisponibles.length);
+    
     const modalRef = this.modalService.open(MenuModalComponent, {
       size: 'xl',
       backdrop: 'static',
@@ -307,6 +356,7 @@ export class MenusComponent implements OnInit {
 
     modalRef.result.then((result) => {
       if (result?.action === 'updated') {
+        console.log('✅ Menú actualizado, recargando lista...');
         this.cargarMenus(); // Recargar la lista
       }
     }).catch((error) => {
