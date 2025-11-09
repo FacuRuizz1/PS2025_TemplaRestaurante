@@ -199,6 +199,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       case 'NUEVO_PRODUCTO': return '📦 Nuevo Producto';
       case 'PRODUCTO_ACTUALIZADO': return '✏️ Producto Actualizado';
       case 'PRODUCTO_ELIMINADO': return '🗑️ Producto Eliminado';
+      case 'STOCK_BAJO': return '⚠️ Alerta Stock Bajo';
       case 'TEST': return '🧪 Prueba';
       default: return '📢 Notificación';
     }

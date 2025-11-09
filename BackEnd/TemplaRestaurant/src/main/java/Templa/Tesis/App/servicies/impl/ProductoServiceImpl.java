@@ -28,6 +28,7 @@ public class ProductoServiceImpl implements IProductoService {
     private final PlatoServiceImpl platoService;
     private final MenuServiceImpl menuService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Override
     public ProductoDTO registrarProducto(PostProductoDTO nuevoProducto) {
@@ -54,10 +55,7 @@ public class ProductoServiceImpl implements IProductoService {
             ProductoEntity producto = modelMapper.map(nuevoProducto,ProductoEntity.class);
             ProductoEntity productoGuardado = productoRepository.save(producto);
             ProductoDTO productoDTO = modelMapper.map(productoGuardado,ProductoDTO.class);
-
-            // Enviar notificación de nuevo producto
-            notificationService.enviarNotificacionNuevoProducto(productoDTO);
-
+            
             return productoDTO;
         }
         catch (Exception e){
@@ -89,8 +87,6 @@ public class ProductoServiceImpl implements IProductoService {
         ProductoEntity productoActualizado = productoRepository.save(productoExistente);
         ProductoDTO productoActualizadoDTO = modelMapper.map(productoActualizado,ProductoDTO.class);
 
-        // Enviar notificación de producto actualizado
-        notificationService.enviarNotificacionProductoActualizado(productoActualizadoDTO);
 
         return productoActualizadoDTO;
     }
@@ -135,8 +131,6 @@ public class ProductoServiceImpl implements IProductoService {
         String nombreProducto = producto.getNombre();
         productoRepository.delete(producto);
 
-        // Enviar notificación de producto eliminado
-        notificationService.enviarNotificacionProductoEliminado(nombreProducto);
     }
 
     @Override
@@ -164,6 +158,16 @@ public class ProductoServiceImpl implements IProductoService {
 
         if (producto.getStockActual() <= producto.getStockMinimo()) {
             //TODO: Emitir alerta
+            ProductoDTO productoDTO = modelMapper.map(producto,ProductoDTO.class);
+            notificationService.enviarAlertaStockBajo(productoDTO);
+
+            //Enviar email de alerta
+            emailService.enviarMailStockBajo(
+                    "templarestaurante@gmail.com",
+                    producto.getNombre(),
+                    producto.getStockActual(),
+                    producto.getStockMinimo()
+            );
         }
 
         if (producto.getStockActual() <= producto.getStockMinimo()) {

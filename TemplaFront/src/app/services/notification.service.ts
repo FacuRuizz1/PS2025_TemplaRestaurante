@@ -41,6 +41,16 @@ export class NotificationService {
     });
   }
 
+  // Método para agregar notificación de alerta de stock bajo
+  public addStockAlertNotification(mensaje: string, datos?: any): void {
+    this.addNotification({
+      tipo: 'STOCK_BAJO',
+      mensaje,
+      datos,
+      timestamp: new Date().toISOString()
+    });
+  }
+
   private addNotification(notification: NotificacionDTO): void {
     const currentNotifications = this.notificationsSubject.value;
     const updatedNotifications = [notification, ...currentNotifications];
@@ -75,6 +85,22 @@ export class NotificationService {
       mensaje: 'Esta es una notificación de prueba',
       timestamp: new Date().toISOString()
     });
+  }
+
+  // Método para simular una alerta de stock bajo (para pruebas)
+  sendTestStockAlert(): void {
+    const productoEjemplo = {
+      id: 1,
+      nombre: "Harina",
+      stockActual: 2,
+      stockMinimo: 5,
+      tipo: "INSUMO"
+    };
+
+    this.addStockAlertNotification(
+      `ALERTA: Stock bajo para el producto '${productoEjemplo.nombre}'. Stock actual: ${productoEjemplo.stockActual}, Stock mínimo: ${productoEjemplo.stockMinimo}`,
+      productoEjemplo
+    );
   }
 
   // Limpiar recursos al destruir el servicio

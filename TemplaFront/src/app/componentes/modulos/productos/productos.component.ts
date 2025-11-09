@@ -236,12 +236,8 @@ export class ProductosComponent implements OnInit {
       next: (productoCreado) => {
         console.log('✅ Producto creado exitosamente:', productoCreado);
         
-        // ✅ NUEVO: Enviar notificación
-        this.notificationService.addProductNotification(
-          'NUEVO_PRODUCTO',
-          `Se ha registrado un nuevo producto: ${productoCreado.nombre}`,
-          productoCreado
-        );
+        // ✅ NUEVO: Verificar stock bajo del producto recién creado
+        this.verificarStockBajo(productoCreado);
         
         this.cargarProductosIniciales();
         Swal.fire({
@@ -274,12 +270,8 @@ export class ProductosComponent implements OnInit {
       next: (productoActualizado) => {
         console.log('✅ Producto actualizado exitosamente:', productoActualizado);
         
-        // ✅ NUEVO: Enviar notificación
-        this.notificationService.addProductNotification(
-          'PRODUCTO_ACTUALIZADO',
-          `Se ha actualizado el producto: ${productoActualizado.nombre}`,
-          productoActualizado
-        );
+        // ✅ NUEVO: Verificar stock bajo después de actualizar
+        this.verificarStockBajo(productoActualizado);
         
         this.aplicarFiltros(); // Recargar con filtros actuales
         Swal.fire({
@@ -324,12 +316,6 @@ export class ProductosComponent implements OnInit {
           this.productoService.eliminarProducto(producto.id).subscribe({
             next: () => {
               console.log('✅ Producto eliminado exitosamente');
-              
-              // ✅ NUEVO: Enviar notificación
-              this.notificationService.addProductNotification(
-                'PRODUCTO_ELIMINADO',
-                `Se ha eliminado el producto: ${producto.nombre}`
-              );
               
               this.aplicarFiltros(); // Recargar lista
               Swal.fire({
@@ -401,6 +387,37 @@ export class ProductosComponent implements OnInit {
     } else {
       return 'text-success'; // Verde - stock normal
     }
+  }
+
+  // ✅ Verificar stock bajo y emitir notificación
+  verificarStockBajo(producto: ProductoDTO): void {
+    if (producto.stockActual <= producto.stockMinimo) {
+      const mensaje = `ALERTA: Stock bajo para el producto '${producto.nombre}'. Stock actual: ${producto.stockActual}, Stock mínimo: ${producto.stockMinimo}`;
+      
+      this.notificationService.addStockAlertNotification(mensaje, producto);
+      
+      console.log(`⚠️ ALERTA DE STOCK BAJO: ${producto.nombre}`);
+    }
+  }
+
+  // ✅ Verificar stock bajo para todos los productos cargados
+  verificarStockBajoTodos(): void {
+    this.productos.forEach(producto => {
+      this.verificarStockBajo(producto);
+    });
+  }
+
+  // ✅ Método para probar la alerta de stock bajo (para testing)
+  probarAlertaStockBajo(): void {
+    this.notificationService.sendTestStockAlert();
+    
+    Swal.fire({
+      title: 'Alerta de Prueba',
+      text: 'Se ha enviado una alerta de stock bajo de prueba',
+      icon: 'info',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#28a745'
+    });
   }
 
   // 🔍 Método para depurar las propiedades de un producto

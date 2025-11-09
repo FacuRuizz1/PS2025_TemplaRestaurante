@@ -38,4 +38,18 @@ public class EmailService {
                 "El equipo de Templa";
         enviarMail(para, asunto, cuerpo);
     }
+
+    public void enviarMailStockBajo(String para,String nombreProducto,double stockActual, double stockMinimo){
+        String asunto = "Alerta Stock Bajo - " + nombreProducto;
+        String cuerpo = "¡ALERTA DE STOCK BAJO!\n\n" +
+                "El producto '" + nombreProducto + "' ha alcanzado un nivel crítico de stock.\n\n" +
+                "Detalles:\n" +
+                "- Producto: " + nombreProducto + "\n" +
+                "- Stock actual: " + stockActual + "\n" +
+                "- Stock mínimo: " + stockMinimo + "\n\n" +
+                "Es necesario realizar un reabastecimiento urgente para evitar desabastecimiento.\n\n" +
+                "Saludos,\n" +
+                "Sistema de Gestión Templa";
+        enviarMail(para,asunto,cuerpo);
+    }
 }

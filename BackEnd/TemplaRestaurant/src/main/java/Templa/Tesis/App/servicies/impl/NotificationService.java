@@ -16,57 +16,6 @@ public class NotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    public void enviarNotificacionNuevoProducto(ProductoDTO productoDTO) {
-        try {
-            NotificacionDTO notificacion = NotificacionDTO.builder()
-                    .tipo("NUEVO_PRODUCTO")
-                    .mensaje("Se ha registrado un nuevo producto: " + productoDTO.getNombre())
-                    .datos(productoDTO)
-                    .timestamp(LocalDateTime.now())
-                    .build();
-
-            // Envía la notificación a todos los clientes suscritos al topic
-            messagingTemplate.convertAndSend("/topic/productos", notificacion);
-
-            log.info("Notificación enviada para el nuevo producto: {}", productoDTO.getNombre());
-        } catch (Exception e) {
-            log.error("Error al enviar notificación para producto: {}", productoDTO.getNombre(), e);
-        }
-    }
-
-    public void enviarNotificacionProductoActualizado(ProductoDTO productoDTO) {
-        try {
-            NotificacionDTO notificacion = NotificacionDTO.builder()
-                    .tipo("PRODUCTO_ACTUALIZADO")
-                    .mensaje("Se ha actualizado el producto: " + productoDTO.getNombre())
-                    .datos(productoDTO)
-                    .timestamp(LocalDateTime.now())
-                    .build();
-
-            messagingTemplate.convertAndSend("/topic/productos", notificacion);
-
-            log.info("Notificación enviada para producto actualizado: {}", productoDTO.getNombre());
-        } catch (Exception e) {
-            log.error("Error al enviar notificación para producto actualizado: {}", productoDTO.getNombre(), e);
-        }
-    }
-
-    public void enviarNotificacionProductoEliminado(String nombreProducto) {
-        try {
-            NotificacionDTO notificacion = NotificacionDTO.builder()
-                    .tipo("PRODUCTO_ELIMINADO")
-                    .mensaje("Se ha eliminado el producto: " + nombreProducto)
-                    .datos(null)
-                    .timestamp(LocalDateTime.now())
-                    .build();
-
-            messagingTemplate.convertAndSend("/topic/productos", notificacion);
-
-            log.info("Notificación enviada para producto eliminado: {}", nombreProducto);
-        } catch (Exception e) {
-            log.error("Error al enviar notificación para producto eliminado: {}", nombreProducto, e);
-        }
-    }
 
     public void enviarAlertaStockBajo(ProductoDTO productoDTO) {
         try {
