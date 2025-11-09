@@ -8,6 +8,7 @@ import { PlatosComponent } from './componentes/modulos/platos/platos.component';
 import { MenusComponent } from './componentes/modulos/menus/menus.component';
 import { MesasComponent } from './componentes/modulos/mesas/mesas.component';
 import { ReservasComponent } from './componentes/modulos/reservas/reservas.component';
+import { PedidosComponent } from './componentes/modulos/pedidos/pedidos.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -102,6 +103,20 @@ export const routes: Routes = [
       menuLabel: 'Mesas',
       icon: '🪑',
       order: 5,
+      isPrincipal: true
+    }
+  },
+
+    // Rutas de pedidos (PROTEGIDAS)
+  {
+    path: 'pedidos',
+    component: PedidosComponent,
+    canActivate: [authGuard],
+    data: {
+      showInMenu: true,
+      menuLabel: 'Pedidos',
+      icon: '🧾',
+      order: 6,
       isPrincipal: true
     }
   },

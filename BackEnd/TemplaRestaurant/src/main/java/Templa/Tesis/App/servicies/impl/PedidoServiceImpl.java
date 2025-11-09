@@ -128,9 +128,10 @@ public class PedidoServiceImpl implements IPedidoService {
 
                 Join<PedidoEntity, UsuarioEntity> mozoJoin = root.join("mozo", JoinType.LEFT);
                 Join<UsuarioEntity, PersonaEntity> personaJoin = mozoJoin.join("persona", JoinType.LEFT);
+                Join<PedidoEntity, MesaEntity> mesaJoin = root.join("mesa", JoinType.LEFT);
 
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("numeroComprobante").as(String.class)), pattern),
+                        cb.like(cb.lower(mesaJoin.get("numeroMesa").as(String.class)), pattern),
                         cb.like(cb.lower(personaJoin.get("nombre")), pattern),
                         cb.like(cb.lower(personaJoin.get("apellido")), pattern)
                 ));
@@ -282,7 +283,7 @@ public class PedidoServiceImpl implements IPedidoService {
             throw new RuntimeException("No se pueden agregar detalles a un pedido: "+ existe.getEstado());
         }
 
-
+        existe.setEstado(EstadoPedido.ORDENADO);
         List<GetPedidoDetalleDTO> detallesDto = new ArrayList<>();
 
         for (PostPedidoDetalleDTO detalleDto : dto.getDetalles()) {

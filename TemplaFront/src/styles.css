@@ -209,6 +209,117 @@
 .toggle-switch {
   cursor: pointer;
 }
+/* ===== TABLA PERSONALIZADA ===== */
+.custom-table {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 25px 10px rgba(0, 0, 0, 0.1);
+}
+
+.custom-table thead th {
+    background-color: var(--templa-brown);
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 15px 12px;
+    font-size: 14px;
+}
+
+.custom-table tbody td {
+    padding: 12px;
+    vertical-align: middle;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ===== TABLA PERSONALIZADA ===== */
+.custom-table {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 25px 10px rgba(0, 0, 0, 0.1);
+}
+
+.custom-table thead th {
+    background-color: var(--templa-brown);
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    padding: 15px 12px;
+    font-size: 14px;
+}
+
+.custom-table tbody td {
+    padding: 12px;
+    vertical-align: middle;
+    text-align: center;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Grupo de filtros de fecha */
+.date-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--templa-gold);
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: 35px;
+}
+
+.date-input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-label {
+    font-family: var(--templa-font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--templa-brown);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.custom-date-input {
+    background-color: var(--templa-brown);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    min-width: 130px;
+    height: 28px;
+    color: white;
+    font-family: var(--templa-font-body);
+    transition: all 0.3s ease;
+}
+
+.custom-date-input:focus {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-color: white;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    outline: none;
+    color: white;
+}
+
+.custom-date-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Estilo para el calendario picker */
+.custom-date-input::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(2);
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.custom-date-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
 
 /* ✅ Responsive para la nueva fila */
 @media (max-width: 768px) {

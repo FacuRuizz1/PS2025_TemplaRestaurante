@@ -14,4 +14,8 @@ public interface IPlatoService {
     void activarDesactivarPlato(Integer id);
     void bajaPlato(Integer id);
     PlatoEntity obtenerPlatoConIngredientes(Integer idPlato);
+
+    void desactivarPlatosQueUsan(Integer idProducto);
+
+    void reactivarPlatosQueUsan(Integer idProducto);
 }

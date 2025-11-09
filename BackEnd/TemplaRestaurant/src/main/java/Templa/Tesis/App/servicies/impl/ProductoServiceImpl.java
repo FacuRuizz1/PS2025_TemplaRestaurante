@@ -25,6 +25,8 @@ public class ProductoServiceImpl implements IProductoService {
 
     private final ModelMapper modelMapper;
     private final ProductoRepository productoRepository;
+    private final PlatoServiceImpl platoService;
+    private final MenuServiceImpl menuService;
     private final NotificationService notificationService;
 
     @Override
@@ -75,6 +77,14 @@ public class ProductoServiceImpl implements IProductoService {
         productoExistente.setStockMaximo(productoDTO.getStockMaximo());
         productoExistente.setActivo(productoDTO.isActivo());
         productoExistente.setPrecio(productoDTO.getPrecio());
+
+        if (productoExistente.getStockActual()<= productoExistente.getStockMinimo()) {
+            platoService.desactivarPlatosQueUsan(id);
+            menuService.desactivarMenusQueUsan(id);
+        } else {
+            platoService.reactivarPlatosQueUsan(id);
+            menuService.reactivarMenusQueUsan(id);
+        }
 
         ProductoEntity productoActualizado = productoRepository.save(productoExistente);
         ProductoDTO productoActualizadoDTO = modelMapper.map(productoActualizado,ProductoDTO.class);
@@ -156,8 +166,10 @@ public class ProductoServiceImpl implements IProductoService {
             //TODO: Emitir alerta
         }
 
-        if (producto.getStockActual() <= 0) {
+        if (producto.getStockActual() <= producto.getStockMinimo()) {
             producto.setActivo(false);
+            platoService.desactivarPlatosQueUsan(idProducto);
+            menuService.desactivarMenusQueUsan(idProducto);
         }
 
         return productoRepository.save(producto);
@@ -173,6 +185,8 @@ public class ProductoServiceImpl implements IProductoService {
 
         if (producto.getStockActual() > producto.getStockMinimo()) {
             producto.setActivo(true);
+            platoService.reactivarPlatosQueUsan(idProducto);
+            menuService.reactivarMenusQueUsan(idProducto);
         }
         productoRepository.save(producto);
     }

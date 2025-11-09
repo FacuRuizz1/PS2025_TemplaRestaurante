@@ -25,8 +25,8 @@ public interface PlatoRepository extends JpaRepository<PlatoEntity, Integer>, Jp
     PlatoEntity findByNombre(String nombre);
 
     @Query("SELECT DISTINCT p FROM PlatoEntity p " +
-            "LEFT JOIN FETCH p.ingredientes d " +
-            "LEFT JOIN FETCH d.producto " +
-            "WHERE p.idPlato = :id")
-    Optional<PlatoEntity> findByIdWithIngredientes(@Param("id") Integer id);
+            "JOIN p.ingredientes i " +
+            "WHERE i.producto.id = :idProducto")
+    List<PlatoEntity> findByIngredienteProductoId(@Param("idProducto") Integer idProducto);
+
 }

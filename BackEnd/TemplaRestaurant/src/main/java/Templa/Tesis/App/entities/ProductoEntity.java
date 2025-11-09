@@ -37,9 +37,9 @@ public class ProductoEntity {
     private Double stockMinimo;
     @Column(nullable = false)
     private Double stockMaximo;
-
-    private boolean activo;
-
+    @Column
+    private Boolean activo;
+    @Column
     private Double precio;
 
 

@@ -205,7 +205,7 @@ public class MenuServiceImpl implements IMenuService {
         Optional<MenuEntity> menuOptional = menuRepository.findById(id);
         if (menuOptional.isPresent()) {
             MenuEntity menu = menuOptional.get();
-            menu.setActivo(!menu.isActivo());
+            menu.setActivo(!menu.getActivo());
             menuRepository.save(menu);
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu no encontrado con ID: " + id);
@@ -243,4 +243,83 @@ public class MenuServiceImpl implements IMenuService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu no encontrado con ID: " + id);
         }
     }
+
+    @Override
+    public void desactivarMenusQueUsan(Integer idProducto) {
+        List<MenuEntity> menusConProducto = menuRepository.findByDetallesProductoId(idProducto);
+
+        for (MenuEntity menu : menusConProducto) {
+            if (menu.getActivo()) {
+                menu.setActivo(false);
+                menuRepository.save(menu);
+
+                System.out.println("Menú desactivado: " + menu.getNombre() +
+                        " (falta producto: " + idProducto + ")");
+            }
+        }
+
+        // Menús que contengan platos que usan este producto
+        List<PlatoEntity> platosAfectados = platoRepository.findByIngredienteProductoId(idProducto);
+
+        for (PlatoEntity plato : platosAfectados) {
+            List<MenuEntity> menusConPlato = menuRepository.findByDetallesPlatoId(plato.getIdPlato());
+
+            for (MenuEntity menu : menusConPlato) {
+                if (menu.getActivo()) {
+                    menu.setActivo(false);
+                    menuRepository.save(menu);
+
+                    System.out.println("Menú desactivado: " + menu.getNombre() +
+                            " (falta producto en plato: " + plato.getNombre() + ")");
+                }
+            }
+        }
+    }
+
+    @Override
+    public void reactivarMenusQueUsan(Integer idProducto) {
+        List<MenuEntity> menus = menuRepository.findByDetallesProductoId(idProducto);
+
+        for (MenuEntity menu : menus) {
+            if (todosLosItemsDelMenuDisponibles(menu) && !menu.getActivo()) {
+                menu.setActivo(true);
+                menuRepository.save(menu);
+
+                System.out.println("Menú reactivado: " + menu.getNombre());
+            }
+        }
+
+        // Reactivar menús que contienen platos con este producto
+        List<PlatoEntity> platos = platoRepository.findByIngredienteProductoId(idProducto);
+
+        for (PlatoEntity plato : platos) {
+            if (plato.getDisponible()) {
+                List<MenuEntity> menusConPlato = menuRepository.findByDetallesPlatoId(plato.getIdPlato());
+
+                for (MenuEntity menu : menusConPlato) {
+                    if (todosLosItemsDelMenuDisponibles(menu) && !menu.getActivo()) {
+                        menu.setActivo(true);
+                        menuRepository.save(menu);
+
+                        System.out.println("Menú reactivado: " + menu.getNombre());
+                    }
+                }
+            }
+        }
+    }
+
+private boolean todosLosItemsDelMenuDisponibles(MenuEntity menu) {
+    List<MenuDetalleEntity> detalles = menuDetalleRepository.findByMenuId(menu.getId());
+    return detalles.stream().allMatch(detalle -> {
+        ProductoEntity producto = detalle.getProducto();
+        if (producto != null) {
+            return producto.getActivo() && producto.getStockActual() > 0;
+        }
+        PlatoEntity plato = detalle.getPlato();
+        if (plato != null) {
+            return plato.getDisponible();
+        }
+        return false;
+    });
+}
 }

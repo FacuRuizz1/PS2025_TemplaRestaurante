@@ -20,7 +20,6 @@ public class PedidoDTO {
     private String numeroMesa;
     private String nombreUsuario;
     private LocalDateTime fechaHora;
-    private String observaciones;
     private double total;
     private String estado;
     private List<GetPedidoDetalleDTO> detalles;

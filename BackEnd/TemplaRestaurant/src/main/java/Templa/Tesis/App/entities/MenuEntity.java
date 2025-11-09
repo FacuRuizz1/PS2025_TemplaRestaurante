@@ -2,6 +2,7 @@ package Templa.Tesis.App.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -27,5 +28,6 @@ public class MenuEntity {
     private LocalDate disponibleDesde;
     @Column(name = "disponible_hasta")
     private LocalDate disponibleHasta;
-    private boolean activo;
+    @Column
+    private Boolean activo;
 }

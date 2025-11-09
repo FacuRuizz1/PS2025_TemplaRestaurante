@@ -288,4 +288,40 @@ public class PlatoServiceImpl implements IPlatoService {
 
         return plato;
     }
+
+    @Override
+    public void desactivarPlatosQueUsan(Integer idProducto) {
+        List<PlatoEntity> platosAfectados = platoRepository.findByIngredienteProductoId(idProducto);
+
+        for (PlatoEntity plato : platosAfectados) {
+            if (plato.getDisponible()) {
+                plato.setDisponible(false);
+                platoRepository.save(plato);
+
+                System.out.println("Plato desactivado: " + plato.getNombre() +
+                        " (falta producto: " + idProducto + ")");
+            }
+        }
+    }
+
+    @Override
+    public void reactivarPlatosQueUsan(Integer idProducto) {
+        List<PlatoEntity> platos = platoRepository.findByIngredienteProductoId(idProducto);
+
+        for (PlatoEntity plato : platos) {
+            // Verificar si TODOS los ingredientes tienen stock
+            boolean todosTienenStock = plato.getIngredientes().stream()
+                    .allMatch(ingrediente ->
+                            ingrediente.getProducto().getActivo() &&
+                                    ingrediente.getProducto().getStockActual() > ingrediente.getProducto().getStockMinimo()
+                    );
+
+            if (todosTienenStock && !plato.getDisponible()) {
+                plato.setDisponible(true);
+                platoRepository.save(plato);
+
+                System.out.println("Plato reactivado: " + plato.getNombre());
+            }
+        }
+    }
 }

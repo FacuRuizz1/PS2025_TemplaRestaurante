@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface MenuRepository extends JpaRepository<MenuEntity,Integer> {
 
@@ -20,5 +22,14 @@ public interface MenuRepository extends JpaRepository<MenuEntity,Integer> {
     Page<MenuEntity> findMenusWithFilters(@Param("buscarFiltro") String buscarFiltro,
                                          @Param("estado") String estado,
                                          Pageable pageable);
+
+@Query("SELECT DISTINCT m FROM MenuEntity m, MenuDetalleEntity d " +
+       "WHERE d.menu = m AND d.producto.id = :idProducto")
+List<MenuEntity> findByDetallesProductoId(@Param("idProducto") Integer idProducto);
+
+// Buscar menús que contengan un plato específico
+@Query("SELECT DISTINCT m FROM MenuEntity m, MenuDetalleEntity d " +
+       "WHERE d.menu = m AND d.plato.idPlato = :idPlato")
+List<MenuEntity> findByDetallesPlatoId(@Param("idPlato") Integer idPlato);
 }
 

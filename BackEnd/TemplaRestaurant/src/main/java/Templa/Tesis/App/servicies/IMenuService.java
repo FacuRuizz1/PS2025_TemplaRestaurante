@@ -16,4 +16,8 @@ public interface IMenuService {
     void bajaMenu(Integer id);
     List<MenuDetalleEntity>  obtenerDetallesMenu(Integer idMenu);
     GetMenuDTO obtenerMenuPorId(Integer id);
+
+    void desactivarMenusQueUsan(Integer idProducto);
+
+    void reactivarMenusQueUsan(Integer idProducto);
 }
