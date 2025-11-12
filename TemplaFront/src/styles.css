@@ -10,6 +10,15 @@
   --templa-red: #C47373;
   --templa-hoverred: #da7e7e;
 
+  /* Fondos de estados (pasteles) */
+  --templa-bg-disponible: #e8f5e3;
+  --templa-text-disponible: #4a7c3f;
+  --templa-bg-ocupada: #e2e3e5;
+  --templa-text-ocupada: #383d41;
+  --templa-bg-reservada: #f8f0e3;
+  --templa-text-reservada: #8b7548;
+  --templa-bg-fuera-servicio: #f8e3e3;
+  --templa-text-fuera-servicio: #8b5555;
 
   --templa-font-title: 'Amethysta';
   --templa-font-text: 'Amiko'; 

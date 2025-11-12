@@ -92,8 +92,15 @@ public class SseController {
             emitter.send(SseEmitter.event()
                     .name("connected")
                     .data("Conectado a notificaciones de " + type));
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Error enviando mensaje inicial: {}", e.getMessage());
+            typeEmitters.remove(emitter);
+            try {
+                emitter.completeWithError(e);
+            } catch (Exception ex) {
+                log.debug("Ignorando error al completar emitter con error: {}", ex.getMessage());
+            }
+            return emitter;
         }
 
         // Configurar callbacks
@@ -105,12 +112,21 @@ public class SseController {
         emitter.onTimeout(() -> {
             typeEmitters.remove(emitter);
             log.warn("Timeout de conexión SSE tipo: {}", type);
-            emitter.complete();
+            try {
+                emitter.complete();
+            } catch (Exception ex) {
+                log.debug("Ignorando error al completar emitter por timeout: {}", ex.getMessage());
+            }
         });
 
         emitter.onError((ex) -> {
             typeEmitters.remove(emitter);
-            log.error("Error en conexión SSE tipo: {} - {}", type, ex.getMessage());
+            log.error("Error en conexión SSE tipo: {} - {}", type, ex != null ? ex.getMessage() : "null");
+            try {
+                emitter.completeWithError(ex);
+            } catch (Exception e) {
+                log.debug("Ignorando error al completar emitter con error en onError: {}", e.getMessage());
+            }
         });
 
         return emitter;
@@ -138,7 +154,11 @@ public class SseController {
             } catch (IOException e) {
                 log.error("Error enviando notificación: {}", e.getMessage());
                 typeEmitters.remove(emitter);
-                emitter.completeWithError(e);
+                try {
+                    emitter.completeWithError(e);
+                } catch (Exception ex) {
+                    log.debug("Ignorando error al completar emitter: {}", ex.getMessage());
+                }
             }
         });
     }
@@ -152,4 +172,3 @@ public class SseController {
         sendNotification(type, "test", data);
     }
 }
-

@@ -188,10 +188,21 @@
       {{ soloLectura ? 'Cerrar' : 'Cancelar' }}
     </button>
     
+    <!-- ✅ Botón Entregar Items Listos (solo si hay items LISTO) -->
+    <button *ngIf="isEditMode && !soloLectura && hayItemsListos()" 
+            type="button" 
+            class="btn btn-success" 
+            (click)="entregarItemsListos()"
+            [disabled]="guardando">
+      <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
+      <i class="fas fa-hand-holding me-1"></i>
+      Entregar Items Listos
+    </button>
+    
     <!-- ✅ Botón Finalizar Pedido (solo en modo edición y si todos están entregados) -->
     <button *ngIf="isEditMode && !soloLectura && todosPedidosEntregados()" 
             type="button" 
-            class="btn btn-success" 
+            class="btn btn-secondary" 
             (click)="finalizarPedido()"
             [disabled]="guardando">
       <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>

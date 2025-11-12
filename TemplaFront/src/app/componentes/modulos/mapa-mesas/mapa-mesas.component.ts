@@ -123,7 +123,7 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleModoConfiguracion(): void {
-    this.modoConfiguracion = !this.modoConfiguracion;
+    // No hacemos toggle aquí porque [(ngModel)] ya lo hace
     if (this.modoConfiguracion) {
       this.alertService.showInfo('Modo Configuración', 'Puedes arrastrar mesas desde el panel lateral');
     } else {
@@ -591,21 +591,6 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
   // ═══════════════════════════════════════════════════════════
   // UTILIDADES
   // ═══════════════════════════════════════════════════════════
-
-  getColorMesa(estado: EstadoMesa): string {
-    switch (estado) {
-      case EstadoMesa.DISPONIBLE:
-        return '#28a745'; // Verde
-      case EstadoMesa.OCUPADA:
-        return '#6c757d'; // Gris
-      case EstadoMesa.RESERVADA:
-        return '#ffc107'; // Amarillo
-      case EstadoMesa.FUERA_SERVICIO:
-        return '#dc3545'; // Rojo
-      default:
-        return '#6c757d';
-    }
-  }
 
   estaVinculada(mesa: GetMesaDto): boolean {
     return this.mesasEnPlano.some(m => m.idMesa === mesa.idMesa);

@@ -8,11 +8,12 @@ export class AlertService {
 
   // ✅ Colores de la paleta Templa
   private readonly colors = {
-    primary: '#8B654C',
-    success: '#28a745',
-    error: '#dc3545',
-    warning: '#ffc107',
-    info: '#17a2b8'
+    primary: '#755143',      // templa-brown
+    success: '#84C473',      // templa-green (pastel)
+    error: '#C47373',        // templa-red (pastel)
+    warning: '#d2a46d',      // templa-gold (pastel)
+    info: '#d4e7f5',         // azul pastel
+    darkGreen: '#696848'     // templa-dark-green
   };
 
   // ✅ Mensaje de éxito genérico

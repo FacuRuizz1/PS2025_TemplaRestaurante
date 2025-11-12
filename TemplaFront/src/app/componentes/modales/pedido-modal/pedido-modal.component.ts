@@ -321,34 +321,34 @@ export class PedidoModalComponent implements OnInit {
       return;
     }
 
-    if (!confirm('¿Está seguro que desea cancelar este item?')) {
-      return;
-    }
-
-    // ✅ Llamar al servicio para cancelar todos los detalles pendientes del pedido
-    // Nota: El backend cancela todos los detalles PENDIENTES, no uno específico
-    this.guardando = true;
-    this.pedidoService.cancelarDetalles(this.pedidoData.idPedido).subscribe({
-      next: (response) => {
-        console.log('✅ Detalles cancelados:', response);
-        this.guardando = false;
-        
-        // Actualizar los detalles con la respuesta del backend
-        this.detallesAgregados = response.detalles.map(detalle => ({
-          id: detalle.idPedidoDetalle,
-          nombre: detalle.nombreItem,
-          tipo: detalle.tipo,
-          precio: detalle.precioUnitario,
-          cantidad: detalle.cantidad,
-          estado: detalle.estado
-        }));
-        
-        this.alertService.showSuccess('Item Cancelado', 'El item ha sido cancelado exitosamente');
-      },
-      error: (error: any) => {
-        console.error('❌ Error al cancelar detalle:', error);
-        this.guardando = false;
-        alert('Error al cancelar el item: ' + (error.error?.message || 'Error desconocido'));
+    this.alertService.showConfirmation('Confirmar Cancelación', '¿Está seguro que desea cancelar este item?', 'Sí, cancelar').then((result) => {
+      if (result.isConfirmed) {
+        // ✅ Llamar al servicio para cancelar todos los detalles pendientes del pedido
+        // Nota: El backend cancela todos los detalles PENDIENTES, no uno específico
+        this.guardando = true;
+        this.pedidoService.cancelarDetalles(this.pedidoData!.idPedido).subscribe({
+          next: (response) => {
+            console.log('✅ Detalles cancelados:', response);
+            this.guardando = false;
+            
+            // Actualizar los detalles con la respuesta del backend
+            this.detallesAgregados = response.detalles.map(detalle => ({
+              id: detalle.idPedidoDetalle,
+              nombre: detalle.nombreItem,
+              tipo: detalle.tipo,
+              precio: detalle.precioUnitario,
+              cantidad: detalle.cantidad,
+              estado: detalle.estado
+            }));
+            
+            this.alertService.showSuccess('Item Cancelado', 'El item ha sido cancelado exitosamente');
+          },
+          error: (error: any) => {
+            console.error('❌ Error al cancelar detalle:', error);
+            this.guardando = false;
+            this.alertService.showError('Error al Cancelar', error.error?.message || 'Error desconocido');
+          }
+        });
       }
     });
   }
@@ -484,7 +484,6 @@ export class PedidoModalComponent implements OnInit {
         }
       });
     } else {
-      // Modo crear: crear nuevo pedido
       this.pedidoService.crearPedido(pedidoDTO).subscribe({
         next: (response: GetPedidoDto) => {
           console.log('✅ Pedido creado exitosamente:', response);
@@ -495,7 +494,6 @@ export class PedidoModalComponent implements OnInit {
           });
         },
         error: (error: any) => {
-          console.error('❌ Error al crear pedido:', error);
           this.guardando = false;
           alert('Error al crear el pedido: ' + (error.error?.message || error.message || 'Error desconocido'));
         }
@@ -506,6 +504,61 @@ export class PedidoModalComponent implements OnInit {
   // ✅ Cancelar
   onCancelar(): void {
     this.activeModal.dismiss('cancel');
+  }
+
+  /**
+   * ✅ Verificar si hay items con estado LISTO
+   */
+  hayItemsListos(): boolean {
+    return this.detallesAgregados.some(d => d.estado === 'LISTO_PARA_ENTREGAR');
+  }
+
+  /**
+   * ✅ Entregar todos los items que están LISTO
+   */
+  entregarItemsListos(): void {
+    if (!this.pedidoData) return;
+
+    const itemsListos = this.detallesAgregados.filter(d => d.estado === 'LISTO_PARA_ENTREGAR');
+    
+    if (itemsListos.length === 0) {
+      this.alertService.showInfo('Sin Items Listos', 'No hay items listos para entregar.');
+      return;
+    }
+
+    const mensaje = `¿Desea entregar ${itemsListos.length} item(s) listo(s)?`;
+    this.alertService.showConfirmation('Confirmar Entrega', mensaje, 'Sí, entregar').then((result) => {
+      if (result.isConfirmed) {
+        this.guardando = true;
+        
+        // Llamar al backend para marcar como ENTREGADO todos los items LISTO
+        this.pedidoService.entregarDetalles(this.pedidoData!.idPedido).subscribe({
+          next: (response) => {
+            console.log('✅ Items entregados:', response);
+            
+            // ✅ Actualizar los datos del pedido con la respuesta del backend
+            this.pedidoData = response;
+            this.detallesAgregados = response.detalles.map(detalle => ({
+              id: detalle.idPedidoDetalle,
+              nombre: detalle.nombreItem,
+              tipo: detalle.tipo,
+              precio: detalle.precioUnitario,
+              cantidad: detalle.cantidad,
+              estado: detalle.estado,
+              esNuevo: false
+            }));
+            
+            this.guardando = false;
+            this.alertService.showSuccess('Items Entregados', `${itemsListos.length} item(s) entregado(s) exitosamente`);
+          },
+          error: (error: any) => {
+            console.error('❌ Error al entregar items:', error);
+            this.guardando = false;
+            this.alertService.showError('Error al Entregar', error.error?.message || 'Error desconocido');
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -523,28 +576,28 @@ export class PedidoModalComponent implements OnInit {
     if (!this.pedidoData) return;
 
     if (!this.todosPedidosEntregados()) {
-      alert('No se puede finalizar el pedido. Aún hay items sin entregar.');
+      this.alertService.showError('No se Puede Finalizar', 'Aún hay items sin entregar.');
       return;
     }
 
-    if (!confirm('¿Está seguro que desea finalizar este pedido?')) {
-      return;
-    }
-
-    this.guardando = true;
-    this.pedidoService.finalizarPedido(this.pedidoData.idPedido).subscribe({
-      next: (response) => {
-        console.log('✅ Pedido finalizado:', response);
-        this.guardando = false;
-        this.activeModal.close({
-          accion: 'finalizado',
-          pedido: response
+    this.alertService.showConfirmation('Confirmar Finalización', '¿Está seguro que desea finalizar este pedido?', 'Sí, finalizar').then((result) => {
+      if (result.isConfirmed) {
+        this.guardando = true;
+        this.pedidoService.finalizarPedido(this.pedidoData!.idPedido).subscribe({
+          next: (response) => {
+            console.log('✅ Pedido finalizado:', response);
+            this.guardando = false;
+            this.activeModal.close({
+              accion: 'finalizado',
+              pedido: response
+            });
+          },
+          error: (error: any) => {
+            console.error('❌ Error al finalizar pedido:', error);
+            this.guardando = false;
+            this.alertService.showError('Error al Finalizar', error.error?.message || 'Error desconocido');
+          }
         });
-      },
-      error: (error: any) => {
-        console.error('❌ Error al finalizar pedido:', error);
-        this.guardando = false;
-        alert('Error al finalizar el pedido: ' + (error.error?.message || 'Error desconocido'));
       }
     });
   }
@@ -627,11 +680,11 @@ export class PedidoModalComponent implements OnInit {
    */
   getColorEstado(estado: string): string {
     const colores: { [key: string]: string } = {
-      'DISPONIBLE': '#28a745',
-      'OCUPADA': '#6c757d',
-      'RESERVADA': '#ffc107',
-      'FUERA_SERVICIO': '#dc3545'
+      'DISPONIBLE': '#84C473',        // templa-green
+      'OCUPADA': '#e2e3e5',           // templa-bg-ocupada (gris pastel)
+      'RESERVADA': '#d2a46d',         // templa-gold
+      'FUERA_SERVICIO': '#C47373'     // templa-red
     };
-    return colores[estado] || '#6c757d';
+    return colores[estado] || '#e2e3e5';
   }
 }

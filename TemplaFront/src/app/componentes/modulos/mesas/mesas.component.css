@@ -14,17 +14,17 @@
 }
 
 .badge-ocupada {
-    background-color: var(--templa-red);
-    color: white;
+    background-color: var(--templa-bg-ocupada);
+    color: var(--templa-text-ocupada);
 }
 
 .badge-reservada {
     background-color: var(--templa-gold);
-    color: white;
+    color: var(--templa-brown);
 }
 
 .badge-fuera-servicio {
-    background-color: #6c757d;
+    background-color: var(--templa-red);
     color: white;
 }
 

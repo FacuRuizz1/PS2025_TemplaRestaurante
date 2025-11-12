@@ -87,7 +87,12 @@
           (dragstart)="onDragStartPanel($event, mesa)"
         >
           <div class="mesa-info">
-            <i class="fas fa-circle" [style.color]="getColorMesa(mesa.estadoMesa)"></i>
+            <i class="fas fa-circle"
+               [class.icono-disponible]="mesa.estadoMesa === EstadoMesa.DISPONIBLE"
+               [class.icono-ocupada]="mesa.estadoMesa === EstadoMesa.OCUPADA"
+               [class.icono-reservada]="mesa.estadoMesa === EstadoMesa.RESERVADA"
+               [class.icono-fuera-servicio]="mesa.estadoMesa === EstadoMesa.FUERA_SERVICIO"
+            ></i>
             <span class="mesa-numero">{{ mesa.numeroMesa }}</span>
           </div>
           <span class="mesa-estado-badge" [class]="mesa.estadoMesa.toLowerCase()">
@@ -139,10 +144,13 @@
         <div 
           *ngFor="let mesa of mesasDelPisoActual"
           class="mesa-circulo"
+          [class.estado-disponible]="mesa.estadoMesa === EstadoMesa.DISPONIBLE"
+          [class.estado-ocupada]="mesa.estadoMesa === EstadoMesa.OCUPADA"
+          [class.estado-reservada]="mesa.estadoMesa === EstadoMesa.RESERVADA"
+          [class.estado-fuera-servicio]="mesa.estadoMesa === EstadoMesa.FUERA_SERVICIO"
           [attr.data-id]="mesa.idMesa"
           [style.left.px]="mesa.posX"
           [style.top.px]="mesa.posY"
-          [style.background-color]="getColorMesa(mesa.estadoMesa)"
           (click)="onClickMesa($event, mesa)"
           [draggable]="modoConfiguracion"
           (dragstart)="onDragStartPanel($event, mesa)"
@@ -155,9 +163,12 @@
         <div 
           *ngIf="previewMesaPosition && mesaArrastrandoDesdePanel"
           class="mesa-circulo mesa-preview"
+          [class.estado-disponible]="mesaArrastrandoDesdePanel.estadoMesa === EstadoMesa.DISPONIBLE"
+          [class.estado-ocupada]="mesaArrastrandoDesdePanel.estadoMesa === EstadoMesa.OCUPADA"
+          [class.estado-reservada]="mesaArrastrandoDesdePanel.estadoMesa === EstadoMesa.RESERVADA"
+          [class.estado-fuera-servicio]="mesaArrastrandoDesdePanel.estadoMesa === EstadoMesa.FUERA_SERVICIO"
           [style.left.px]="previewMesaPosition.x"
           [style.top.px]="previewMesaPosition.y"
-          [style.background-color]="getColorMesa(mesaArrastrandoDesdePanel.estadoMesa)"
         >
           <span class="mesa-numero-circulo">{{ mesaArrastrandoDesdePanel.numeroMesa }}</span>
         </div>
@@ -185,7 +196,11 @@
   >
     <div class="menu-header">
       <strong>{{ menuContextual.mesa?.numeroMesa }}</strong>
-      <span class="estado-actual" [style.color]="getColorMesa(menuContextual.mesa?.estadoMesa!)">
+      <span class="estado-actual"
+            [class.icono-disponible]="menuContextual.mesa?.estadoMesa === EstadoMesa.DISPONIBLE"
+            [class.icono-ocupada]="menuContextual.mesa?.estadoMesa === EstadoMesa.OCUPADA"
+            [class.icono-reservada]="menuContextual.mesa?.estadoMesa === EstadoMesa.RESERVADA"
+            [class.icono-fuera-servicio]="menuContextual.mesa?.estadoMesa === EstadoMesa.FUERA_SERVICIO">
         {{ menuContextual.mesa?.estadoMesa }}
       </span>
     </div>
@@ -196,7 +211,7 @@
         class="menu-item"
         (click)="cambiarEstadoMesa(EstadoMesa.DISPONIBLE)"
       >
-        <i class="fas fa-check-circle" style="color: #28a745"></i>
+        <i class="fas fa-check-circle icono-disponible"></i>
         Marcar DISPONIBLE
       </button>
 
@@ -204,7 +219,7 @@
         class="menu-item"
         (click)="cambiarEstadoMesa(EstadoMesa.OCUPADA)"
       >
-        <i class="fas fa-circle" style="color: #6c757d"></i>
+        <i class="fas fa-circle icono-ocupada"></i>
         Marcar OCUPADA
       </button>
 
@@ -212,7 +227,7 @@
         class="menu-item"
         (click)="cambiarEstadoMesa(EstadoMesa.RESERVADA)"
       >
-        <i class="fas fa-bookmark" style="color: #ffc107"></i>
+        <i class="fas fa-bookmark icono-reservada"></i>
         Marcar RESERVADA
       </button>
 
@@ -220,7 +235,7 @@
         class="menu-item"
         (click)="cambiarEstadoMesa(EstadoMesa.FUERA_SERVICIO)"
       >
-        <i class="fas fa-times-circle" style="color: #dc3545"></i>
+        <i class="fas fa-times-circle icono-fuera-servicio"></i>
         Marcar FUERA DE SERVICIO
       </button>
 
@@ -261,21 +276,21 @@
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- LEYENDA -->
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <div class="leyenda">
+  <div *ngIf="!modoConfiguracion" class="leyenda">
     <div class="leyenda-item">
-      <span class="color-box" style="background-color: #28a745"></span>
+      <span class="color-box color-disponible"></span>
       Disponible
     </div>
     <div class="leyenda-item">
-      <span class="color-box" style="background-color: #6c757d"></span>
+      <span class="color-box color-ocupada"></span>
       Ocupada
     </div>
     <div class="leyenda-item">
-      <span class="color-box" style="background-color: #ffc107"></span>
+      <span class="color-box color-reservada"></span>
       Reservada
     </div>
     <div class="leyenda-item">
-      <span class="color-box" style="background-color: #dc3545"></span>
+      <span class="color-box color-fuera-servicio"></span>
       Fuera de Servicio
     </div>
   </div>

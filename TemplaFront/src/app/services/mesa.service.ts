@@ -73,7 +73,15 @@ export class MesaService {
   }
 
   cambiarEstadoMesa(mesa: GetMesaDto): Observable<GetMesaDto> {
-    return this.http.put<GetMesaDto>(`${this.apiUrl}/cambiarEstado`, {id: mesa.idMesa, nuevoEstado: mesa.estadoMesa}, this.getHttpOptions());
+    // ✅ Enviar como query params, no en el body
+    const params = {
+      id: mesa.idMesa.toString(),
+      nuevoEstado: mesa.estadoMesa
+    };
+    return this.http.put<GetMesaDto>(`${this.apiUrl}/cambiarEstado`, null, {
+      ...this.getHttpOptions(),
+      params: params
+    });
   }
 
   actualizarPosicionMesa(idMesa: number, posX: number, posY: number, piso: number): Observable<GetMesaDto> {
