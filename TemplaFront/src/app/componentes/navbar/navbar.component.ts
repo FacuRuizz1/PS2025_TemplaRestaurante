@@ -121,7 +121,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
       'Listado': '📋', 
       'Usuarios Sistema': '🔧',
       'Reportes': '📊',
-      'Configuración': '⚙️'
+      'Configuración': '⚙️',
+      'Gestión de Pedidos': '📋',
+      'Cocina': '🍽️'
     };
     
     return iconMap[label] || '📄';

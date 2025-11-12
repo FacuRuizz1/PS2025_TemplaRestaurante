@@ -1,0 +1,82 @@
+<div class="cocina-container">
+  <!-- Header simple -->
+  <div class="header-section">
+    <div class="header-title">
+      <h2>🍽️ Cocina - Pedidos Activos</h2>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner">Cargando pedidos...</div>
+  </div>
+
+  <!-- Lista de pedidos -->
+  <div class="pedidos-grid" *ngIf="!isLoading">
+    <div class="pedido-card" 
+         *ngFor="let pedido of pedidosFiltrados; trackBy: trackByPedidoId" 
+         [class.pedido-nuevo]="pedido.estado === EstadoPedido.ORDENADO">
+      
+      <!-- Header del pedido -->
+      <div class="pedido-header">
+        <div class="pedido-info">
+          <h3>#{{pedido.idPedido}}</h3> <!-- Cambiado aquí -->
+          <div class="mesa-info">
+            <strong>Mesa: {{pedido.numeroMesa}}</strong>
+          </div>
+          <div class="usuario-info">
+            Mozo: {{pedido.nombreUsuario}}
+          </div>
+          <div class="fecha-info">
+            {{formatearFecha(pedido.fechaHora)}}
+          </div>
+        </div>
+        
+        <div class="estado-container">
+          <span class="estado-badge" 
+                [ngClass]="obtenerClaseBadgeEstado(pedido.estado)">
+            {{pedido.estado}}
+          </span>
+          
+          <!-- Botones para cambiar estado del pedido -->
+          <div class="estado-actions" *ngIf="getPosiblesEstadosString(pedido.estado).length > 0">
+            <button *ngFor="let estado of getPosiblesEstadosString(pedido.estado)"
+                    class="btn-estado"
+                    [ngClass]="obtenerClaseBadgeEstado(estado)"
+                    (click)="cambiarEstadoPedido(pedido, estado)">
+              {{estado}}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Separador -->
+      <div class="pedido-title-divider"></div>
+
+      <!-- Detalles del pedido -->
+      <div class="pedido-detalles">
+        <h4>Items del pedido:</h4>
+        <div class="detalle-item" *ngFor="let detalle of pedido.detalles">
+          <div class="item-info">
+            <div class="item-nombre">
+              <strong>{{detalle.nombreItem}}</strong>
+              <!-- Eliminado el span del tipo de item -->
+            </div>
+            <div class="item-cantidad">
+              Cantidad: <strong>{{detalle.cantidad}}</strong>
+            </div>
+            <!-- Eliminado el precio unitario si no lo necesitas -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mensaje si no hay pedidos -->
+  <div class="no-pedidos" *ngIf="!isLoading && pedidosFiltrados.length === 0">
+    <div class="no-pedidos-icon">🍽️</div>
+    <h3>No hay pedidos activos</h3>
+    <p>Los nuevos pedidos aparecerán aquí automáticamente</p>
+  </div>
+</div>

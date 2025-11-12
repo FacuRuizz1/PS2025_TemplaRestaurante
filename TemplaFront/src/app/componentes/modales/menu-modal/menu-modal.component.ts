@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { GetMenuDTO, PostMenuDTO, PostProductosMenuDto } from '../../models/MenuModel';
+import { GetMenuDTO, GetProductosMenuDto, PostMenuDTO, PostProductosMenuDto } from '../../models/MenuModel';
 import { GetPlatoDto } from '../../models/PlatoModel';
 import { ProductoDTO } from '../../models/ProductoModel';
 import { MenuService } from '../../../services/menu.service';
@@ -192,43 +192,19 @@ private buscarDummysFijos(): void {
   if (!this.menu?.productos) return;
 
   console.log('🔄 Cargando items existentes del menú:', this.menu.nombre);
-  console.log('Productos del menú:', this.menu.productos);
+  console.log('Productos del menú original:', this.menu.productos);
   
   this.itemsAgregados = [];
 
-  // ✅ IDENTIFICAR ELEMENTOS DUMMY (corregido)
-  const productoDummy = this.productos.find(p => p.tipo === 'ACOMPAÑANTE'); // Papas Fritas
-  const platoDummy = this.platos.find(p => p.tipoPlato === 'PRINCIPAL'); // Milanesa
-
-  console.log('Elementos dummy identificados:');
-  console.log('- Producto dummy:', productoDummy?.nombre, `(ID: ${productoDummy?.id})`);
-  console.log('- Plato dummy:', platoDummy?.nombre, `(ID: ${platoDummy?.idPlato})`);
-
-  if (!productoDummy || !platoDummy) {
-    console.error('❌ No se pudieron identificar los elementos dummy necesarios');
-    return;
-  }
-
-  this.menu.productos.forEach((item: any, index: number) => {
+  this.menu.productos.forEach((item: GetProductosMenuDto, index: number) => {
     console.log(`\n--- Procesando item existente ${index + 1} ---`);
     console.log('Item data:', item);
     
-    if (item.idPlato && item.idProducto) {
+    // ✅ CORRECCIÓN SIMPLE: Cargar según lo que tenga el item
+    if (item.idPlato) {
+      // ✅ TIENE PLATO - buscar y cargar
       const plato = this.platos.find(p => p.idPlato === item.idPlato);
-      const producto = this.productos.find(p => p.id === item.idProducto);
-      
-      if (!plato || !producto) {
-        console.log(`❌ Elementos no encontrados: plato=${plato?.nombre}, producto=${producto?.nombre}`);
-        return;
-      }
-      
-      console.log(`Plato encontrado: ${plato.nombre} (ID: ${plato.idPlato}, Tipo: ${plato.tipoPlato})`);
-      console.log(`Producto encontrado: ${producto.nombre} (ID: ${producto.id}, Tipo: ${producto.tipo})`);
-      
-      // ✅ LÓGICA SÚPER SIMPLE: Cargar según el tipo
-      
-      // Si el plato es PRINCIPAL → cargarlo (es Milanesa real)
-      if (plato.tipoPlato === 'PRINCIPAL') {
+      if (plato) {
         this.itemsAgregados.push({
           id: plato.idPlato,
           nombre: plato.nombre,
@@ -237,9 +213,12 @@ private buscarDummysFijos(): void {
         });
         console.log(`✅ PLATO cargado: ${plato.nombre}`);
       }
-      
-      // Si el producto es BEBIDA o ACOMPAÑANTE → cargarlo
-      if (producto.tipo === 'BEBIDA' || producto.tipo === 'ACOMPAÑANTE') {
+    }
+    
+    if (item.idProducto) {
+      // ✅ TIENE PRODUCTO - buscar y cargar
+      const producto = this.productos.find(p => p.id === item.idProducto);
+      if (producto) {
         this.itemsAgregados.push({
           id: producto.id!,
           nombre: producto.nombre,
@@ -251,11 +230,7 @@ private buscarDummysFijos(): void {
     }
   });
 
-  // Mantener la estructura original del formulario
-  this.menuForm.productos = [...this.menu.productos];
-  
-  console.log('🎯 Items cargados para mostrar en el modal:', this.itemsAgregados);
-  console.log('📋 Productos del formulario mantenidos:', this.menuForm.productos);
+  console.log('🎯 Items finales cargados para mostrar:', this.itemsAgregados);
 }
 // ✅ Cuando cambia el tipo seleccionado, cargar items correspondientes
 onTipoChange(): void {
@@ -306,12 +281,11 @@ onTipoChange(): void {
 
 
 
-// ✅ Agregar item al menú - VERSIÓN MEJORADA
+// ✅ Agregar item al menú - SIN DUMMIES
 agregarItem(): void {
   console.log('🚀 Iniciando agregarItem...', {
     itemSeleccionado: this.itemSeleccionado,
-    tipoSeleccionado: this.tipoSeleccionado,
-    itemsDisponibles: this.itemsDisponibles.length
+    tipoSeleccionado: this.tipoSeleccionado
   });
   
   // ✅ Validaciones básicas
@@ -322,7 +296,7 @@ agregarItem(): void {
 
   const item = this.itemsDisponibles.find(i => i.id === Number(this.itemSeleccionado));
   if (!item) {
-    console.log('❌ Item no encontrado en la lista disponible');
+    console.log('❌ Item no encontrado');
     return;
   }
 
@@ -343,60 +317,32 @@ agregarItem(): void {
     return;
   }
 
-  // ✅ Verificar que tenemos los dummies necesarios
-  if (!this.productoDummyFijo || !this.platoDummyFijo) {
-    console.error('❌ ERROR: Faltan elementos dummy del sistema');
-    console.error('Producto dummy:', this.productoDummyFijo);
-    console.error('Plato dummy:', this.platoDummyFijo);
-    
-    Swal.fire({
-      title: 'Error del sistema',
-      text: 'No se encontraron los elementos auxiliares necesarios. Contacte al administrador.',
-      icon: 'error',
-      confirmButtonText: 'Aceptar'
-    });
-    return;
-  }
-
   // ✅ Agregar a la lista visual
   this.itemsAgregados.push(item);
   console.log('📝 Item agregado a la lista visual');
 
-  // ✅ Crear el elemento para el backend
+  // ✅ Crear el elemento para el backend - SIN DUMMIES
   const productoMenu: PostProductosMenuDto = {};
 
   if (item.tipo === 'PLATO') {
-    // ✅ PLATO REAL: se guarda como idPlato, se acompaña con producto dummy
+    // ✅ SOLO PLATO: solo idPlato, sin producto dummy
     productoMenu.idPlato = item.id;
-    productoMenu.idProducto = this.productoDummyFijo.id!;
-    console.log(`📋 PLATO agregado: "${item.nombre}" (ID: ${item.id}) + producto dummy: "${this.productoDummyFijo.nombre}" (ID: ${this.productoDummyFijo.id})`);
+    console.log(`📋 PLATO agregado: "${item.nombre}" (ID: ${item.id})`);
     
   } else if (item.tipo === 'PRODUCTO') {
-    // ✅ PRODUCTO REAL: se guarda como idProducto, se acompaña con plato dummy
-    productoMenu.idPlato = this.platoDummyFijo.idPlato;
+    // ✅ SOLO PRODUCTO: solo idProducto, sin plato dummy
     productoMenu.idProducto = item.id;
-    console.log(`🧴 PRODUCTO agregado: "${item.nombre}" (ID: ${item.id}) + plato dummy: "${this.platoDummyFijo.nombre}" (ID: ${this.platoDummyFijo.idPlato})`);
-    
-  } else {
-    console.error('❌ Tipo de item no reconocido:', item.tipo);
-    return;
+    console.log(`🧴 PRODUCTO agregado: "${item.nombre}" (ID: ${item.id})`);
   }
   
   // ✅ Agregar al formulario
   this.menuForm.productos.push(productoMenu);
   console.log('💾 Elemento agregado al formulario:', productoMenu);
-  console.log('📊 Estado actual del formulario:', {
-    nombre: this.menuForm.nombre,
-    productos: this.menuForm.productos.length,
-    itemsVisuales: this.itemsAgregados.length
-  });
 
   // ✅ Resetear selección
   this.tipoSeleccionado = '';
   this.itemSeleccionado = null;
   this.itemsDisponibles = [];
-  
-  console.log('🎯 Item agregado exitosamente');
 }
   // ✅ Quitar item del menú
   quitarItem(index: number): void {

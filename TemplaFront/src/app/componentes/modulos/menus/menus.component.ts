@@ -224,95 +224,32 @@ formatearContenidos(menu: GetMenuDTO): string {
 
   const contenidos: string[] = [];
   
-  console.log('🔍 Iniciando formateo de contenidos para menú:', menu.nombre);
-  console.log('Productos disponibles:', this.productosDisponibles?.length || 0);
-  console.log('Platos disponibles:', this.platosDisponibles?.length || 0);
-  
-  // ✅ IDENTIFICAR DUMMIES DE FORMA MÁS ROBUSTA CON FALLBACKS
-  let productoDummy = null;
-  let platoDummy = null;
-  
-  // Buscar producto dummy (adaptado para evitar conflictos)
-  if (this.productosDisponibles && this.productosDisponibles.length > 0) {
-    // ✅ CORRECCIÓN: usar ACOMPAÑANTE (Papas Fritas) como dummy
-    productoDummy = this.productosDisponibles.find(p => p.tipo === 'ACOMPAÑANTE');
-    
-    // Fallback: primer producto disponible
-    if (!productoDummy) {
-      productoDummy = this.productosDisponibles[0];
-    }
-  }
-  
-  // Buscar plato dummy (adaptado a tu configuración)
-  if (this.platosDisponibles && this.platosDisponibles.length > 0) {
-    // Ya que no tienes platos tipo BEBIDA, usar el plato PRINCIPAL como dummy
-    platoDummy = this.platosDisponibles.find(p => p.tipoPlato === 'PRINCIPAL');
-    
-    // Fallback: primer plato disponible
-    if (!platoDummy) {
-      platoDummy = this.platosDisponibles[0];
-    }
-  }
-  
-  console.log('🎯 Elementos dummy identificados:');
-  console.log('- Producto dummy:', productoDummy?.nombre, `(ID: ${productoDummy?.id})`);
-  console.log('- Plato dummy:', platoDummy?.nombre, `(ID: ${platoDummy?.idPlato})`);
-  
-  // Si aún no tenemos dummies, intentar mostrar elementos de forma alternativa
-  if (!productoDummy || !platoDummy) {
-    console.warn('⚠️ No se pudieron identificar elementos dummy, usando lógica alternativa');
-    
-    // Lógica alternativa: mostrar todos los elementos encontrados
-    menu.productos.forEach((item, index) => {
-      const plato = this.platosDisponibles?.find(p => p.idPlato === item.idPlato);
-      const producto = this.productosDisponibles?.find(p => p.id === item.idProducto);
-      
-      if (plato) contenidos.push(plato.nombre);
-      if (producto && producto.nombre !== plato?.nombre) {
-        contenidos.push(producto.nombre);
-      }
-    });
-    
-    const contenidosUnicos = [...new Set(contenidos)];
-    return contenidosUnicos.length > 0 ? contenidosUnicos.join(', ') : 'Contenidos no identificados';
-  }
+  console.log('🔍 Formateando menú:', menu.nombre);
   
   menu.productos.forEach((item, index) => {
-    console.log(`\n--- Procesando item ${index + 1} del menú "${menu.nombre}" ---`);
-    console.log('Item data:', item);
+    console.log(`Procesando item ${index}:`, item);
     
-    if (item.idPlato && item.idProducto) {
+    // ✅ BUSCAR PLATO (si existe)
+    if (item.idPlato) {
       const plato = this.platosDisponibles.find(p => p.idPlato === item.idPlato);
-      const producto = this.productosDisponibles.find(p => p.id === item.idProducto);
-      
-      if (!plato || !producto) {
-        console.log(`❌ No se encontraron los elementos: plato=${plato?.nombre}, producto=${producto?.nombre}`);
-        return;
-      }
-      
-      console.log(`Plato: ${plato.nombre} (Tipo: ${plato.tipoPlato})`);
-      console.log(`Producto: ${producto.nombre} (Tipo: ${producto.tipo})`);
-      
-      // ✅ LÓGICA SÚPER SIMPLE: 
-      // Si el plato es PRINCIPAL → mostrar el plato (es Milanesa real)
-      // Si el producto es BEBIDA → mostrar el producto (es Coca Cola real)  
-      // Si el producto es ACOMPAÑANTE → mostrar el producto (es Papas Fritas real)
-      
-      if (plato.tipoPlato === 'PRINCIPAL') {
+      if (plato) {
         contenidos.push(plato.nombre);
-        console.log(`✅ PLATO agregado: ${plato.nombre}`);
+        console.log(`✅ Plato agregado: ${plato.nombre}`);
       }
-      
-      if (producto.tipo === 'BEBIDA' || producto.tipo === 'ACOMPAÑANTE') {
+    }
+    
+    // ✅ BUSCAR PRODUCTO (si existe)  
+    if (item.idProducto) {
+      const producto = this.productosDisponibles.find(p => p.id === item.idProducto);
+      if (producto) {
         contenidos.push(producto.nombre);
-        console.log(`✅ PRODUCTO agregado: ${producto.nombre}`);
+        console.log(`✅ Producto agregado: ${producto.nombre}`);
       }
     }
   });
-  
-  // Eliminar duplicados y retornar resultado
+
   const contenidosUnicos = [...new Set(contenidos)];
-  console.log('\n🎯 RESULTADO FINAL para el menú:', contenidosUnicos);
+  console.log('🎯 Resultado final:', contenidosUnicos);
   
   return contenidosUnicos.length > 0 ? contenidosUnicos.join(', ') : 'Sin contenidos válidos';
 }

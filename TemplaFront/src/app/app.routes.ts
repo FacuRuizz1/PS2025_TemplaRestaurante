@@ -9,6 +9,7 @@ import { MenusComponent } from './componentes/modulos/menus/menus.component';
 import { MesasComponent } from './componentes/modulos/mesas/mesas.component';
 import { ReservasComponent } from './componentes/modulos/reservas/reservas.component';
 import { PedidosComponent } from './componentes/modulos/pedidos/pedidos.component';
+import { CocinaComponent } from './componentes/modulos/cocina/cocina.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -117,7 +118,30 @@ export const routes: Routes = [
       menuLabel: 'Pedidos',
       icon: '🧾',
       order: 6,
-      isPrincipal: true
+      isPrincipal: true,
+      hasSubmenu: true
+    }
+  },
+
+  // Subrutas de pedidos (PROTEGIDAS)
+  {
+    path: 'pedidos/listado',
+    component: PedidosComponent,
+    canActivate: [authGuard],
+    data: {
+      showInMenu: true,
+      parentMenu: 'pedidos',
+      menuLabel: 'Gestión de Pedidos'
+    }
+  },
+  {
+    path: 'pedidos/cocina',
+    component: CocinaComponent,
+    canActivate: [authGuard],
+    data: {
+      showInMenu: true,
+      parentMenu: 'pedidos',
+      menuLabel: 'Cocina'
     }
   },
 

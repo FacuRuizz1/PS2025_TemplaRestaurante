@@ -56,13 +56,22 @@ public class MenuServiceImpl implements IMenuService {
         GetMenuDTO dto = modelMapper.map(menu, GetMenuDTO.class);
 
         // Obtener los productos del menú
-        List<MenuDetalleEntity> productos = menuDetalleRepository.findByMenuId(menu.getId());
+        List<MenuDetalleEntity> detalles = menuDetalleRepository.findByMenuId(menu.getId());
 
-        List<GetProductosMenuDto> productosDtos = productos.stream()
-                .map(detalle -> new GetProductosMenuDto(
-                        detalle.getPlato() != null ? detalle.getPlato().getIdPlato() : null,
-                        detalle.getProducto().getId()
-                ))
+        List<GetProductosMenuDto> productosDtos = detalles.stream()
+                .map(detalle -> {
+                    GetProductosMenuDto productoDto = new GetProductosMenuDto();
+
+                    // ✅ CORRECCIÓN: Solo asignar IDs si no son null
+                    if (detalle.getPlato() != null) {
+                        productoDto.setIdPlato(detalle.getPlato().getIdPlato());
+                    }
+                    if (detalle.getProducto() != null) {
+                        productoDto.setIdProducto(detalle.getProducto().getId());
+                    }
+
+                    return productoDto;
+                })
                 .collect(Collectors.toList());
 
         dto.setProductos(productosDtos);
@@ -90,13 +99,19 @@ public class MenuServiceImpl implements IMenuService {
             menuEntity.setActivo(true);
             MenuEntity savedMenu = menuRepository.save(menuEntity);
 
-            // Crear los detalles del menú
+            // Crear los detalles del menú - VERSIÓN CORREGIDA
             List<MenuDetalleEntity> detalles = new ArrayList<>();
             for (PostProductosMenuDto producto : postMenuDTO.getProductos()) {
                 MenuDetalleEntity detalle = new MenuDetalleEntity();
                 detalle.setMenu(savedMenu);
 
-                // Si tiene plato, lo agregamos
+                // ✅ CORRECCIÓN: Validar que al menos uno de los dos IDs esté presente
+                if (producto.getIdPlato() == null && producto.getIdProducto() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Cada item del menú debe tener al menos un plato o un producto");
+                }
+
+                // ✅ CORRECCIÓN: Agregar plato solo si viene el ID
                 if (producto.getIdPlato() != null) {
                     PlatoEntity plato = platoRepository.findById(producto.getIdPlato())
                             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -104,11 +119,13 @@ public class MenuServiceImpl implements IMenuService {
                     detalle.setPlato(plato);
                 }
 
-                // Agregar producto
-                ProductoEntity productoEntity = productoRepository.findById(producto.getIdProducto())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                "El producto con ID " + producto.getIdProducto() + " no existe"));
-                detalle.setProducto(productoEntity);
+                // ✅ CORRECCIÓN: Agregar producto solo si viene el ID
+                if (producto.getIdProducto() != null) {
+                    ProductoEntity productoEntity = productoRepository.findById(producto.getIdProducto())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                    "El producto con ID " + producto.getIdProducto() + " no existe"));
+                    detalle.setProducto(productoEntity);
+                }
 
                 detalles.add(detalle);
             }
@@ -171,7 +188,7 @@ public class MenuServiceImpl implements IMenuService {
             menuDetalleRepository.deleteAll(detallesActuales);
         }
 
-        // Crear nuevos detalles
+        // Crear nuevos detalles - VERSIÓN CORREGIDA
         if (nuevosProductos != null && !nuevosProductos.isEmpty()) {
             List<MenuDetalleEntity> nuevosDetalles = new ArrayList<>();
 
@@ -179,7 +196,13 @@ public class MenuServiceImpl implements IMenuService {
                 MenuDetalleEntity detalle = new MenuDetalleEntity();
                 detalle.setMenu(menu);
 
-                // Si tiene plato, lo agregamos
+                // ✅ CORRECCIÓN: Validar que al menos uno de los dos IDs esté presente
+                if (producto.getIdPlato() == null && producto.getIdProducto() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Cada item del menú debe tener al menos un plato o un producto");
+                }
+
+                // ✅ CORRECCIÓN: Agregar plato solo si viene el ID
                 if (producto.getIdPlato() != null) {
                     PlatoEntity plato = platoRepository.findById(producto.getIdPlato())
                             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -187,11 +210,13 @@ public class MenuServiceImpl implements IMenuService {
                     detalle.setPlato(plato);
                 }
 
-                // Agregar producto
-                ProductoEntity productoEntity = productoRepository.findById(producto.getIdProducto())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                "Producto con ID " + producto.getIdProducto() + " no existe"));
-                detalle.setProducto(productoEntity);
+                // ✅ CORRECCIÓN: Agregar producto solo si viene el ID
+                if (producto.getIdProducto() != null) {
+                    ProductoEntity productoEntity = productoRepository.findById(producto.getIdProducto())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                    "Producto con ID " + producto.getIdProducto() + " no existe"));
+                    detalle.setProducto(productoEntity);
+                }
 
                 nuevosDetalles.add(detalle);
             }

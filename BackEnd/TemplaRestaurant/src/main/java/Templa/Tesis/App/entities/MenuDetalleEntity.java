@@ -19,10 +19,10 @@ public class MenuDetalleEntity {
     private MenuEntity menu;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_plato",nullable = false)
+    @JoinColumn(name = "id_plato",nullable = true)
     private PlatoEntity plato;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_producto",nullable = false)
+    @JoinColumn(name = "id_producto",nullable = true)
     private ProductoEntity producto;
 }
