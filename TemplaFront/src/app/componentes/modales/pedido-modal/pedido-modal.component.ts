@@ -23,6 +23,7 @@ export interface ItemDetalle {
   precio: number;
   cantidad: number;
   estado?: string;
+  esNuevo?: boolean; // ✅ Marcar si es un item nuevo agregado en esta sesión
 }
 
 @Component({
@@ -295,7 +296,8 @@ export class PedidoModalComponent implements OnInit {
       nombre: item.nombre,
       tipo: this.tipoItemSeleccionado as 'PLATO' | 'MENU' | 'PRODUCTO',
       precio: item.precio,
-      cantidad: this.cantidadSeleccionada
+      cantidad: this.cantidadSeleccionada,
+      esNuevo: true // ✅ Marcar como nuevo item agregado en esta sesión
     });
 
     console.log('✅ Detalle agregado. Total detalles:', this.detallesAgregados);
@@ -381,7 +383,8 @@ export class PedidoModalComponent implements OnInit {
         tipo: detalle.tipo,
         precio: detalle.precioUnitario,
         cantidad: detalle.cantidad,
-        estado: detalle.estado
+        estado: detalle.estado,
+        esNuevo: false // ✅ Items existentes NO son nuevos
       }));
     }
 
@@ -428,7 +431,16 @@ export class PedidoModalComponent implements OnInit {
       : parseInt(formValue.idMesa);
 
     // ✅ Transformar detalles de ItemDetalle a PostPedidoDetalleDto
-    const detallesDTO: PostPedidoDetalleDto[] = this.detallesAgregados.map(detalle => ({
+    // En modo edición: Solo enviar items NUEVOS (esNuevo === true)
+    // En modo crear: Enviar TODOS los items
+    const itemsAEnviar = this.isEditMode 
+      ? this.detallesAgregados.filter(d => d.esNuevo === true)
+      : this.detallesAgregados;
+
+    console.log('📋 Items a enviar al backend:', itemsAEnviar.length);
+    console.log('📋 Items nuevos:', itemsAEnviar);
+
+    const detallesDTO: PostPedidoDetalleDto[] = itemsAEnviar.map(detalle => ({
       idPlato: detalle.tipo === 'PLATO' ? detalle.id : 0,
       idMenu: detalle.tipo === 'MENU' ? detalle.id : 0,
       idProducto: detalle.tipo === 'PRODUCTO' ? detalle.id : 0,

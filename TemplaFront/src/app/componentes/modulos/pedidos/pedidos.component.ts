@@ -148,11 +148,17 @@ export class PedidosComponent implements OnInit {
     modalRef.result.then(
       (result) => {
         if (result && result.accion === 'crear') {
-          // Crear nuevo pedido
-          console.log('Crear pedido:', result.pedido);
-          this.crearPedido(result.pedido);
+          // El modal YA creó el pedido, solo actualizar la lista
+          console.log('✅ Pedido creado en el modal:', result.pedido);
+          this.alertService.showSuccess('Éxito', 'Pedido creado correctamente');
+          this.cargarPedidos(); // Recargar la lista
+        } else if (result && result.accion === 'actualizado') {
+          // El modal YA actualizó el pedido
+          console.log('✅ Pedido actualizado en el modal:', result.pedido);
+          this.alertService.showSuccess('Éxito', 'Pedido actualizado correctamente');
+          this.cargarPedidos(); // Recargar la lista
         } else if (result && result.accion === 'agregar') {
-          // Agregar items a pedido existente
+          // Agregar items a pedido existente (legacy - ya no se usa)
           console.log('Agregar items:', result.pedido);
           this.agregarItemsAPedido(pedido!.idPedido, result.pedido);
         }
