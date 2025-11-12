@@ -15,7 +15,6 @@ export class MesaService {
   private readonly apiUrl = `${environment.apiUrl}/mesas`;
 
 
-  // ✅ Método helper para crear headers con token
   private getHttpOptions(params?: HttpParams): { headers: HttpHeaders; params?: HttpParams } {
     const token = this.authService.getToken();
     const options: any = {
@@ -75,6 +74,19 @@ export class MesaService {
 
   cambiarEstadoMesa(mesa: GetMesaDto): Observable<GetMesaDto> {
     return this.http.put<GetMesaDto>(`${this.apiUrl}/cambiarEstado`, {id: mesa.idMesa, nuevoEstado: mesa.estadoMesa}, this.getHttpOptions());
+  }
+
+  actualizarPosicionMesa(idMesa: number, posX: number, posY: number, piso: number): Observable<GetMesaDto> {
+    const body = { idMesa, posX, posY, piso };
+    return this.http.put<GetMesaDto>(`${this.apiUrl}/actualizarPosicion`, body, this.getHttpOptions());
+  }
+
+  getMesasConPosiciones(): Observable<GetMesaDto[]> {
+    return this.http.get<GetMesaDto[]>(`${this.apiUrl}/posiciones`, this.getHttpOptions());
+  }
+
+  desvincularMesaDelPlano(idMesa: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/desvincular/${idMesa}`, this.getHttpOptions());
   }
 
 }

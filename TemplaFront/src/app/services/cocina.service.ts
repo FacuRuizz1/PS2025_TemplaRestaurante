@@ -1,33 +1,71 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { GetPedidoDto, EstadoPedido, EstadoPedidoDetalle, FiltrosPedido } from '../componentes/models/PedidoModel';
 import { AuthService } from './auth.service';
 import { PedidoService } from './pedido.service';
+import { SseService } from './sse.service';
 import { map } from 'rxjs/operators';
 
+/**
+ * Servicio para gestionar la pantalla de cocina
+ * Ahora usa SseService para comunicación en tiempo real
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class CocinaService {
   private apiUrl = 'http://localhost:8081/api';
-  private sseUrl = 'http://localhost:8081/api/sse';
   
-  // Subjects para comunicación en tiempo real
-  private nuevoPedidoSubject = new Subject<GetPedidoDto>();
-  private actualizacionPedidoSubject = new Subject<GetPedidoDto>();
-  private conectadoSubject = new BehaviorSubject<boolean>(false);
-
-  // EventSource para recibir eventos del servidor
-  private eventSource: EventSource | null = null;
-  private reconectarIntervalo: any = null;
-
   constructor(
     private http: HttpClient,
     private authService: AuthService,
-    private pedidoService: PedidoService
+    private pedidoService: PedidoService,
+    private sseService: SseService
   ) {
+    // Iniciar conexión SSE para cocina
     this.iniciarConexionTiempoReal();
+  }
+
+  // ============= TIEMPO REAL (SSE) =============
+
+  /**
+   * Iniciar conexión SSE para recibir notificaciones de cocina
+   */
+  private iniciarConexionTiempoReal(): void {
+    this.sseService.iniciarConexion('cocina', [
+      'nuevo-pedido',
+      'pedido-actualizado',
+      'estado-cocina'
+    ]);
+  }
+
+  /**
+   * Observable para escuchar nuevos pedidos
+   */
+  onNuevoPedido(): Observable<GetPedidoDto> {
+    return this.sseService.onEvento<GetPedidoDto>('nuevo-pedido');
+  }
+
+  /**
+   * Observable para escuchar actualizaciones de pedidos
+   */
+  onActualizacionPedido(): Observable<GetPedidoDto> {
+    return this.sseService.onEvento<GetPedidoDto>('pedido-actualizado');
+  }
+
+  /**
+   * Observable para saber si está conectado al SSE
+   */
+  onConexionEstado(): Observable<boolean> {
+    return this.sseService.onConexionEstado();
+  }
+
+  /**
+   * Desconectar SSE
+   */
+  desconectar(): void {
+    this.sseService.desconectar();
   }
 
   // ============= MÉTODOS PRINCIPALES =============
@@ -96,149 +134,6 @@ export class CocinaService {
         observer.complete();
       }, 500);
     });
-  }
-
-  // ============= COMUNICACIÓN TIEMPO REAL =============
-
-  /**
-   * Observable para escuchar nuevos pedidos
-   */
-  onNuevoPedido(): Observable<GetPedidoDto> {
-    return this.nuevoPedidoSubject.asObservable();
-  }
-
-  /**
-   * Observable para escuchar actualizaciones de pedidos
-   */
-  onActualizacionPedido(): Observable<GetPedidoDto> {
-    return this.actualizacionPedidoSubject.asObservable();
-  }
-
-  /**
-   * Observable para saber si está conectado al SSE
-   */
-  onConexionEstado(): Observable<boolean> {
-    return this.conectadoSubject.asObservable();
-  }
-
-  /**
-   * Iniciar conexión Server-Sent Events
-   */
-  private iniciarConexionTiempoReal(): void {
-    if (this.eventSource) {
-      this.eventSource.close();
-    }
-
-    try {
-      const token = this.authService.getToken();
-      if (!token) {
-        console.log('No hay token, no se puede conectar al SSE');
-        return;
-      }
-
-      // Construir URL con token para autenticación
-      const sseUrlConToken = `${this.sseUrl}/cocina?token=${encodeURIComponent(token)}`;
-      
-      this.eventSource = new EventSource(sseUrlConToken);
-
-      this.eventSource.onopen = () => {
-        console.log('✅ Conexión SSE establecida para cocina');
-        this.conectadoSubject.next(true);
-        this.limpiarReconexion();
-      };
-
-      // Escuchar evento de nuevo pedido
-      this.eventSource.addEventListener('nuevo-pedido', (event: MessageEvent) => {
-        try {
-          const pedido: GetPedidoDto = JSON.parse(event.data);
-          console.log('🆕 Nuevo pedido recibido via SSE:', pedido);
-          this.nuevoPedidoSubject.next(pedido);
-        } catch (error) {
-          console.error('Error parsing nuevo pedido:', error);
-        }
-      });
-
-      // Escuchar evento de actualización de pedido
-      this.eventSource.addEventListener('pedido-actualizado', (event: MessageEvent) => {
-        try {
-          const pedido: GetPedidoDto = JSON.parse(event.data);
-          console.log('🔄 Pedido actualizado via SSE:', pedido);
-          this.actualizacionPedidoSubject.next(pedido);
-        } catch (error) {
-          console.error('Error parsing pedido actualizado:', error);
-        }
-      });
-
-      // Escuchar evento de estado de cocina
-      this.eventSource.addEventListener('estado-cocina', (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log('📊 Estado cocina actualizado:', data);
-          // Aquí puedes manejar estadísticas generales de cocina
-        } catch (error) {
-          console.error('Error parsing estado cocina:', error);
-        }
-      });
-
-      this.eventSource.onerror = (error) => {
-        console.error('❌ Error en conexión SSE:', error);
-        this.conectadoSubject.next(false);
-        this.programarReconexion();
-      };
-
-    } catch (error) {
-      console.error('Error iniciando conexión SSE:', error);
-      this.programarReconexion();
-    }
-  }
-
-  /**
-   * Programar reconexión automática
-   */
-  private programarReconexion(): void {
-    this.limpiarReconexion();
-    
-    this.reconectarIntervalo = setTimeout(() => {
-      console.log('🔄 Intentando reconectar SSE...');
-      this.iniciarConexionTiempoReal();
-    }, 5000); // Reintentar cada 5 segundos
-  }
-
-  /**
-   * Limpiar interval de reconexión
-   */
-  private limpiarReconexion(): void {
-    if (this.reconectarIntervalo) {
-      clearTimeout(this.reconectarIntervalo);
-      this.reconectarIntervalo = null;
-    }
-  }
-
-  /**
-   * Desconectar SSE
-   */
-  desconectar(): void {
-    console.log('🔌 Cerrando conexión SSE de cocina');
-    
-    this.limpiarReconexion();
-    
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-    
-    this.conectadoSubject.next(false);
-  }
-
-  /**
-   * Reconectar manualmente
-   */
-  reconectar(): void {
-    console.log('🔄 Reconectando SSE manualmente...');
-    this.desconectar();
-    setTimeout(() => {
-      this.iniciarConexionTiempoReal();
-    }, 1000);
   }
 
   // ============= MÉTODOS ADICIONALES =============

@@ -2,10 +2,12 @@ package Templa.Tesis.App.servicies;
 
 import Templa.Tesis.App.dtos.PedidoDTO;
 import Templa.Tesis.App.dtos.PostPedidoDTO;
+import Templa.Tesis.App.entities.PedidoEntity;
 import Templa.Tesis.App.repositories.PedidoRepository;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface IPedidoService {
     PedidoDTO crearPedido(PostPedidoDTO dto);
@@ -19,5 +21,6 @@ public interface IPedidoService {
     PedidoDTO marcarDetalleParaEntregar(Integer idPedido);
     PedidoDTO finalizarPedido(Integer idPedido);
     PedidoDTO insertarDetalles(Integer idPedido, PostPedidoDTO dto);
+    PedidoDTO getPedidoByMesa(Integer idMesa);
 
 }

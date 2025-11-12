@@ -338,6 +338,70 @@ textarea.custom-input {
   font-style: italic;
 }
 
+/* ===== BANNER MESA PRESELECCIONADA ===== */
+.mesa-preseleccionada-banner {
+  margin-bottom: 20px;
+  padding: 0;
+}
+
+.mesa-info-banner {
+  background: linear-gradient(135deg, #8B654C 0%, #A67C52 100%);
+  border-radius: 12px;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 12px rgba(139, 101, 76, 0.2);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mesa-info-banner i {
+  color: white;
+  font-size: 24px;
+}
+
+.mesa-info-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.mesa-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.mesa-numero {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--templa-font-title);
+}
+
+.badge-estado {
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
 /* ===== FOOTER ===== */
 .custom-footer {
   background-color: var(--templa-beige);

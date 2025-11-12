@@ -23,4 +23,13 @@ public class MesaEntity {
     @Enumerated(EnumType.STRING)
     private EstadoMesa estadoMesa;
 
+    @Column(name = "pos_x")
+    private Double posX;
+
+    @Column(name = "pos_y")
+    private Double posY;
+
+    @Column(name = "piso")
+    private Integer piso;
+
 }

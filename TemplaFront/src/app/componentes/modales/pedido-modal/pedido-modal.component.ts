@@ -8,7 +8,9 @@ import { GetMesaDto } from '../../models/MesasModel';
 import { GetPlatoDto } from '../../models/PlatoModel';
 import { MesaService } from '../../../services/mesa.service';
 import { PlatoService } from '../../../services/plato.service';
+import { PedidoService } from '../../../services/pedido.service';
 import { AuthService } from '../../../services/auth.service';
+import { AlertService } from '../../../services/alert.service';
 import { MenuService } from '../../../services/menu.service';
 import { ProductoService } from '../../../services/producto.service';
 import { GetMenuDTO } from '../../models/MenuModel';
@@ -33,7 +35,9 @@ export interface ItemDetalle {
 export class PedidoModalComponent implements OnInit {
   @Input() isEditMode: boolean = false;
   @Input() pedidoData: GetPedidoDto | null = null;
-  @Input() soloLectura: boolean = false; // ✅ AGREGAR ESTA LÍNEA
+  @Input() soloLectura: boolean = false;
+  @Input() mesaSeleccionada: GetMesaDto | null = null; // ✅ Mesa preseleccionada desde mapa
+  @Input() idMozoLogueado: number = 1; // ✅ ID del mozo desde mapa
 
   pedidoForm!: FormGroup;
 
@@ -42,9 +46,6 @@ export class PedidoModalComponent implements OnInit {
   platos: GetPlatoDto[] = [];
   menus: GetMenuDTO[] = [];
   productos: ProductoDTO[] = [];
-
-  // ID del usuario logueado (mozo)
-  idMozoLogueado: number = 1;
 
   // Tipos de item
   tiposItem = [
@@ -75,16 +76,38 @@ export class PedidoModalComponent implements OnInit {
     private platoService: PlatoService,
     private menuService: MenuService,
     private productoService: ProductoService,
-    private authService: AuthService
+    private pedidoService: PedidoService,
+    private authService: AuthService,
+    private alertService: AlertService
   ) { }
 
   ngOnInit() {
-    // Obtener ID del usuario logueado
-    //this.idMozoLogueado = this.authService.getIdUsuario();
+    console.log('🔍 Iniciando modal de pedido...');
+    
+    // ✅ Obtener ID del mozo logueado usando el nuevo método
+    const userId = this.authService.getUserId();
+    if (userId !== null && typeof userId === 'number') {
+      this.idMozoLogueado = userId;
+    } else {
+      console.warn('⚠️ No se pudo obtener ID del usuario desde el token JWT');
+      console.warn('⚠️ El backend debe incluir "userId" o "id" numérico en el JWT');
+    }
+    
     console.log('👤 ID Mozo logueado:', this.idMozoLogueado);
+    console.log('👤 Tipo:', typeof this.idMozoLogueado);
+    console.log('🍽️ Mesa preseleccionada:', this.mesaSeleccionada);
 
     this.inicializarFormulario();
     this.cargarDatosIniciales();
+
+    // ✅ Si hay mesa preseleccionada, setearla en el formulario
+    if (this.mesaSeleccionada) {
+      this.pedidoForm.patchValue({
+        idMesa: this.mesaSeleccionada.idMesa
+      });
+      // Deshabilitar el campo para que no se pueda cambiar
+      this.pedidoForm.get('idMesa')?.disable();
+    }
 
     if (this.soloLectura) {
       this.pedidoForm.disable();
@@ -284,9 +307,48 @@ export class PedidoModalComponent implements OnInit {
     this.itemsDisponibles = [];
   }
 
-  // ✅ Quitar detalle del pedido
+  // ✅ Quitar detalle del pedido (solo para items nuevos sin estado)
   quitarDetalle(index: number): void {
     this.detallesAgregados.splice(index, 1);
+  }
+
+  // ✅ Cancelar detalle del pedido (para items con estado PENDIENTE)
+  cancelarDetalle(idDetalle: number): void {
+    if (!this.pedidoData) {
+      console.error('No hay pedido cargado');
+      return;
+    }
+
+    if (!confirm('¿Está seguro que desea cancelar este item?')) {
+      return;
+    }
+
+    // ✅ Llamar al servicio para cancelar todos los detalles pendientes del pedido
+    // Nota: El backend cancela todos los detalles PENDIENTES, no uno específico
+    this.guardando = true;
+    this.pedidoService.cancelarDetalles(this.pedidoData.idPedido).subscribe({
+      next: (response) => {
+        console.log('✅ Detalles cancelados:', response);
+        this.guardando = false;
+        
+        // Actualizar los detalles con la respuesta del backend
+        this.detallesAgregados = response.detalles.map(detalle => ({
+          id: detalle.idPedidoDetalle,
+          nombre: detalle.nombreItem,
+          tipo: detalle.tipo,
+          precio: detalle.precioUnitario,
+          cantidad: detalle.cantidad,
+          estado: detalle.estado
+        }));
+        
+        this.alertService.showSuccess('Item Cancelado', 'El item ha sido cancelado exitosamente');
+      },
+      error: (error: any) => {
+        console.error('❌ Error al cancelar detalle:', error);
+        this.guardando = false;
+        alert('Error al cancelar el item: ' + (error.error?.message || 'Error desconocido'));
+      }
+    });
   }
 
   // ✅ Calcular total del pedido
@@ -311,10 +373,10 @@ export class PedidoModalComponent implements OnInit {
       }
     }
 
-    // Si es solo lectura, cargar los detalles existentes
-    if (this.soloLectura && this.pedidoData.detalles) {
+    // ✅ Cargar los detalles existentes (tanto en modo edición como solo lectura)
+    if ((this.isEditMode || this.soloLectura) && this.pedidoData.detalles) {
       this.detallesAgregados = this.pedidoData.detalles.map(detalle => ({
-        id: detalle.idItem,
+        id: detalle.idPedidoDetalle,  // ✅ Usar el ID del detalle para poder identificarlo
         nombre: detalle.nombreItem,
         tipo: detalle.tipo,
         precio: detalle.precioUnitario,
@@ -338,7 +400,8 @@ export class PedidoModalComponent implements OnInit {
     }
 
     // ✅ Si es modo crear, validar mesa Y detalles
-    const mesaValida = this.pedidoForm.valid;
+    // Si la mesa viene preseleccionada, considerar válida
+    const mesaValida = this.mesaSeleccionada ? true : this.pedidoForm.valid;
     return mesaValida && tieneDetalles;
   }
 
@@ -359,6 +422,11 @@ export class PedidoModalComponent implements OnInit {
 
     const formValue = this.pedidoForm.value;
 
+    // ✅ Usar mesaSeleccionada si existe, sino usar el valor del formulario
+    const idMesa = this.mesaSeleccionada 
+      ? this.mesaSeleccionada.idMesa 
+      : parseInt(formValue.idMesa);
+
     // ✅ Transformar detalles de ItemDetalle a PostPedidoDetalleDto
     const detallesDTO: PostPedidoDetalleDto[] = this.detallesAgregados.map(detalle => ({
       idPlato: detalle.tipo === 'PLATO' ? detalle.id : 0,
@@ -368,22 +436,105 @@ export class PedidoModalComponent implements OnInit {
     }));
 
     const pedidoDTO: PostPedidoDto = {
-      idMesa: parseInt(formValue.idMesa),
-      idMozo: this.idMozoLogueado,
+      idMesa: idMesa,
+      idMozo: 1,
       detalles: detallesDTO
     };
 
     console.log('✅ Pedido a guardar:', pedidoDTO);
+    console.log('🔍 Debug - idMesa:', idMesa);
+    console.log('🔍 Debug - idMozo:', 1);
+    console.log('🔍 Debug - detalles count:', detallesDTO.length);
 
-    this.activeModal.close({
-      accion: this.isEditMode ? 'agregar' : 'crear',
-      pedido: pedidoDTO
-    });
+    /* ✅ Validar que el mozo esté asignado
+    if (!this.idMozoLogueado || this.idMozoLogueado === 0) {
+      this.guardando = false;
+      alert('Error: No se pudo obtener el ID del mozo logueado');
+      return;
+    }*/
+
+    // ✅ Llamar al backend para crear o actualizar el pedido
+    if (this.isEditMode && this.pedidoData) {
+      // Modo edición: actualizar pedido existente
+      this.pedidoService.actualizarPedido(this.pedidoData.idPedido, pedidoDTO).subscribe({
+        next: (response: GetPedidoDto) => {
+          console.log('✅ Pedido actualizado exitosamente:', response);
+          this.guardando = false;
+          this.activeModal.close({
+            accion: 'actualizado',
+            pedido: response
+          });
+        },
+        error: (error: any) => {
+          console.error('❌ Error al actualizar pedido:', error);
+          this.guardando = false;
+          alert('Error al actualizar el pedido: ' + (error.error?.message || error.message || 'Error desconocido'));
+        }
+      });
+    } else {
+      // Modo crear: crear nuevo pedido
+      this.pedidoService.crearPedido(pedidoDTO).subscribe({
+        next: (response: GetPedidoDto) => {
+          console.log('✅ Pedido creado exitosamente:', response);
+          this.guardando = false;
+          this.activeModal.close({
+            accion: 'crear',
+            pedido: response
+          });
+        },
+        error: (error: any) => {
+          console.error('❌ Error al crear pedido:', error);
+          this.guardando = false;
+          alert('Error al crear el pedido: ' + (error.error?.message || error.message || 'Error desconocido'));
+        }
+      });
+    }
   }
 
   // ✅ Cancelar
   onCancelar(): void {
     this.activeModal.dismiss('cancel');
+  }
+
+  /**
+   * ✅ Verificar si todos los detalles están entregados
+   */
+  todosPedidosEntregados(): boolean {
+    if (this.detallesAgregados.length === 0) return false;
+    return this.detallesAgregados.every(d => d.estado === 'ENTREGADO');
+  }
+
+  /**
+   * ✅ Finalizar pedido completo
+   */
+  finalizarPedido(): void {
+    if (!this.pedidoData) return;
+
+    if (!this.todosPedidosEntregados()) {
+      alert('No se puede finalizar el pedido. Aún hay items sin entregar.');
+      return;
+    }
+
+    if (!confirm('¿Está seguro que desea finalizar este pedido?')) {
+      return;
+    }
+
+    this.guardando = true;
+    this.pedidoService.finalizarPedido(this.pedidoData.idPedido).subscribe({
+      next: (response) => {
+        console.log('✅ Pedido finalizado:', response);
+        this.guardando = false;
+        this.activeModal.close({
+          accion: 'finalizado',
+          pedido: response
+        });
+      },
+      error: (error: any) => {
+        console.error('❌ Error al finalizar pedido:', error);
+        this.guardando = false;
+        alert('Error al finalizar el pedido: ' + (error.error?.message || 'Error desconocido'));
+      }
+    });
   }
 
   formatearFecha(fechaHora: number[] | string): string {
@@ -451,11 +602,24 @@ export class PedidoModalComponent implements OnInit {
   getEstadoDetalleClass(estado: string): string {
     const clases: { [key: string]: string } = {
       'PENDIENTE': 'estado-pendiente',
-      'EN_PREPARACION': 'estado-preparacion',
+      'EN_PREPARACION': 'estado-en-preparacion',
       'LISTO': 'estado-listo',
       'ENTREGADO': 'estado-entregado',
       'CANCELADO': 'estado-cancelado'
     };
-    return clases[estado] || 'estado-default';
+    return clases[estado] || 'estado-pendiente';
+  }
+
+  /**
+   * ✅ Obtener color para el badge de estado de mesa
+   */
+  getColorEstado(estado: string): string {
+    const colores: { [key: string]: string } = {
+      'DISPONIBLE': '#28a745',
+      'OCUPADA': '#6c757d',
+      'RESERVADA': '#ffc107',
+      'FUERA_SERVICIO': '#dc3545'
+    };
+    return colores[estado] || '#6c757d';
   }
 }

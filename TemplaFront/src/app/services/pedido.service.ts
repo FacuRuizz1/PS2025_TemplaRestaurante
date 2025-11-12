@@ -118,6 +118,12 @@ export class PedidoService {
         return this.http.post<GetPedidoDto>(`${this.apiUrl}/finalizar/${id}`, {}, this.getHttpOptions());
     }
 
+    // ✅ Obtener pedido activo de una mesa
+    obtenerPedidoPorMesa(idMesa: number): Observable<GetPedidoDto> {
+        console.log('🔍 Buscando pedido activo de mesa:', idMesa);
+        return this.http.get<GetPedidoDto>(`${this.apiUrl}/mesa/${idMesa}`, this.getHttpOptions());
+    }
+
     // ✅ Métodos helper para manejo de estados y fechas
     
     // Obtener texto legible del estado del pedido

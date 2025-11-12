@@ -12,4 +12,7 @@ public class GetMesaDto {
     private Integer idMesa;
     private String numeroMesa;
     private EstadoMesa estadoMesa;
+    private Double posX;
+    private Double posY;
+    private Integer piso;
 }

@@ -58,8 +58,8 @@
         </div>
       </div>
 
-      <!-- Selección de Mesa (solo si NO es solo lectura) -->
-      <div class="form-row" *ngIf="!soloLectura && !isEditMode">
+      <!-- Selección de Mesa (solo si NO es solo lectura Y NO hay mesa preseleccionada) -->
+      <div class="form-row" *ngIf="!soloLectura && !isEditMode && !mesaSeleccionada">
         <div class="form-group full-width">
           <select id="idMesa" class="form-select custom-input" formControlName="idMesa">
             <option value="">Seleccionar Mesa *</option>
@@ -67,6 +67,20 @@
               Mesa {{ mesa.numeroMesa }}
             </option>
           </select>
+        </div>
+      </div>
+
+      <!-- ✅ Mostrar mesa preseleccionada (cuando viene desde el mapa) -->
+      <div class="mesa-preseleccionada-banner" *ngIf="!soloLectura && !isEditMode && mesaSeleccionada">
+        <div class="mesa-info-banner">
+          <i class="fas fa-utensils"></i>
+          <div class="mesa-info-content">
+            <span class="mesa-label">Mesa seleccionada:</span>
+            <span class="mesa-numero">{{ mesaSeleccionada.numeroMesa }}</span>
+          </div>
+          <span class="badge badge-estado" [style.background-color]="getColorEstado(mesaSeleccionada.estadoMesa)">
+            {{ mesaSeleccionada.estadoMesa }}
+          </span>
         </div>
       </div>
 
@@ -127,15 +141,26 @@
             </div>
 
             <div class="item-actions">
-              <!-- Estado (solo en modo visualización) -->
-              <span *ngIf="soloLectura && detalle.estado" class="badge estado-badge"
+              <!-- ✅ Estado siempre visible cuando existe -->
+              <span *ngIf="detalle.estado" class="badge estado-badge"
                 [ngClass]="getEstadoDetalleClass(detalle.estado)">
                 {{ getEstadoDetalleTexto(detalle.estado) }}
               </span>
 
-              <!-- Botón quitar (solo en modo edición) -->
-              <button *ngIf="!soloLectura" type="button" class="btn btn-sm custom-btn-remove"
-                (click)="quitarDetalle(i)">
+              <!-- ✅ Botón Cancelar (solo si está PENDIENTE y no es solo lectura) -->
+              <button *ngIf="!soloLectura && detalle.estado === 'PENDIENTE'" 
+                      type="button" 
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="cancelarDetalle(detalle.id)">
+                <i class="fas fa-times me-1"></i>
+                Cancelar
+              </button>
+
+              <!-- ✅ Botón Quitar (solo para items nuevos sin estado) -->
+              <button *ngIf="!soloLectura && !detalle.estado" 
+                      type="button" 
+                      class="btn btn-sm custom-btn-remove"
+                      (click)="quitarDetalle(i)">
                 Quitar
               </button>
             </div>
@@ -162,6 +187,18 @@
     <button type="button" class="btn custom-btn-cancel" (click)="onCancelar()" [disabled]="guardando">
       {{ soloLectura ? 'Cerrar' : 'Cancelar' }}
     </button>
+    
+    <!-- ✅ Botón Finalizar Pedido (solo en modo edición y si todos están entregados) -->
+    <button *ngIf="isEditMode && !soloLectura && todosPedidosEntregados()" 
+            type="button" 
+            class="btn btn-success" 
+            (click)="finalizarPedido()"
+            [disabled]="guardando">
+      <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
+      <i class="fas fa-check-circle me-1"></i>
+      Finalizar Pedido
+    </button>
+    
     <!-- ✅ Solo mostrar botón guardar si NO es solo lectura -->
     <button *ngIf="!soloLectura" type="button" class="btn custom-btn-save" (click)="onGuardar()"
       [disabled]="!esFormularioValido() || guardando">

@@ -57,6 +57,8 @@ export class CocinaComponent implements OnInit, OnDestroy {
   }
 
   configurarActualizacionTiempoReal() {
+    console.log('🔌 Configurando actualización en tiempo real para cocina...');
+    
     // Suscribirse a nuevos pedidos
     const nuevoPedidoSub = this.cocinaService.onNuevoPedido().subscribe((pedido: GetPedidoDto) => {
       console.log('🍽️ Nuevo pedido recibido en cocina:', pedido);
@@ -67,10 +69,15 @@ export class CocinaComponent implements OnInit, OnDestroy {
 
     // Suscribirse a actualizaciones de pedidos
     const actualizacionSub = this.cocinaService.onActualizacionPedido().subscribe((pedidoActualizado: GetPedidoDto) => {
-      console.log('🔄 Pedido actualizado:', pedidoActualizado);
+      console.log('🔄 Pedido actualizado en cocina:', pedidoActualizado);
       const index = this.pedidos.findIndex(p => p.idPedido === pedidoActualizado.idPedido);
       if (index !== -1) {
         this.pedidos[index] = pedidoActualizado;
+        this.aplicarFiltros();
+      } else {
+        console.log('⚠️ Pedido actualizado no encontrado en la lista, agregándolo:', pedidoActualizado);
+        // Si el pedido no existe en la lista, agregarlo (puede ser que se creó antes de abrir cocina)
+        this.pedidos.unshift(pedidoActualizado);
         this.aplicarFiltros();
       }
     });

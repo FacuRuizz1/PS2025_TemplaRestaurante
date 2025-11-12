@@ -1,6 +1,7 @@
 package Templa.Tesis.App.configs;
 
 import Templa.Tesis.App.Jwt.JwtAuthenticationFilter;
+import Templa.Tesis.App.Jwt.SseAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final SseAuthenticationFilter sseAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
     @Bean
@@ -54,8 +56,12 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/api/sse/test" // Endpoint de prueba SSE
                         ).permitAll()
+
+                        // Endpoints SSE requieren autenticación (por query param)
+                        .requestMatchers("/api/sse/**").authenticated()
 
                         // Endpoints que requieren rol ADMINISTRADOR
                         .requestMatchers("/api/usuario/crear").hasAuthority("ADMINISTRADOR")
@@ -96,6 +102,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider)
+                .addFilterBefore(sseAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

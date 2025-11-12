@@ -3,6 +3,7 @@ package Templa.Tesis.App.controllers;
 import Templa.Tesis.App.dtos.PedidoDTO;
 import Templa.Tesis.App.dtos.PostPedidoDTO;
 import Templa.Tesis.App.servicies.IPedidoService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -78,5 +79,15 @@ public class PedidoController {
     @PostMapping("/finalizar/{id}")
     public ResponseEntity<PedidoDTO> finalizarPedido(@PathVariable Integer id){
         return ResponseEntity.ok(pedidoService.finalizarPedido(id));
+    }
+
+    @GetMapping("/mesa/{idMesa}")
+    public ResponseEntity<PedidoDTO> obtenerPedidoActivoPorMesa(@PathVariable Integer idMesa) {
+        try {
+            PedidoDTO pedido = pedidoService.getPedidoByMesa(idMesa);
+            return ResponseEntity.ok(pedido);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

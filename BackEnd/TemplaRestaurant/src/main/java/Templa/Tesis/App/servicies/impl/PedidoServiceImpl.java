@@ -8,6 +8,7 @@ import Templa.Tesis.App.dtos.*;
 import Templa.Tesis.App.entities.*;
 import Templa.Tesis.App.repositories.*;
 import Templa.Tesis.App.servicies.*;
+import Templa.Tesis.App.controllers.SseController;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -49,6 +50,8 @@ public class PedidoServiceImpl implements IPedidoService {
     private ModelMapper modelMapper;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private SseController sseController;
 
     @Override
     @Transactional
@@ -94,6 +97,10 @@ public class PedidoServiceImpl implements IPedidoService {
         pedidoRepository.save(nuevoPedidoE);
         PedidoDTO pedidoCreado = modelMapper.map(nuevoPedidoE, PedidoDTO.class);
         pedidoCreado.setDetalles(detallesDto);
+
+        // 🔥 Emitir notificación SSE de nuevo pedido
+        sseController.sendNotification("cocina", "nuevo-pedido", pedidoCreado);
+
         return pedidoCreado;
     }
 
@@ -178,7 +185,12 @@ public class PedidoServiceImpl implements IPedidoService {
         // Liberar mesa
         mesasService.cambiarEstadoMesa(existe.getMesa().getIdMesa(), EstadoMesa.DISPONIBLE);
 
-        return modelMapper.map(existe, PedidoDTO.class);
+        PedidoDTO pedidoCancelado = modelMapper.map(existe, PedidoDTO.class);
+
+        // 🔥 Emitir notificación SSE de pedido actualizado
+        sseController.sendNotification("cocina", "pedido-actualizado", pedidoCancelado);
+
+        return pedidoCancelado;
     }
 
     @Override
@@ -197,7 +209,12 @@ public class PedidoServiceImpl implements IPedidoService {
         }
 
         pedidoRepository.save(existe);
-        return modelMapper.map(existe, PedidoDTO.class);
+        PedidoDTO pedidoActualizado = modelMapper.map(existe, PedidoDTO.class);
+
+        // 🔥 Emitir notificación SSE de pedido actualizado
+        sseController.sendNotification("cocina", "pedido-actualizado", pedidoActualizado);
+
+        return pedidoActualizado;
     }
 
     @Override
@@ -212,7 +229,12 @@ public class PedidoServiceImpl implements IPedidoService {
             pedidoDetalleRepository.save(detalle);
         }
         pedidoRepository.save(existe);
-        return modelMapper.map(existe, PedidoDTO.class);
+        PedidoDTO pedidoActualizado = modelMapper.map(existe, PedidoDTO.class);
+
+        // 🔥 Emitir notificación SSE de pedido actualizado
+        sseController.sendNotification("cocina", "pedido-actualizado", pedidoActualizado);
+
+        return pedidoActualizado;
     }
 
     @Override
@@ -228,7 +250,12 @@ public class PedidoServiceImpl implements IPedidoService {
             pedidoDetalleRepository.save(detalle);
         }
         pedidoRepository.save(existe);
-        return modelMapper.map(existe, PedidoDTO.class);
+        PedidoDTO pedidoActualizado = modelMapper.map(existe, PedidoDTO.class);
+
+        // 🔥 Emitir notificación SSE de pedido actualizado
+        sseController.sendNotification("cocina", "pedido-actualizado", pedidoActualizado);
+
+        return pedidoActualizado;
     }
 
     @Override
@@ -244,7 +271,12 @@ public class PedidoServiceImpl implements IPedidoService {
         }
 
         pedidoRepository.save(existe);
-        return modelMapper.map(existe, PedidoDTO.class);
+        PedidoDTO pedidoActualizado = modelMapper.map(existe, PedidoDTO.class);
+
+        // 🔥 Emitir notificación SSE de pedido actualizado
+        sseController.sendNotification("cocina", "pedido-actualizado", pedidoActualizado);
+
+        return pedidoActualizado;
     }
 
     @Override
@@ -266,7 +298,12 @@ public class PedidoServiceImpl implements IPedidoService {
         existe.setEstado(EstadoPedido.FINALIZADO);
         mesasService.cambiarEstadoMesa(existe.getMesa().getIdMesa(),EstadoMesa.DISPONIBLE);
         pedidoRepository.save(existe);
-        return modelMapper.map(existe, PedidoDTO.class);
+        PedidoDTO pedidoFinalizado = modelMapper.map(existe, PedidoDTO.class);
+
+        // 🔥 Emitir notificación SSE de pedido actualizado
+        sseController.sendNotification("cocina", "pedido-actualizado", pedidoFinalizado);
+
+        return pedidoFinalizado;
     }
 
     @Override
@@ -299,7 +336,19 @@ public class PedidoServiceImpl implements IPedidoService {
         pedidoRepository.save(existe);
         PedidoDTO pedidoActualizado = modelMapper.map(existe, PedidoDTO.class);
         pedidoActualizado.setDetalles(detallesDto);
+
+        // 🔥 Emitir notificación SSE de pedido actualizado
+        sseController.sendNotification("cocina", "pedido-actualizado", pedidoActualizado);
+
         return pedidoActualizado;
+    }
+
+    @Override
+    public PedidoDTO getPedidoByMesa(Integer idMesa) {
+        PedidoEntity existe = pedidoRepository.findPedidoActivoByMesa(idMesa)
+                .orElseThrow(() -> new RuntimeException("No hay pedidos activos para la mesa con id " + idMesa));
+
+        return modelMapper.map(existe, PedidoDTO.class);
     }
 
     private GetPedidoDetalleDTO handleProductoDetalle(PostPedidoDetalleDTO detalleDto, PedidoEntity pedido) {

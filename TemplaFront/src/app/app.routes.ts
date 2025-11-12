@@ -10,6 +10,7 @@ import { MesasComponent } from './componentes/modulos/mesas/mesas.component';
 import { ReservasComponent } from './componentes/modulos/reservas/reservas.component';
 import { PedidosComponent } from './componentes/modulos/pedidos/pedidos.component';
 import { CocinaComponent } from './componentes/modulos/cocina/cocina.component';
+import { MapaMesasComponent } from './componentes/modulos/mapa-mesas/mapa-mesas.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -142,6 +143,16 @@ export const routes: Routes = [
       showInMenu: true,
       parentMenu: 'pedidos',
       menuLabel: 'Cocina'
+    }
+  },
+  {
+    path: 'pedidos/mapa',
+    component: MapaMesasComponent,
+    canActivate: [authGuard], 
+    data: {
+      showInMenu: true,
+      parentMenu: 'pedidos',
+      menuLabel: 'Tomar Pedido'
     }
   },
 

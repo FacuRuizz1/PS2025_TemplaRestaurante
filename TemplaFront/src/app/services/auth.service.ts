@@ -79,7 +79,20 @@ export class AuthService {
   // Obtener el ID del usuario desde el token
   getUserId(): number | null {
     const userInfo = this.getUserInfo();
-    return userInfo?.userId || userInfo?.id || userInfo?.sub || null;
+    const possibleId = userInfo?.userId || userInfo?.id;
+    
+    // Si es un número válido, retornarlo
+    if (typeof possibleId === 'number') {
+      return possibleId;
+    }
+    
+    // Si es un string que se puede parsear a número
+    if (typeof possibleId === 'string' && !isNaN(Number(possibleId))) {
+      return Number(possibleId);
+    }
+    
+    // Si no hay ID válido en el token, retornar null
+    return null;
   }
 
 }

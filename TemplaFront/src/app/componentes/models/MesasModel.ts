@@ -2,6 +2,9 @@ export interface GetMesaDto{
     idMesa: number;
     numeroMesa: string;
     estadoMesa: EstadoMesa;
+    posX?: number;
+    posY?: number;
+    piso?: number;
 }
 
 export enum EstadoMesa{
@@ -15,4 +18,7 @@ export enum EstadoMesa{
 export interface PostMesaDto{
     numeroMesa: string;
     estadoMesa: EstadoMesa;
+    posX?: number;
+    posY?: number;
+    piso?: number;
 }
