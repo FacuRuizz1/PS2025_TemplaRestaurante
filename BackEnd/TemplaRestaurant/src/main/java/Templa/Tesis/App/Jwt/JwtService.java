@@ -1,5 +1,6 @@
 package Templa.Tesis.App.Jwt;
 
+import Templa.Tesis.App.entities.UsuarioEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -24,7 +25,17 @@ public class JwtService {
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 8;  // 8 horas
 
     public String generateToken(UserDetails user) {
-        return generateToken(new HashMap<>(), user);
+        Map<String, Object> extraClaims = new HashMap<>();
+
+        // Obtener el ID del usuario
+        if (user instanceof UsuarioEntity) {
+            UsuarioEntity usuario = (UsuarioEntity) user;
+            extraClaims.put("userId", usuario.getId());
+            // También podrías agregar el rol si lo necesitas
+            extraClaims.put("rol", usuario.getRolUsuario().name());
+        }
+
+        return generateToken(extraClaims, user);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails user) {

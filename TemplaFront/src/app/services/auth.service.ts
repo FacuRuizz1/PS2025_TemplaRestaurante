@@ -76,4 +76,10 @@ export class AuthService {
     return userInfo?.sub || userInfo?.username || userInfo?.name || 'Usuario';
   }
 
+  // Obtener el ID del usuario desde el token
+  getUserId(): number | null {
+    const userInfo = this.getUserInfo();
+    return userInfo?.userId || userInfo?.id || userInfo?.sub || null;
+  }
+
 }
