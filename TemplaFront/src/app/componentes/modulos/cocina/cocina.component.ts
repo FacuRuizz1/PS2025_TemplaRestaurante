@@ -7,6 +7,14 @@ import { AlertService } from '../../../services/alert.service';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 
+// Interfaz para agrupar pedidos por estado de detalles
+interface PedidoPorEstado {
+  pedidoOriginal: GetPedidoDto;
+  estadoDetalle: EstadoPedidoDetalle;
+  detalles: GetPedidoDetalleDto[];
+  cantidadItems: number;
+}
+
 @Component({
   selector: 'app-cocina',
   standalone: true,
@@ -17,6 +25,7 @@ import Swal from 'sweetalert2';
 export class CocinaComponent implements OnInit, OnDestroy {
   pedidos: GetPedidoDto[] = [];
   pedidosFiltrados: GetPedidoDto[] = [];
+  pedidosAgrupados: PedidoPorEstado[] = [];
   isLoading = false;
   
   // Referencias a los enums para usar en el template
@@ -57,8 +66,6 @@ export class CocinaComponent implements OnInit, OnDestroy {
   }
 
   configurarActualizacionTiempoReal() {
-    console.log('🔌 Configurando actualización en tiempo real para cocina...');
-    
     // Suscribirse a nuevos pedidos
     const nuevoPedidoSub = this.cocinaService.onNuevoPedido().subscribe((pedido: GetPedidoDto) => {
       console.log('🍽️ Nuevo pedido recibido en cocina:', pedido);
@@ -69,15 +76,10 @@ export class CocinaComponent implements OnInit, OnDestroy {
 
     // Suscribirse a actualizaciones de pedidos
     const actualizacionSub = this.cocinaService.onActualizacionPedido().subscribe((pedidoActualizado: GetPedidoDto) => {
-      console.log('🔄 Pedido actualizado en cocina:', pedidoActualizado);
+      console.log('🔄 Pedido actualizado:', pedidoActualizado);
       const index = this.pedidos.findIndex(p => p.idPedido === pedidoActualizado.idPedido);
       if (index !== -1) {
         this.pedidos[index] = pedidoActualizado;
-        this.aplicarFiltros();
-      } else {
-        console.log('⚠️ Pedido actualizado no encontrado en la lista, agregándolo:', pedidoActualizado);
-        // Si el pedido no existe en la lista, agregarlo (puede ser que se creó antes de abrir cocina)
-        this.pedidos.unshift(pedidoActualizado);
         this.aplicarFiltros();
       }
     });
@@ -91,6 +93,59 @@ export class CocinaComponent implements OnInit, OnDestroy {
       return pedido.estado === EstadoPedido.ORDENADO || 
              pedido.estado === EstadoPedido.EN_PROCESO ||
              pedido.estado === EstadoPedido.LISTO_PARA_ENTREGAR;
+    });
+    
+    // Agrupar pedidos por estado de detalles
+    this.pedidosAgrupados = this.agruparPedidosPorEstadoDetalle(this.pedidosFiltrados);
+  }
+
+  agruparPedidosPorEstadoDetalle(pedidos: GetPedidoDto[]): PedidoPorEstado[] {
+    const pedidosAgrupados: PedidoPorEstado[] = [];
+    
+    pedidos.forEach(pedido => {
+      // Agrupar los detalles por estado, excluyendo estados finalizados
+      const detallesPorEstado = new Map<EstadoPedidoDetalle, GetPedidoDetalleDto[]>();
+      
+      pedido.detalles.forEach(detalle => {
+        // ✅ Solo procesar items que aún necesitan atención en cocina
+        if (detalle.estado !== EstadoPedidoDetalle.ENTREGADO && 
+            detalle.estado !== EstadoPedidoDetalle.CANCELADO) {
+          if (!detallesPorEstado.has(detalle.estado)) {
+            detallesPorEstado.set(detalle.estado, []);
+          }
+          detallesPorEstado.get(detalle.estado)!.push(detalle);
+        }
+      });
+      
+      // Crear una entrada por cada estado que tenga items activos
+      detallesPorEstado.forEach((detalles, estado) => {
+        const cantidadItems = detalles.reduce((sum, detalle) => sum + detalle.cantidad, 0);
+        
+        pedidosAgrupados.push({
+          pedidoOriginal: pedido,
+          estadoDetalle: estado,
+          detalles: detalles,
+          cantidadItems: cantidadItems
+        });
+      });
+    });
+    
+    // Ordenar por ID de pedido y luego por prioridad de estado
+    return pedidosAgrupados.sort((a, b) => {
+      if (a.pedidoOriginal.idPedido !== b.pedidoOriginal.idPedido) {
+        return a.pedidoOriginal.idPedido - b.pedidoOriginal.idPedido;
+      }
+      
+      // Orden de prioridad de estados en cocina
+      const prioridadEstados = {
+        [EstadoPedidoDetalle.PENDIENTE]: 1,
+        [EstadoPedidoDetalle.EN_PREPARACION]: 2,
+        [EstadoPedidoDetalle.LISTO_PARA_ENTREGAR]: 3,
+        [EstadoPedidoDetalle.ENTREGADO]: 4,
+        [EstadoPedidoDetalle.CANCELADO]: 5
+      };
+      
+      return prioridadEstados[a.estadoDetalle] - prioridadEstados[b.estadoDetalle];
     });
   }
 
@@ -182,8 +237,13 @@ export class CocinaComponent implements OnInit, OnDestroy {
   cambiarEstadoDetalle(pedido: GetPedidoDto, detalle: GetPedidoDetalleDto, nuevoEstado: EstadoPedidoDetalle) {
     this.cocinaService.actualizarEstadoDetalle(detalle.idPedidoDetalle, nuevoEstado).subscribe({
       next: () => {
+        // Actualizar el estado en el objeto original
         detalle.estado = nuevoEstado;
-        this.alertService.showSuccess('Estado del item actualizado correctamente', 'Éxito');
+        
+        // Reagrupar para reflejar los cambios
+        this.aplicarFiltros();
+        
+        this.alertService.showSuccess(`Item "${detalle.nombreItem}" marcado como ${this.formatearEstadoDetalle(nuevoEstado)}`, 'Estado Actualizado');
       },
       error: (error: any) => {
         console.error('Error al actualizar estado del detalle:', error);
@@ -324,6 +384,79 @@ export class CocinaComponent implements OnInit, OnDestroy {
     return pedido.idPedido;
   }
 
+  // Función trackBy para pedidos agrupados
+  trackByPedidoAgrupado(index: number, pedidoAgrupado: PedidoPorEstado): string {
+    return `${pedidoAgrupado.pedidoOriginal.idPedido}-${pedidoAgrupado.estadoDetalle}`;
+  }
+
+  // ✅ Función para formatear estados sin guiones bajos
+  formatearEstado(estado: string): string {
+    return estado.replace(/_/g, ' ');
+  }
+
+  // ✅ Función para formatear estados de detalles sin guiones bajos
+  formatearEstadoDetalle(estado: EstadoPedidoDetalle): string {
+    return estado.replace(/_/g, ' ');
+  }
+
+  // Métodos para los botones de acción simplificados
+  iniciarPreparacion(pedido: GetPedidoDto) {
+    Swal.fire({
+      title: '¿Iniciar preparación?',
+      text: `¿Comenzar a cocinar el pedido de la Mesa ${pedido.numeroMesa}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cocinar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#28a745'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.actualizarEstadoPedido(pedido, EstadoPedido.EN_PROCESO);
+      }
+    });
+  }
+
+  // ✅ Iniciar preparación de items específicos de un pedido agrupado
+  iniciarPreparacionItems(pedidoAgrupado: PedidoPorEstado) {
+    const pedido = pedidoAgrupado.pedidoOriginal;
+    const cantidadItems = pedidoAgrupado.cantidadItems;
+    
+    Swal.fire({
+      title: '¿Iniciar preparación?',
+      text: `¿Comenzar a cocinar ${cantidadItems} item(s) del pedido de la Mesa ${pedido.numeroMesa}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cocinar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#28a745'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Cambiar estado de todos los items pendientes a EN_PREPARACION
+        pedidoAgrupado.detalles.forEach(detalle => {
+          if (detalle.estado === EstadoPedidoDetalle.PENDIENTE) {
+            this.cambiarEstadoDetalle(pedido, detalle, EstadoPedidoDetalle.EN_PREPARACION);
+          }
+        });
+      }
+    });
+  }
+
+  marcarComoListo(pedido: GetPedidoDto) {
+    Swal.fire({
+      title: '¿Pedido listo?',
+      text: `¿El pedido de la Mesa ${pedido.numeroMesa} está listo para entregar?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, está listo',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#007bff'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.procesarPedidoListoYEntregar(pedido);
+      }
+    });
+  }
+
   // Métodos auxiliares para el template
   getPosiblesEstadosString(estado: string): EstadoPedido[] {
     return this.getPosiblesEstados(estado as EstadoPedido);
@@ -368,5 +501,17 @@ export class CocinaComponent implements OnInit, OnDestroy {
       default:
         return 'badge-secondary';
     }
+  }
+
+  // Función auxiliar para obtener el total de items de un pedido
+  obtenerTotalItemsPedido(pedido: GetPedidoDto): number {
+    return pedido.detalles.reduce((total, detalle) => total + detalle.cantidad, 0);
+  }
+
+  // Función auxiliar para verificar si hay más cards del mismo pedido
+  esMismoPedidoSiguiente(index: number): boolean {
+    if (index >= this.pedidosAgrupados.length - 1) return false;
+    return this.pedidosAgrupados[index].pedidoOriginal.idPedido === 
+           this.pedidosAgrupados[index + 1].pedidoOriginal.idPedido;
   }
 }

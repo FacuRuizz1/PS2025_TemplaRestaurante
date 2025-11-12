@@ -64,9 +64,19 @@ export class AuthService {
   // ✅ NUEVO: Obtener información del usuario desde el token
   getUserInfo(): any {
     const token = this.getToken();
-    if (!token) return null;
+    if (!token) {
+      console.warn('🔍 AuthService.getUserInfo(): No hay token disponible');
+      return null;
+    }
     
     const decoded = this.decodeToken(token);
+    if (decoded) {
+      console.log('🔍 AuthService.getUserInfo(): Token decodificado exitosamente');
+      console.log('🔍 Campos disponibles:', Object.keys(decoded));
+    } else {
+      console.error('❌ AuthService.getUserInfo(): Error al decodificar token');
+    }
+    
     return decoded;
   }
 
@@ -79,20 +89,74 @@ export class AuthService {
   // Obtener el ID del usuario desde el token
   getUserId(): number | null {
     const userInfo = this.getUserInfo();
-    const possibleId = userInfo?.userId || userInfo?.id;
     
-    // Si es un número válido, retornarlo
-    if (typeof possibleId === 'number') {
-      return possibleId;
+    if (!userInfo) {
+      console.warn('🔍 AuthService.getUserId(): No se pudo obtener userInfo del token');
+      return null;
+    }
+
+    console.log('🔍 AuthService.getUserId(): userInfo completo:', userInfo);
+
+    // Buscar en varios campos posibles para el ID
+    const possibleIdFields = ['userId', 'id', 'idUsuario', 'user_id', 'sub'];
+    
+    for (const field of possibleIdFields) {
+      const fieldValue = userInfo[field];
+      
+      if (fieldValue !== undefined && fieldValue !== null) {
+        console.log(`🔍 AuthService.getUserId(): Encontrado campo '${field}':`, fieldValue, `(${typeof fieldValue})`);
+        
+        // Si es un número válido, retornarlo
+        if (typeof fieldValue === 'number' && !isNaN(fieldValue)) {
+          console.log(`✅ AuthService.getUserId(): Usando ${field} = ${fieldValue}`);
+          return fieldValue;
+        }
+        
+        // Si es un string que se puede parsear a número
+        if (typeof fieldValue === 'string' && !isNaN(Number(fieldValue)) && fieldValue.trim() !== '') {
+          const parsedValue = Number(fieldValue);
+          console.log(`✅ AuthService.getUserId(): Parseando ${field} '${fieldValue}' como ${parsedValue}`);
+          return parsedValue;
+        }
+      }
     }
     
-    // Si es un string que se puede parsear a número
-    if (typeof possibleId === 'string' && !isNaN(Number(possibleId))) {
-      return Number(possibleId);
-    }
-    
-    // Si no hay ID válido en el token, retornar null
+    console.warn('❌ AuthService.getUserId(): No se encontró ID válido en el token');
+    console.warn('💡 Campos disponibles en token:', Object.keys(userInfo));
     return null;
+  }
+
+  // ✅ Método completo para debug de autenticación
+  debugAuthInfo(): void {
+    console.log('=================== DEBUG AUTENTICACIÓN ===================');
+    const token = this.getToken();
+    console.log('🔍 Token existe:', !!token);
+    
+    if (token) {
+      const userInfo = this.getUserInfo();
+      console.log('🔍 Token payload:', userInfo);
+      
+      const userId = this.getUserId();
+      console.log('🔍 getUserId():', userId, `(${typeof userId})`);
+      
+      const username = this.getUsername();
+      console.log('🔍 getUsername():', username);
+      
+      console.log('🔍 isLoggedIn():', this.isLoggedIn());
+      
+      if (userId === null) {
+        console.error('❌ PROBLEMA: No se puede obtener ID del usuario');
+        console.log('💡 El backend debe incluir uno de estos campos en el JWT:');
+        console.log('   - userId (número)');
+        console.log('   - id (número)');
+        console.log('   - idUsuario (número)');
+      } else {
+        console.log('✅ Autenticación funcionando correctamente');
+      }
+    } else {
+      console.log('❌ No hay token - usuario no logueado');
+    }
+    console.log('==========================================================');
   }
 
 }

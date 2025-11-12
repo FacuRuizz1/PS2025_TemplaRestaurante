@@ -61,34 +61,47 @@
                 <!-- Descripción -->
                 <p class="menu-descripcion">{{ menu.descripcion }}</p>
 
+                <!-- Separador -->
+                <div class="content-divider"></div>
+
                 <!-- ✅ Disponibilidad por fechas -->
-                <div class="menu-disponibilidad" *ngIf="menu.disponibleDesde || menu.disponibleHasta">
-                    <span class="disponibilidad-titulo">Disponibilidad:</span>
-                    <div class="disponibilidad-lista">
+                <div class="menu-field" *ngIf="menu.disponibleDesde || menu.disponibleHasta">
+                    <span class="field-label">Disponibilidad:</span>
+                    <div class="field-value">
                         Desde: {{ menu.disponibleDesde }}
                         <span *ngIf="menu.disponibleHasta"> hasta: {{ menu.disponibleHasta }}</span>
                     </div>
                 </div>
 
+                <!-- Separador -->
+                <div class="content-divider" *ngIf="menu.disponibleDesde || menu.disponibleHasta"></div>
+
                 <!-- ✅ Contenidos -->
-                <div class="menu-contenidos">
-                    <span class="contenidos-titulo">Contenidos:</span>
-                    <div class="contenidos-lista">
+                <div class="menu-field">
+                    <span class="field-label">Contenidos:</span>
+                    <div class="field-value">
                         {{ formatearContenidos(menu) }}
                     </div>
                 </div>
 
+                <!-- Separador -->
+                <div class="content-divider"></div>
+
                 <!-- ✅ Precio -->
-                <div class="menu-info">
-                    <span class="menu-precio-label">Precio:</span>
-                    <span class="menu-precio">${{ menu.precio | number:'1.2-2' }}</span>
+                <div class="menu-field price-field">
+                    <span class="field-label">Precio:</span>
+                    <span class="field-value price">${{ menu.precio | number:'1.2-2' }}</span>
+                </div>
+
+                <!-- Separador -->
+                <div class="content-divider"></div>
+
+                <!-- ✅ Indicador de edición -->
+                <div class="click-indicator">
+                    <span>Clic para editar</span>
                 </div>
             </div>
 
-            <!-- ✅ Indicador visual de que es clickeable -->
-            <div class="click-indicator">
-                <span>Click para editar</span>
-            </div>
         </div>
     </div>
 

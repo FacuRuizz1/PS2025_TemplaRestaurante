@@ -96,7 +96,7 @@
             <span class="mesa-numero">{{ mesa.numeroMesa }}</span>
           </div>
           <span class="mesa-estado-badge" [class]="mesa.estadoMesa.toLowerCase()">
-            {{ mesa.estadoMesa }}
+            {{ formatearEstado(mesa.estadoMesa) }}
           </span>
           <i *ngIf="estaVinculada(mesa)" class="fas fa-check-circle icono-vinculada"></i>
         </div>

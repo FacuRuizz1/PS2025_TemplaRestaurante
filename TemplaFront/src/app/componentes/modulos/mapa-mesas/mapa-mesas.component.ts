@@ -513,9 +513,10 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
       backdrop: 'static'
     });
 
-    const userInfo = this.authService.getUserInfo();
+    // ✅ Usar el método getUserId() mejorado en lugar de acceso directo
+    const userId = this.authService.getUserId();
     modalRef.componentInstance.mesaSeleccionada = this.menuContextual.mesa;
-    modalRef.componentInstance.idMozoLogueado = userInfo?.idUsuario;
+    modalRef.componentInstance.idMozoLogueado = userId;
 
     modalRef.result.then(
       (result) => {
@@ -594,6 +595,11 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
 
   estaVinculada(mesa: GetMesaDto): boolean {
     return this.mesasEnPlano.some(m => m.idMesa === mesa.idMesa);
+  }
+
+  // ✅ Función para formatear estados sin guiones bajos
+  formatearEstado(estado: string): string {
+    return estado.replace(/_/g, ' ');
   }
 }
 

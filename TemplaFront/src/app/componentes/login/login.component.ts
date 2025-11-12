@@ -18,8 +18,34 @@ export class LoginComponent {
   isLoading = false;
   errorMessage = '';
 
-  constructor(private authService: AuthService,private router: Router) { }
+  constructor(public authService: AuthService,private router: Router) { }
   
+  // ✅ TEST: Función para verificar getUserId después del login
+  public testUserIdAfterLogin() {
+    console.log('=== TEST getUserId() después del login ===');
+    
+    const token = this.authService.getToken();
+    console.log('🔍 Token existe:', !!token);
+    
+    const userInfo = this.authService.getUserInfo();
+    console.log('🔍 UserInfo:', userInfo);
+    
+    const userId = this.authService.getUserId();
+    console.log('🔍 getUserId() resultado:', userId, `(${typeof userId})`);
+    
+    const username = this.authService.getUsername();
+    console.log('🔍 getUsername() resultado:', username);
+    
+    if (userId === null) {
+      console.error('❌ PROBLEMA: getUserId() retorna null');
+      console.log('💡 SOLUCIÓN: El backend debe incluir un campo de ID numérico en el JWT');
+      console.log('💡 Campos sugeridos: "userId", "id", "idUsuario"');
+    } else {
+      console.log('✅ SUCCESS: getUserId() funciona correctamente');
+    }
+    
+    console.log('=== FIN TEST ===');
+  }
 
   login() {
     this.isLoading = true;
@@ -32,6 +58,8 @@ export class LoginComponent {
 
     this.authService.login(credentials).subscribe({
       next: () => {
+        // ✅ TEST: Verificar getUserId después del login exitoso
+        this.testUserIdAfterLogin();
         this.router.navigate(['/personas']);
       },
       error: (error) => {

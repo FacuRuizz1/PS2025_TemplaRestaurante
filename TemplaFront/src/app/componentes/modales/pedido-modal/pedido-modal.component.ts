@@ -85,16 +85,10 @@ export class PedidoModalComponent implements OnInit {
   ngOnInit() {
     console.log('🔍 Iniciando modal de pedido...');
     
-    // ✅ Obtener ID del mozo logueado usando el nuevo método
-    const userId = this.authService.getUserId();
-    if (userId !== null && typeof userId === 'number') {
-      this.idMozoLogueado = userId;
-    } else {
-      console.warn('⚠️ No se pudo obtener ID del usuario desde el token JWT');
-      console.warn('⚠️ El backend debe incluir "userId" o "id" numérico en el JWT');
-    }
+    // ✅ Obtener ID del mozo logueado - priorizar el valor del token sobre el @Input
+    this.establecerIdMozoLogueado();
     
-    console.log('👤 ID Mozo logueado:', this.idMozoLogueado);
+    console.log('👤 ID Mozo final asignado:', this.idMozoLogueado);
     console.log('👤 Tipo:', typeof this.idMozoLogueado);
     console.log('🍽️ Mesa preseleccionada:', this.mesaSeleccionada);
 
@@ -129,6 +123,60 @@ export class PedidoModalComponent implements OnInit {
     this.cargarPlatos();
     this.cargarProductos();
     this.cargarMenus();
+  }
+
+  // ✅ Método para establecer el ID del mozo logueado
+  private establecerIdMozoLogueado(): void {
+    // Primer intento: obtener desde el token JWT
+    const userIdFromToken = this.authService.getUserId();
+    
+    console.log('🔍 establecerIdMozoLogueado():');
+    console.log('  - ID desde token JWT:', userIdFromToken);
+    console.log('  - ID desde @Input:', this.idMozoLogueado);
+    
+    if (userIdFromToken !== null && typeof userIdFromToken === 'number' && userIdFromToken > 0) {
+      // Usar el ID del token si es válido
+      this.idMozoLogueado = userIdFromToken;
+      console.log('✅ Usando ID del token JWT:', this.idMozoLogueado);
+    } else if (this.idMozoLogueado && this.idMozoLogueado > 0) {
+      // Usar el ID pasado desde el componente padre si el token no funciona
+      console.log('⚠️ Token JWT no válido, usando ID del @Input:', this.idMozoLogueado);
+    } else {
+      // Último recurso: usar ID por defecto y mostrar advertencia
+      console.error('❌ PROBLEMA CRÍTICO: No se pudo obtener ID del mozo de ninguna fuente');
+      console.error('💡 SOLUCIONES:');
+      console.error('   1. Verificar que el backend incluya ID numérico en el JWT');
+      console.error('   2. Verificar que el componente padre pase el ID correctamente');
+      console.error('   3. Como último recurso se usará ID = 1');
+      
+      if (!this.idMozoLogueado || this.idMozoLogueado <= 0) {
+        this.idMozoLogueado = 1; // Fallback de emergencia
+      }
+    }
+  }
+
+  // ✅ Método para mostrar debug completo del pedido antes de guardar
+  private debugPedidoAntesDEGuardar(pedidoDTO: PostPedidoDto, idMesa: number, detallesDTO: PostPedidoDetalleDto[]): void {
+    console.log('=================== DEBUG PEDIDO ===================');
+    console.log('✅ Pedido completo a guardar:', pedidoDTO);
+    console.log('🔍 Debug detallado:');
+    console.log('  - ID Mesa:', idMesa);
+    console.log('  - ID Mozo (USUARIO LOGUEADO):', pedidoDTO.idMozo);
+    console.log('  - Cantidad de items:', detallesDTO.length);
+    console.log('  - Detalles:', detallesDTO);
+    
+    // Mostrar información del token para debug
+    const userInfo = this.authService.getUserInfo();
+    console.log('🔍 Token JWT info:', userInfo);
+    console.log('🔍 getUserId() resultado:', this.authService.getUserId());
+    
+    // Validación final
+    if (pedidoDTO.idMozo && pedidoDTO.idMozo > 0) {
+      console.log('✅ ID del mozo válido - El pedido se asociará correctamente al usuario logueado');
+    } else {
+      console.error('❌ ADVERTENCIA: ID del mozo no válido - Revisar autenticación');
+    }
+    console.log('==================================================');
   }
 
   private cargarMesas(): void {
@@ -449,21 +497,23 @@ export class PedidoModalComponent implements OnInit {
 
     const pedidoDTO: PostPedidoDto = {
       idMesa: idMesa,
-      idMozo: 1,
+      idMozo: this.idMozoLogueado,
       detalles: detallesDTO
     };
 
-    console.log('✅ Pedido a guardar:', pedidoDTO);
-    console.log('🔍 Debug - idMesa:', idMesa);
-    console.log('🔍 Debug - idMozo:', 1);
-    console.log('🔍 Debug - detalles count:', detallesDTO.length);
+    // ✅ Debug completo del pedido antes de enviar
+    this.debugPedidoAntesDEGuardar(pedidoDTO, idMesa, detallesDTO);
 
-    /* ✅ Validar que el mozo esté asignado
+    // ✅ Validar que el mozo esté asignado
     if (!this.idMozoLogueado || this.idMozoLogueado === 0) {
       this.guardando = false;
-      alert('Error: No se pudo obtener el ID del mozo logueado');
+      this.alertService.showError(
+        'No se pudo identificar al mozo logueado. Por favor, cierre sesión y vuelva a ingresar.',
+        'Error de Autenticación'
+      );
+      console.error('❌ ERROR: idMozoLogueado no válido:', this.idMozoLogueado);
       return;
-    }*/
+    }
 
     // ✅ Llamar al backend para crear o actualizar el pedido
     if (this.isEditMode && this.pedidoData) {
@@ -471,6 +521,7 @@ export class PedidoModalComponent implements OnInit {
       this.pedidoService.actualizarPedido(this.pedidoData.idPedido, pedidoDTO).subscribe({
         next: (response: GetPedidoDto) => {
           console.log('✅ Pedido actualizado exitosamente:', response);
+          console.log(`✅ Pedido #${response.idPedido} actualizado por mozo ID: ${this.idMozoLogueado}`);
           this.guardando = false;
           this.activeModal.close({
             accion: 'actualizado',
@@ -487,6 +538,7 @@ export class PedidoModalComponent implements OnInit {
       this.pedidoService.crearPedido(pedidoDTO).subscribe({
         next: (response: GetPedidoDto) => {
           console.log('✅ Pedido creado exitosamente:', response);
+          console.log(`✅ Pedido #${response.idPedido} creado por mozo ID: ${this.idMozoLogueado} (${this.authService.getUsername()})`);
           this.guardando = false;
           this.activeModal.close({
             accion: 'crear',
