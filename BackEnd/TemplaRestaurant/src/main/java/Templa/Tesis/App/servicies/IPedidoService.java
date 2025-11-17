@@ -2,11 +2,14 @@ package Templa.Tesis.App.servicies;
 
 import Templa.Tesis.App.dtos.PedidoDTO;
 import Templa.Tesis.App.dtos.PostPedidoDTO;
+import Templa.Tesis.App.dtos.ReporteMenusMasPedidosDTO;
+import Templa.Tesis.App.dtos.ReportePedidosPorFechaDTO;
 import Templa.Tesis.App.entities.PedidoEntity;
 import Templa.Tesis.App.repositories.PedidoRepository;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface IPedidoService {
@@ -22,5 +25,8 @@ public interface IPedidoService {
     PedidoDTO finalizarPedido(Integer idPedido);
     PedidoDTO insertarDetalles(Integer idPedido, PostPedidoDTO dto);
     PedidoDTO getPedidoByMesa(Integer idMesa);
+
+    List<ReportePedidosPorFechaDTO> obtenerReportePedidosPorFecha(LocalDate fechaDesde, LocalDate fechaHasta);
+    List<ReporteMenusMasPedidosDTO> obtenerMenusMasPedidos(LocalDate fechaDesde, LocalDate fechaHasta);
 
 }

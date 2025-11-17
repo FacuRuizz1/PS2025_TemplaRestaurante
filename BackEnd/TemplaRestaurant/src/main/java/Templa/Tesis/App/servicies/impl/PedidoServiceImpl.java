@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -349,6 +350,63 @@ public class PedidoServiceImpl implements IPedidoService {
                 .orElseThrow(() -> new RuntimeException("No hay pedidos activos para la mesa con id " + idMesa));
 
         return modelMapper.map(existe, PedidoDTO.class);
+    }
+
+    @Override
+    public List<ReportePedidosPorFechaDTO> obtenerReportePedidosPorFecha(LocalDate fechaDesde, LocalDate fechaHasta) {
+        if (fechaDesde == null) {
+            fechaDesde = LocalDate.now().minusDays(30);
+        }
+        if (fechaHasta == null) {
+            fechaHasta = LocalDate.now();
+        }
+
+        LocalDateTime fechaDesdeInicio = fechaDesde.atStartOfDay();
+        LocalDateTime fechaHastaFin = fechaHasta.plusDays(1).atStartOfDay();
+
+        List<Object[]> resultados = pedidoRepository.obtenerCantidadPedidosPorFecha(
+                fechaDesdeInicio, fechaHastaFin, EstadoPedido.CANCELADO);
+
+        List<ReportePedidosPorFechaDTO> reporte = new ArrayList<>();
+        for (Object[] resultado : resultados) {
+            ReportePedidosPorFechaDTO dto = new ReportePedidosPorFechaDTO();
+
+            // Si usaste CAST en el SELECT, el resultado[0] será un Date
+            LocalDate fecha = ((java.sql.Date) resultado[0]).toLocalDate();
+            dto.setFecha(fecha);
+
+            dto.setCantidadPedidos(((Number) resultado[1]).intValue());
+            reporte.add(dto);
+        }
+
+        return reporte;
+    }
+
+    //TODO: Ver porque devuelve 200 vacio
+    @Override
+    public List<ReporteMenusMasPedidosDTO> obtenerMenusMasPedidos(LocalDate fechaDesde, LocalDate fechaHasta) {
+        if (fechaDesde == null) {
+            fechaDesde = LocalDate.now().minusDays(30);
+        }
+        if (fechaHasta == null) {
+            fechaHasta = LocalDate.now();
+        }
+
+        LocalDateTime fechaDesdeInicio = fechaDesde.atStartOfDay();
+        LocalDateTime fechaHastaFin = fechaHasta.plusDays(1).atStartOfDay();
+
+        List<Object[]> resultados = pedidoRepository.obtenerMenusMasPedidos(
+                fechaDesdeInicio, fechaHastaFin, EstadoPedido.CANCELADO);
+
+        List<ReporteMenusMasPedidosDTO> reporte = new ArrayList<>();
+        for (Object[] resultado : resultados) {
+            ReporteMenusMasPedidosDTO dto = new ReporteMenusMasPedidosDTO();
+            dto.setNombreMenu((String) resultado[0]);
+            dto.setCantidadPedidos(((Number) resultado[1]).intValue());
+            reporte.add(dto);
+        }
+
+        return reporte;
     }
 
     private GetPedidoDetalleDTO handleProductoDetalle(PostPedidoDetalleDTO detalleDto, PedidoEntity pedido) {

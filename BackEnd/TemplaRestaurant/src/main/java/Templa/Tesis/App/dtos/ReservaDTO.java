@@ -17,7 +17,7 @@ import java.time.LocalTime;
 public class ReservaDTO {
     private Integer id;
     private int idPersona;
-    private int idMesa;
+    private String nombrePersona;
     private int idDisponibilidad;
     private int nroReserva;
     private int cantidadComensales;

@@ -61,8 +61,12 @@
 <hr class="header-divider">
 
 <div class="body mt-5 mx-5 px-5">
-    <!-- Botón Nuevo Producto -->
-    <div class="mb-3 d-flex justify-content-end">
+    <!-- Botones Reportes y Nuevo Producto -->
+    <div class="mb-3 d-flex justify-content-end gap-2">
+        <button class="btn btn-outline-info" (click)="abrirReportes()" title="Ver reportes de stock bajo">
+            <span class="btn-icon">📊</span>
+            Reportes
+        </button>
         <button class="btn custom-btn" (click)="openNewProductModal()">
             <span class="btn-icon">➕</span>
             Nuevo Producto
@@ -209,3 +213,6 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Reportes -->
+<app-reportes-modal #reportesModal></app-reportes-modal>

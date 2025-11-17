@@ -68,8 +68,6 @@ public class ReservaServiceImpl implements IReservaService {
         PersonaEntity persona = personaRepository.findById(postReservaDTO.getIdPersona())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Persona no encontrada"));
 
-        MesaEntity mesa = mesaRepository.findById(postReservaDTO.getIdMesa())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mesa no encontrada"));
 
         DisponibilidadEntity disponibilidad = disponibilidadRepository.findById(postReservaDTO.getIdDisponibilidad())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Disponibilidad no encontrada"));
@@ -90,7 +88,6 @@ public class ReservaServiceImpl implements IReservaService {
             // Crear la entidad reserva manualmente
             ReservaEntity reserva = new ReservaEntity();
             reserva.setPersona(persona);  // Asignar entidad
-            reserva.setMesa(mesa);        // Asignar entidad
             reserva.setDisponibilidad(disponibilidad); //Asignar entidad
             reserva.setNroReserva(postReservaDTO.getNroReserva());
             reserva.setCantidadComensales(postReservaDTO.getCantidadComensales());
@@ -99,7 +96,18 @@ public class ReservaServiceImpl implements IReservaService {
             reserva.setHorario(postReservaDTO.getHorario());
 
             ReservaEntity reservaGuardada = reservaRepository.save(reserva);
-            return modelMapper.map(reservaGuardada, ReservaDTO.class);
+            return ReservaDTO.builder()
+                    .id(reservaGuardada.getId())
+                    .idPersona(reservaGuardada.getPersona().getId())
+                    .nombrePersona(reservaGuardada.getPersona().getNombre() + " " + reservaGuardada.getPersona().getApellido())
+                    .idDisponibilidad(reservaGuardada.getDisponibilidad().getId())
+                    .nroReserva(reservaGuardada.getNroReserva())
+                    .cantidadComensales(reservaGuardada.getCantidadComensales())
+                    .fechaReserva(reservaGuardada.getFechaReserva())
+                    .evento(reservaGuardada.getEvento())
+                    .horario(reservaGuardada.getHorario())
+                    .build();
+
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al guardar la reserva");
         }
@@ -125,7 +133,17 @@ public class ReservaServiceImpl implements IReservaService {
     public Page<ReservaDTO> traerReservas(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
         Page<ReservaEntity> reservas = reservaRepository.findAll(pageable);
-        return reservas.map(reserva -> modelMapper.map(reserva, ReservaDTO.class));
+        return reservas.map(reserva -> ReservaDTO.builder()
+                .id(reserva.getId())
+                .idPersona(reserva.getPersona().getId())
+                .nombrePersona(reserva.getPersona().getNombre() + " " + reserva.getPersona().getApellido())
+                .idDisponibilidad(reserva.getDisponibilidad().getId())
+                .nroReserva(reserva.getNroReserva())
+                .cantidadComensales(reserva.getCantidadComensales())
+                .fechaReserva(reserva.getFechaReserva())
+                .evento(reserva.getEvento())
+                .horario(reserva.getHorario())
+                .build());
 
     }
 

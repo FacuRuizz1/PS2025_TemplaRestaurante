@@ -22,7 +22,7 @@
       </div>
       <div class="step" [class.active]="currentStep >= 5" [class.completed]="currentStep > 5">
         <span class="step-number">5</span>
-        <span class="step-title">Cliente y Mesa</span>
+        <span class="step-title">Datos del Cliente</span>
       </div>
     </div>
   </div>
@@ -142,6 +142,20 @@
       <form [formGroup]="horarioForm" class="horario-form">
         <div class="form-group">
           <label>Selecciona el horario de tu preferencia</label>
+          <div class="evento-horario-info" *ngIf="eventoForm.get('evento')?.value">
+            <small class="text-muted">
+              <i class="fas fa-info-circle"></i>
+              <span *ngIf="eventoForm.get('evento')?.value === 'ALMUERZO'">
+                Horarios de almuerzo disponibles: 12:00 - 14:30
+              </span>
+              <span *ngIf="eventoForm.get('evento')?.value === 'CENA'">
+                Horarios de cena disponibles: 20:00 - 22:00
+              </span>
+              <span *ngIf="eventoForm.get('evento')?.value !== 'ALMUERZO' && eventoForm.get('evento')?.value !== 'CENA'">
+                Todos los horarios disponibles para este evento
+              </span>
+            </small>
+          </div>
           <div class="horario-options">
             <div *ngFor="let horario of horariosDisponibles" 
                  class="horario-option"
@@ -160,56 +174,147 @@
       </form>
     </div>
 
-    <!-- Paso 5: Cliente y Mesa -->
+    <!-- Paso 5: Datos del Cliente -->
     <div *ngIf="currentStep === 5" class="step-content">
-      <form [formGroup]="personaMesaForm" class="persona-mesa-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="idPersona">Cliente</label>
-            <select id="idPersona" formControlName="idPersona" class="form-control">
-              <option value="0">Seleccione un cliente</option>
-              <option *ngFor="let persona of personas" [value]="persona.id">
-                {{ persona.nombre }} {{ persona.apellido }} - {{ persona.dni }}
-              </option>
-            </select>
-            <div *ngIf="personaMesaForm.get('idPersona')?.invalid && personaMesaForm.get('idPersona')?.touched" 
-                 class="error-message">
-              Debe seleccionar un cliente
+      <div class="client-form-container centered-form">
+        
+        <form [formGroup]="personaMesaForm" class="persona-form">
+          <!-- Primera fila: Nombre y Apellido -->
+          <div class="form-row">
+            <div class="form-group">
+              <input type="text" 
+                     id="nombre" 
+                     name="nombre" 
+                     formControlName="nombre" 
+                     class="form-control custom-input" 
+                     placeholder="Nombre">
+              <div *ngIf="personaMesaForm.get('nombre')?.invalid && personaMesaForm.get('nombre')?.touched" 
+                   class="error-message">
+                El nombre es requerido
+              </div>
+            </div>
+
+            <div class="form-group">
+              <input type="text" 
+                     id="apellido" 
+                     name="apellido" 
+                     formControlName="apellido" 
+                     class="form-control custom-input" 
+                     placeholder="Apellido">
+              <div *ngIf="personaMesaForm.get('apellido')?.invalid && personaMesaForm.get('apellido')?.touched" 
+                   class="error-message">
+                El apellido es requerido
+              </div>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="idMesa">Mesa</label>
-            <select id="idMesa" formControlName="idMesa" class="form-control">
-              <option value="0">Seleccione una mesa</option>
-              <option *ngFor="let mesa of getMesasDisponibles()" [value]="mesa.idMesa">
-                Mesa {{ mesa.numeroMesa }} - {{ mesa.estadoMesa }}
-              </option>
-            </select>
-            <div *ngIf="personaMesaForm.get('idMesa')?.invalid && personaMesaForm.get('idMesa')?.touched" 
-                 class="error-message">
-              Debe seleccionar una mesa
+          <!-- Segunda fila: DNI ---->
+          <div class="form-row">
+            <div class="form-group full-width">
+              <input type="text" 
+                     id="dni" 
+                     name="dni" 
+                     formControlName="dni" 
+                     class="form-control custom-input" 
+                     placeholder="DNI" 
+                     maxlength="8">
+              <div *ngIf="personaMesaForm.get('dni')?.invalid && personaMesaForm.get('dni')?.touched" 
+                   class="error-message">
+                <span *ngIf="personaMesaForm.get('dni')?.errors?.['required']">El DNI es requerido</span>
+                <span *ngIf="personaMesaForm.get('dni')?.errors?.['pattern']">El DNI debe tener 8 dígitos</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tercera fila: Email y Teléfono -->
+          <div class="form-row">
+            <div class="form-group">
+              <input type="email" 
+                     id="email" 
+                     name="email" 
+                     formControlName="email" 
+                     class="form-control custom-input" 
+                     placeholder="ejemplo@templa.com">
+              <div *ngIf="personaMesaForm.get('email')?.invalid && personaMesaForm.get('email')?.touched" 
+                   class="error-message">
+                <span *ngIf="personaMesaForm.get('email')?.errors?.['email']">Ingrese un email válido</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <input type="tel" 
+                     id="telefono" 
+                     name="telefono" 
+                     formControlName="telefono" 
+                     class="form-control custom-input" 
+                     placeholder="351811074">
+              <div *ngIf="personaMesaForm.get('telefono')?.invalid && personaMesaForm.get('telefono')?.touched" 
+                   class="error-message">
+                El teléfono es requerido
+              </div>
+            </div>
+          </div>
+
+          <!-- Separador -->
+          <div class="section-divider"></div>
+
+        </form>
+      </div>
+
+      <!-- Resumen de la reserva - Solo mostrar cuando los datos estén completos -->
+      <div class="reserva-resumen-container" *ngIf="personaMesaForm.valid && personaMesaForm.get('nombre')?.value && personaMesaForm.get('apellido')?.value && personaMesaForm.get('dni')?.value && personaMesaForm.get('telefono')?.value">
+        <div class="reserva-resumen-card">
+          <div class="resumen-header">
+            <h4><i class="fas fa-clipboard-check"></i> Resumen de tu reserva</h4>
+            <p class="resumen-subtitle">Confirma que todos los datos sean correctos</p>
+          </div>
+          
+          <div class="resumen-content">
+            <div class="resumen-section">
+              <h5><i class="fas fa-user"></i> Datos del Cliente</h5>
+              <div class="resumen-row">
+                <span class="resumen-label">Nombre completo:</span>
+                <span class="resumen-value">{{ personaMesaForm.get('nombre')?.value }} {{ personaMesaForm.get('apellido')?.value }}</span>
+              </div>
+              <div class="resumen-row">
+                <span class="resumen-label">DNI:</span>
+                <span class="resumen-value">{{ personaMesaForm.get('dni')?.value }}</span>
+              </div>
+              <div class="resumen-row">
+                <span class="resumen-label">Teléfono:</span>
+                <span class="resumen-value">{{ personaMesaForm.get('telefono')?.value }}</span>
+              </div>
+              <div class="resumen-row" *ngIf="personaMesaForm.get('email')?.value">
+                <span class="resumen-label">Email:</span>
+                <span class="resumen-value">{{ personaMesaForm.get('email')?.value }}</span>
+              </div>
+            </div>
+            
+            <div class="resumen-divider"></div>
+            
+            <div class="resumen-section">
+              <h5><i class="fas fa-calendar-alt"></i> Detalles de la Reserva</h5>
+              <div class="resumen-row">
+                <span class="resumen-label">Fecha:</span>
+                <span class="resumen-value">{{ reservaData.fechaReserva | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="resumen-row">
+                <span class="resumen-label">Horario:</span>
+                <span class="resumen-value">{{ reservaData.horario }}</span>
+              </div>
+              <div class="resumen-row">
+                <span class="resumen-label">Comensales:</span>
+                <span class="resumen-value">{{ reservaData.cantidadComensales }} personas</span>
+              </div>
+              <div class="resumen-row">
+                <span class="resumen-label">Evento:</span>
+                <span class="resumen-value">{{ getEventoDisplayName(reservaData.evento) }}</span>
+              </div>
             </div>
           </div>
         </div>
-
-        <!-- Resumen de la reserva -->
-        <div class="reserva-resumen">
-          <h4>Resumen de tu reserva</h4>
-          <div class="resumen-item">
-            <strong>Comensales:</strong> {{ reservaData.cantidadComensales }} personas
-          </div>
-          <div class="resumen-item">
-            <strong>Fecha:</strong> {{ reservaData.fechaReserva | date:'dd/MM/yyyy' }}
-          </div>
-          <div class="resumen-item">
-            <strong>Evento:</strong> {{ getEventoDisplayName(reservaData.evento) }}
-          </div>
-          <div class="resumen-item">
-            <strong>Horario:</strong> {{ reservaData.horario }}
-          </div>
-        </div>
-      </form>
+      </div>
+      </div>
     </div>
 
     <!-- Botones de navegación -->
@@ -308,7 +413,6 @@
               <th scope="col">#</th>
               <th scope="col">Nº Reserva</th>
               <th scope="col">Cliente</th>
-              <th scope="col">Mesa</th>
               <th scope="col">Fecha</th>
               <th scope="col">Horario</th>
               <th scope="col">Comensales</th>
@@ -319,7 +423,7 @@
           <tbody class="table-group-divider">
             <!-- Mostrar mensaje si no hay datos -->
             <tr *ngIf="reservas.length === 0">
-              <td colspan="9" class="text-center text-muted py-4">
+              <td colspan="8" class="text-center text-muted py-4">
                 No se encontraron reservas
               </td>
             </tr>
@@ -328,8 +432,7 @@
             <tr *ngFor="let reserva of reservas; let i = index">
               <th scope="row">{{ i + 1 + (paginaActual * tamanoPagina) }}</th>
               <td>{{ reserva.nroReserva }}</td>
-              <td>{{ getNombreCliente(reserva.idPersona) }}</td>
-              <td>Mesa {{ getNumeroMesa(reserva.idMesa) }}</td>
+              <td>{{ getNombreCliente(reserva.idPersona, reserva) }}</td>
               <td>{{ reserva.fechaReserva | date:'dd/MM/yyyy' }}</td>
               <td>{{ reserva.horario }}</td>
               <td>{{ reserva.cantidadComensales }}</td>
@@ -408,7 +511,6 @@
       </div>
     </div>
   </div>
-</div>
 
 <!-- Modal de Reportes -->
 <app-reportes-modal #reportesModal></app-reportes-modal>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbDropdownModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PedidoService } from '../../../services/pedido.service';
@@ -8,12 +8,13 @@ import { AuthService } from '../../../services/auth.service';
 import { Page } from '../../models/CommonModels';
 import { GetPedidoDto, EstadoPedido, FiltrosPedido } from '../../models/PedidoModel';
 import { PedidoModalComponent } from '../../modales/pedido-modal/pedido-modal.component';
+import { ReportesModalComponent } from '../../modales/reportes-modal/reportes-modal.component';
 import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-pedidos',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgbDropdownModule],
+  imports: [CommonModule, FormsModule, NgbDropdownModule, ReportesModalComponent],
   templateUrl: './pedidos.component.html',
   styleUrl: './pedidos.component.css'
 })
@@ -35,6 +36,9 @@ export class PedidosComponent implements OnInit {
 
   // ✅ Loading
   cargando: boolean = false;
+
+  // ✅ Modal de reportes
+  @ViewChild('reportesModal') reportesModal!: ReportesModalComponent;
 
   get Math() {
     return Math;
@@ -374,6 +378,11 @@ export class PedidosComponent implements OnInit {
     }
 
     return pedido.detalles.every(detalle => detalle.estado === 'LISTO_PARA_ENTREGAR' || detalle.estado === 'ENTREGADO');
+  }
+
+  // Método para abrir el modal de reportes
+  abrirReportes() {
+    this.reportesModal.show('pedidos');
   }
 
 }

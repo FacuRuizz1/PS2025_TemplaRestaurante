@@ -24,10 +24,6 @@ public class ReservaEntity {
     private PersonaEntity persona;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_mesa",nullable = false)
-    private MesaEntity mesa;
-
-    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_disponibilidad", nullable = false)
     private DisponibilidadEntity disponibilidad;
 

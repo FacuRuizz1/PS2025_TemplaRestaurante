@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductoModalComponent } from '../../modales/producto-modal/producto-modal.component';
+import { ReportesModalComponent } from '../../modales/reportes-modal/reportes-modal.component';
 import { ProductoService } from '../../../services/producto.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ProductoDTO, PostProductoDTO, TipoProducto, FiltroProducto } from '../../models/ProductoModel';
@@ -12,7 +13,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReportesModalComponent],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.css'
 })
@@ -34,6 +35,9 @@ export class ProductosComponent implements OnInit {
   // ✅ Loading
   cargando: boolean = false;
   error: string = '';
+
+  // ✅ Modal de reportes
+  @ViewChild('reportesModal') reportesModal!: ReportesModalComponent;
 
   TipoProducto = TipoProducto;
 
@@ -430,5 +434,10 @@ export class ProductosComponent implements OnInit {
     });
     console.log('tipo específicamente:', producto.tipo);
     console.log('=====================');
+  }
+
+  // ✅ Método para abrir el modal de reportes
+  abrirReportes() {
+    this.reportesModal.show('stock');
   }
 }

@@ -1,8 +1,10 @@
 package Templa.Tesis.App.servicies.impl;
 
 import Templa.Tesis.App.Enums.TipoProducto;
+import Templa.Tesis.App.Enums.UnidadMedida;
 import Templa.Tesis.App.dtos.PostProductoDTO;
 import Templa.Tesis.App.dtos.ProductoDTO;
+import Templa.Tesis.App.dtos.ReporteStockBajoDTO;
 import Templa.Tesis.App.entities.ProductoEntity;
 import Templa.Tesis.App.repositories.ProductoRepository;
 import Templa.Tesis.App.servicies.IProductoService;
@@ -18,6 +20,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -193,5 +198,21 @@ public class ProductoServiceImpl implements IProductoService {
             menuService.reactivarMenusQueUsan(idProducto);
         }
         productoRepository.save(producto);
+    }
+
+    @Override
+    public List<ReporteStockBajoDTO> obtenerProductosStockBajo() {
+        List<Object[]> resultados = productoRepository.findProductosStockBajo();
+
+        return resultados.stream()
+                .map(resultado -> new ReporteStockBajoDTO(
+                        (String) resultado[0],
+                        (TipoProducto) resultado[1],
+                        (UnidadMedida) resultado[2],
+                        (Double) resultado[3],
+                        (Double) resultado[4],
+                        Double.valueOf(((Double) resultado[4]) - ((Double) resultado[3])) // cantidad faltante
+                ))
+                .collect(Collectors.toList());
     }
 }

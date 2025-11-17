@@ -29,4 +29,17 @@ public interface PlatoRepository extends JpaRepository<PlatoEntity, Integer>, Jp
             "WHERE i.producto.id = :idProducto")
     List<PlatoEntity> findByIngredienteProductoId(@Param("idProducto") Integer idProducto);
 
+    @Query("SELECT p.nombre, " +
+            "SIZE(p.ingredientes), " +
+            "CASE WHEN p.fechaBaja IS NULL THEN true ELSE false END, " +
+            "p.tipoPlato " +
+            "FROM PlatoEntity p " +
+            "WHERE p.fechaBaja IS NULL " +
+            "ORDER BY SIZE(p.ingredientes) DESC")
+    List<Object[]> findPlatosPorCantidadProductos();
+
+
+
+
+
 }

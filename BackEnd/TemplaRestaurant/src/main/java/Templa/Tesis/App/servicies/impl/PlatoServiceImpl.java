@@ -126,15 +126,15 @@ public class PlatoServiceImpl implements IPlatoService {
     @Override
     @Transactional
     public GetPlatoDto createPlato(PostPlatoDto platoNuevo, MultipartFile imagen) {
-        if(platoNuevo.getNombre().isBlank()){
+        if (platoNuevo.getNombre().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar un nombre válido");
         }
 
-        if(platoNuevo.getPrecio() == null || platoNuevo.getPrecio() <= 0){
+        if (platoNuevo.getPrecio() == null || platoNuevo.getPrecio() <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar un precio válido");
         }
 
-        if(platoNuevo.getIngredientes() == null || platoNuevo.getIngredientes().isEmpty()){
+        if (platoNuevo.getIngredientes() == null || platoNuevo.getIngredientes().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar al menos un ingrediente");
         }
 
@@ -144,7 +144,7 @@ public class PlatoServiceImpl implements IPlatoService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El plato ya existe.");
         }
 
-        try{
+        try {
             String urlImagen = null;
             if (imagen != null && !imagen.isEmpty()) {
                 urlImagen = s3Service.uploadFile(imagen);
@@ -173,8 +173,7 @@ public class PlatoServiceImpl implements IPlatoService {
 
             return convertToDto(guardado);
 
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             throw e;
         }
     }
@@ -182,11 +181,11 @@ public class PlatoServiceImpl implements IPlatoService {
     @Override
     public GetPlatoDto updatePlato(GetPlatoDto platoActualizado, MultipartFile imagen) {
 
-        if(platoActualizado.getNombre().isBlank()){
+        if (platoActualizado.getNombre().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar un nombre válido");
         }
 
-        if(platoActualizado.getPrecio() == null || platoActualizado.getPrecio() <= 0){
+        if (platoActualizado.getPrecio() == null || platoActualizado.getPrecio() <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar un precio válido");
         }
 
@@ -212,7 +211,6 @@ public class PlatoServiceImpl implements IPlatoService {
             platoExistente.setFoto(urlImagen != null ? urlImagen : platoActualizado.getFoto());
 
             PlatoEntity platoGuardado = platoRepository.save(platoExistente);
-
 
 
             updateIngredientes(platoGuardado, platoActualizado.getIngredientes());
@@ -323,5 +321,19 @@ public class PlatoServiceImpl implements IPlatoService {
                 System.out.println("Plato reactivado: " + plato.getNombre());
             }
         }
+    }
+
+    @Override
+    public List<ReportePlatoProductosDTO> obtenerReportePlatosPorProductos() {
+        List<Object[]> resultados = platoRepository.findPlatosPorCantidadProductos();
+
+        return resultados.stream()
+                .map(resultado -> new ReportePlatoProductosDTO(
+                        (String) resultado[0],           // nombrePlato
+                        ((Number) resultado[1]).intValue(), // cantidadProductos
+                        (Boolean) resultado[2],          // platoActivo
+                        (TipoPlato) resultado[3]         // ya es TipoPlato, no String
+                ))
+                .collect(Collectors.toList());
     }
 }

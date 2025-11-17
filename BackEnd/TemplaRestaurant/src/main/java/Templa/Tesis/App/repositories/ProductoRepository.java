@@ -21,6 +21,10 @@ public interface ProductoRepository extends JpaRepository<ProductoEntity,Integer
     @Query("SELECT p FROM ProductoEntity p WHERE p.id = :id")
     Optional<ProductoEntity> findByIdWithLock(@Param("id") Integer id);
 
-
+    @Query("SELECT p.nombre, p.tipo, p.unidadMedida, p.stockActual, p.stockMinimo " +
+            "FROM ProductoEntity p " +
+            "WHERE p.activo = true AND p.stockActual <= p.stockMinimo " +
+            "ORDER BY (p.stockMinimo - p.stockActual) DESC")
+    List<Object[]> findProductosStockBajo();
 
 }

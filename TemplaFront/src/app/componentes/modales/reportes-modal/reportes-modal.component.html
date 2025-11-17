@@ -1,18 +1,48 @@
-<div class="modal" [class.show]="isVisible" [style.display]="isVisible ? 'block' : 'none'">
+<!-- Contenido del modal (funciona tanto para NgBootstrap como standalone) -->
+<div class="modal" [class.show]="isVisible" [style.display]="isVisible ? 'block' : 'none'" *ngIf="!activeModal">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
+      <ng-container *ngTemplateOutlet="modalContent"></ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop del modal solo cuando no se usa NgBootstrap -->
+<div class="modal-backdrop fade" [class.show]="isVisible" *ngIf="isVisible && !activeModal" (click)="hide()"></div>
+
+<!-- Contenido para NgBootstrap -->
+<div class="modal-content" *ngIf="activeModal">
+  <ng-container *ngTemplateOutlet="modalContent"></ng-container>
+</div>
+
+<!-- Template del contenido del modal -->
+<ng-template #modalContent>
       <div class="modal-header">
-        <h5 class="modal-title">
+        <h4 class="modal-title">
           <i class="fas fa-chart-bar me-2"></i>
-          Reportes de Reservas
-        </h5>
+          {{ getTituloModal() }}
+        </h4>
         <button type="button" class="btn-close" (click)="hide()"></button>
       </div>
       
       <div class="modal-body">
         <!-- Controles de filtro -->
         <div class="row mb-4">
-          <div class="col-md-3">
+          <div class="col-md-2">
+            <label for="categoriaReporte" class="form-label">Categoría:</label>
+            <select
+              id="categoriaReporte"
+              class="form-select"
+              [(ngModel)]="categoriaReporte"
+              (change)="onCategoriaReporteChange()">
+              <option value="reservas">Reservas</option>
+              <option value="pedidos">Pedidos</option>
+              <option value="stock">Stock Bajo</option>
+              <option value="platos">Platos</option>
+            </select>
+          </div>
+          
+          <div class="col-md-3" *ngIf="categoriaReporte !== 'stock' && categoriaReporte !== 'platos'">
             <label for="fechaInicio" class="form-label">Fecha Inicio:</label>
             <input
               type="date"
@@ -22,7 +52,7 @@
               (change)="generarReporte()">
           </div>
           
-          <div class="col-md-3">
+          <div class="col-md-3" *ngIf="categoriaReporte !== 'stock' && categoriaReporte !== 'platos'">
             <label for="fechaFin" class="form-label">Fecha Fin:</label>
             <input
               type="date"
@@ -32,8 +62,8 @@
               (change)="generarReporte()">
           </div>
           
-          <div class="col-md-3">
-            <label for="tipoReporte" class="form-label">Tipo de Reporte:</label>
+          <div class="col-md-2" *ngIf="categoriaReporte === 'reservas'">
+            <label for="tipoReporte" class="form-label">Tipo:</label>
             <select
               id="tipoReporte"
               class="form-select"
@@ -44,7 +74,7 @@
             </select>
           </div>
           
-          <div class="col-md-3 d-flex align-items-end">
+          <div class="col-md-2 d-flex align-items-end">
             <button
               type="button"
               class="btn btn-primary"
@@ -57,20 +87,29 @@
         
         <!-- Área del gráfico -->
         <div class="chart-container">
-          <div id="chart-fechas" *ngIf="tipoReporte === 'fechas'"></div>
-          <div id="chart-horarios" *ngIf="tipoReporte === 'horarios'"></div>
+          <div id="chart-fechas" *ngIf="categoriaReporte === 'reservas' && tipoReporte === 'fechas'"></div>
+          <div id="chart-horarios" *ngIf="categoriaReporte === 'reservas' && tipoReporte === 'horarios'"></div>
+          <div id="chart-pedidos" *ngIf="categoriaReporte === 'pedidos'"></div>
+          <div id="chart-stock" *ngIf="categoriaReporte === 'stock'"></div>
+          <div id="chart-platos" *ngIf="categoriaReporte === 'platos'"></div>
         </div>
       </div>
       
       <div class="modal-footer">
+        <button 
+          type="button" 
+          class="btn btn-success me-2" 
+          (click)="exportarPDF()"
+          [disabled]="(categoriaReporte === 'reservas' && (!datosReporte || datosReporte.length === 0)) || 
+                     (categoriaReporte === 'pedidos' && (!datosPedidos || datosPedidos.length === 0)) ||
+                     (categoriaReporte === 'stock' && (!datosStock || datosStock.length === 0)) ||
+                     (categoriaReporte === 'platos' && (!datosPlatos || datosPlatos.length === 0))">
+          <i class="fas fa-file-pdf me-1"></i>
+          Exportar PDF
+        </button>
         <button type="button" class="btn btn-secondary" (click)="hide()">
           <i class="fas fa-times me-1"></i>
           Cerrar
         </button>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- Backdrop del modal -->
-<div class="modal-backdrop fade" [class.show]="isVisible" *ngIf="isVisible" (click)="hide()"></div>
+</ng-template>

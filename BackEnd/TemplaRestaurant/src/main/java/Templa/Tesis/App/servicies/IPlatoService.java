@@ -2,9 +2,12 @@ package Templa.Tesis.App.servicies;
 
 import Templa.Tesis.App.dtos.GetPlatoDto;
 import Templa.Tesis.App.dtos.PostPlatoDto;
+import Templa.Tesis.App.dtos.ReportePlatoProductosDTO;
 import Templa.Tesis.App.entities.PlatoEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface IPlatoService {
     Page<GetPlatoDto> getPlatos(int page, int size);
@@ -18,4 +21,6 @@ public interface IPlatoService {
     void desactivarPlatosQueUsan(Integer idProducto);
 
     void reactivarPlatosQueUsan(Integer idProducto);
+
+    List<ReportePlatoProductosDTO> obtenerReportePlatosPorProductos();
 }

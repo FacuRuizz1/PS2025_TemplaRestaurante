@@ -9,7 +9,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
 import { EventoReserva } from '../../models/EventoReserva';
 import { DisponibilidadModel } from '../../models/DisponibilidadModel';
-import { Persona } from '../../models/PersonaModel';
+import { Persona, PostPersonaDto, TipoPersona } from '../../models/PersonaModel';
 import { GetMesaDto } from '../../models/MesasModel';
 import { PostReservaModel, ReservaModel } from '../../models/ReservaModel';
 import { ReportesModalComponent } from '../../modales/reportes-modal/reportes-modal.component';
@@ -22,9 +22,15 @@ interface ReservaData {
   evento: EventoReserva | null;
   horario: string;
   idPersona: number;
-  idMesa: number;
+  idMesa?: number; // Opcional ya que la mesa se asigna automáticamente
   idDisponibilidad: number;
   nroReserva?: number;
+  // Datos del cliente
+  nombre?: string;
+  apellido?: string;
+  dni?: string;
+  telefono?: string;
+  email?: string;
 }
 
 @Component({
@@ -44,7 +50,6 @@ export class ReservasComponent implements OnInit {
     evento: null,
     horario: '',
     idPersona: 0,
-    idMesa: 0,
     idDisponibilidad: 0
   };
 
@@ -60,11 +65,17 @@ export class ReservasComponent implements OnInit {
   EventoReserva = EventoReserva;
   eventosReserva = Object.values(EventoReserva);
   
-  // Horarios disponibles
-  horariosDisponibles = [
-    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-    '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'
-  ];
+  // Horarios disponibles (dinámicos según evento)
+  horariosDisponibles: string[] = [];
+  
+  // Horarios por evento
+  private horariosPorEvento = {
+    [EventoReserva.ALMUERZO]: ['12:00', '12:30', '13:00', '13:30', '14:00', '14:30'],
+    [EventoReserva.CENA]: ['20:00', '20:30', '21:00', '21:30', '22:00'],
+    // Otros eventos pueden elegir cualquier horario
+    [EventoReserva.CUMPLEAÑOS]: ['12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'],
+    [EventoReserva.VIP]: ['12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00']
+  };
 
   // Calendario
   mesActual = new Date();
@@ -119,14 +130,17 @@ export class ReservasComponent implements OnInit {
     this.initializeForms();
   }
 
-  ngOnInit() {
-    this.cargarDatos();
+  async ngOnInit() {
+    await this.cargarDatos();
     this.generarCalendario();
     this.aplicarFiltros(); // Usar filtros desde el inicio como mesas
     
     // Inicializar filtros por defecto
     this.eventoSeleccionado = 'TODOS';
     this.busqueda = '';
+    
+    // Inicializar horarios con todos los horarios disponibles
+    this.horariosDisponibles = ['12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'];
     
     console.log('🚀 Componente inicializado, filtros:', {
       evento: this.eventoSeleccionado,
@@ -152,8 +166,11 @@ export class ReservasComponent implements OnInit {
     });
 
     this.personaMesaForm = this.fb.group({
-      idPersona: [0, [Validators.required, Validators.min(1)]],
-      idMesa: [0, [Validators.required, Validators.min(1)]]
+      nombre: ['', [Validators.required, Validators.minLength(2)]],
+      apellido: ['', [Validators.required, Validators.minLength(2)]],
+      dni: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
+      telefono: ['', [Validators.required, Validators.minLength(8)]],
+      email: ['', [Validators.email]]
     });
   }
 
@@ -180,15 +197,7 @@ export class ReservasComponent implements OnInit {
     });
 
     // Cargar personas
-    this.personaService.obtenerPersonas(0, 100).subscribe({
-      next: (data: any) => {
-        this.personas = data.content || data;
-      },
-      error: (error: any) => {
-        console.error('Error al cargar personas:', error);
-        // Solo log del error, sin notificación
-      }
-    });
+    this.cargarPersonas();
 
     // Cargar mesas
     this.mesaService.getMesas(0, 100).subscribe({
@@ -207,8 +216,47 @@ export class ReservasComponent implements OnInit {
       this.updateReservaData();
       if (this.currentStep < this.totalSteps) {
         this.currentStep++;
+        
+        // Si llegamos al paso 4 (horarios), actualizar horarios disponibles
+        if (this.currentStep === 4) {
+          this.actualizarHorariosDisponibles();
+        }
       }
     }
+  }
+  
+  private actualizarHorariosDisponibles() {
+    const eventoSeleccionado = this.eventoForm.get('evento')?.value as EventoReserva;
+    if (eventoSeleccionado && this.horariosPorEvento[eventoSeleccionado]) {
+      this.horariosDisponibles = this.horariosPorEvento[eventoSeleccionado];
+    } else {
+      // Fallback: todos los horarios disponibles
+      this.horariosDisponibles = ['12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'];
+    }
+    
+    // Limpiar selección de horario si el horario actual no está disponible
+    const horarioActual = this.horarioForm.get('horario')?.value;
+    if (horarioActual && !this.horariosDisponibles.includes(horarioActual)) {
+      this.horarioForm.patchValue({ horario: '' });
+    }
+  }
+
+  cargarPersonas(): Promise<void> {
+    console.log('🔄 Iniciando carga de personas...');
+    return new Promise((resolve, reject) => {
+      this.personaService.obtenerPersonas(0, 1000).subscribe({
+        next: (data: any) => {
+          this.personas = data.content || data;
+          console.log('✅ Personas cargadas exitosamente:', this.personas.length);
+          console.log('📋 Personas:', this.personas.map(p => ({ id: p.id, nombre: p.nombre, apellido: p.apellido })));
+          resolve();
+        },
+        error: (error: any) => {
+          console.error('❌ Error al cargar personas:', error);
+          reject(error);
+        }
+      });
+    });
   }
 
   prevStep() {
@@ -253,9 +301,13 @@ export class ReservasComponent implements OnInit {
         this.reservaData.horario = this.horarioForm.get('horario')?.value;
         break;
       case 5:
-        this.reservaData.idPersona = Number(this.personaMesaForm.get('idPersona')?.value);
-        this.reservaData.idMesa = Number(this.personaMesaForm.get('idMesa')?.value);
-        console.log('Datos actualizados - Persona ID:', this.reservaData.idPersona, 'Mesa ID:', this.reservaData.idMesa);
+        // Guardar datos del cliente
+        this.reservaData.nombre = this.personaMesaForm.get('nombre')?.value;
+        this.reservaData.apellido = this.personaMesaForm.get('apellido')?.value;
+        this.reservaData.dni = this.personaMesaForm.get('dni')?.value;
+        this.reservaData.telefono = this.personaMesaForm.get('telefono')?.value;
+        this.reservaData.email = this.personaMesaForm.get('email')?.value;
+        console.log('Datos actualizados - Cliente:', this.reservaData.nombre, this.reservaData.apellido);
         break;
     }
   }
@@ -286,7 +338,7 @@ export class ReservasComponent implements OnInit {
       case 2: return 'Seleccionar Fecha';
       case 3: return 'Tipo de Evento';
       case 4: return 'Horario';
-      case 5: return 'Cliente y Mesa';
+      case 5: return 'Datos del Cliente';
       default: return '';
     }
   }
@@ -306,20 +358,10 @@ export class ReservasComponent implements OnInit {
     this.updateReservaData();
 
     // Validaciones adicionales
-    if (!this.reservaData.idPersona || this.reservaData.idPersona === 0) {
+    if (!this.reservaData.nombre || !this.reservaData.apellido || !this.reservaData.dni || !this.reservaData.telefono) {
       Swal.fire({
-        title: 'Cliente requerido',
-        text: 'Debe seleccionar un cliente',
-        icon: 'warning',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-
-    if (!this.reservaData.idMesa || this.reservaData.idMesa === 0) {
-      Swal.fire({
-        title: 'Mesa requerida',
-        text: 'Debe seleccionar una mesa',
+        title: 'Datos del cliente incompletos',
+        text: 'Debe completar todos los datos requeridos del cliente',
         icon: 'warning',
         confirmButtonText: 'OK'
       });
@@ -342,6 +384,12 @@ export class ReservasComponent implements OnInit {
       return;
     }
 
+    // Verificar si es evento VIP para mostrar modal de pago
+    if (this.reservaData.evento === EventoReserva.VIP && !this.isEditMode) {
+      this.mostrarModalPagoVIP();
+      return;
+    }
+
     if (this.isEditMode && this.editingReservaId) {
       // Modo edición
       this.actualizarReservaExistente();
@@ -354,44 +402,74 @@ export class ReservasComponent implements OnInit {
   private crearNuevaReserva() {
     const nroReserva = this.generarNumeroReserva();
     
-    const nuevaReserva: PostReservaModel = {
-      idPersona: Number(this.reservaData.idPersona),
-      idMesa: Number(this.reservaData.idMesa),
-      idDisponibilidad: Number(this.reservaData.idDisponibilidad),
-      nroReserva: nroReserva,
-      cantidadComensales: Number(this.reservaData.cantidadComensales),
-      fechaReserva: this.reservaData.fechaReserva,
-      evento: this.reservaData.evento!,
-      horario: this.reservaData.horario
+    // Primero crear la persona con los datos ingresados
+    const nuevaPersona: PostPersonaDto = {
+      nombre: this.reservaData.nombre!,
+      apellido: this.reservaData.apellido!,
+      dni: Number(this.reservaData.dni!),
+      telefono: this.reservaData.telefono!,
+      email: this.reservaData.email || '',
+      tipoPersona: TipoPersona.CLIENTE,
+      userAlta: 1 // ID del usuario logueado (puedes ajustar esto según tu lógica)
     };
 
-    console.log('Datos de la nueva reserva a enviar:', nuevaReserva);
-    console.log('URL del endpoint:', `${environment.apiUrl}/reserva/crear`);
-    console.log('Token presente:', this.authService.getToken() ? 'Sí' : 'No');
+    console.log('Creando persona:', nuevaPersona);
 
-    this.reservaService.crearReserva(nuevaReserva).subscribe({
-      next: (response) => {
-        console.log('Respuesta exitosa:', response);
-        Swal.fire({
-          title: '¡Reserva Confirmada!',
-          text: `Su reserva #${nroReserva} ha sido creada exitosamente`,
-          icon: 'success',
-          confirmButtonText: 'Continuar',
-          confirmButtonColor: '#27ae60'
-        }).then(() => {
-          this.resetForm();
-          this.cambiarVista('lista');
+    // Crear persona primero
+    this.personaService.crearPersona(nuevaPersona).subscribe({
+      next: (personaCreada) => {
+        console.log('Persona creada exitosamente:', personaCreada);
+        
+        // Agregar la persona recién creada a la lista local inmediatamente
+        this.personas.push(personaCreada);
+        console.log('✅ Persona agregada a lista local:', personaCreada);
+        
+        // Ahora crear la reserva con el ID de la persona creada
+        const nuevaReserva: PostReservaModel = {
+          idPersona: personaCreada.id!,
+          idDisponibilidad: Number(this.reservaData.idDisponibilidad),
+          nroReserva: nroReserva,
+          cantidadComensales: Number(this.reservaData.cantidadComensales),
+          fechaReserva: this.reservaData.fechaReserva,
+          evento: this.reservaData.evento!,
+          horario: this.reservaData.horario
+        };
+
+        console.log('Datos de la nueva reserva a enviar:', nuevaReserva);
+        console.log('URL del endpoint:', `${environment.apiUrl}/reserva/crear`);
+        console.log('Token presente:', this.authService.getToken() ? 'Sí' : 'No');
+
+        this.reservaService.crearReserva(nuevaReserva).subscribe({
+          next: (response) => {
+            console.log('Respuesta exitosa:', response);
+            Swal.fire({
+              title: '¡Reserva Confirmada!',
+              text: `Su reserva #${nroReserva} ha sido creada exitosamente para ${personaCreada.nombre} ${personaCreada.apellido}`,
+              icon: 'success',
+              confirmButtonText: 'Continuar',
+              confirmButtonColor: '#27ae60'
+            }).then(async () => {
+              this.resetForm();
+              // cambiarVista ya se encarga de cargar personas
+              await this.cambiarVista('lista');
+            });
+          },
+          error: (error: any) => {
+            console.error('Error al crear reserva:', error);
+            Swal.fire({
+              title: 'Error al crear reserva',
+              text: 'No se pudo crear la reserva. Por favor intente nuevamente.',
+              icon: 'error',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#e74c3c'
+            });
+          }
         });
       },
       error: (error: any) => {
-        console.error('Error completo:', error);
-        console.error('URL llamada:', error.url);
-        console.error('Status:', error.status);
-        console.error('Status text:', error.statusText);
-        console.error('Error details:', error.error);
-        console.error('Headers:', error.headers);
+        console.error('Error al crear persona:', error);
         Swal.fire({
-          title: 'Error al crear reserva',
+          title: 'Error al registrar cliente',
           text: error.error?.message || `Error ${error.status}: ${error.statusText}`,
           icon: 'error',
           confirmButtonText: 'OK',
@@ -404,7 +482,6 @@ export class ReservasComponent implements OnInit {
   private actualizarReservaExistente() {
     const reservaActualizada: PostReservaModel = {
       idPersona: Number(this.reservaData.idPersona),
-      idMesa: Number(this.reservaData.idMesa),
       idDisponibilidad: Number(this.reservaData.idDisponibilidad),
       nroReserva: Number(this.reservaData.nroReserva || this.generarNumeroReserva()),
       cantidadComensales: Number(this.reservaData.cantidadComensales),
@@ -445,6 +522,84 @@ export class ReservasComponent implements OnInit {
     return Math.floor(Math.random() * 900000) + 100000; // Genera un número de 6 dígitos
   }
 
+  private mostrarModalPagoVIP() {
+    const precioVIP = 100000;
+    
+    Swal.fire({
+      title: '👑 Reserva VIP',
+      html: `
+        <div style="text-align: center; padding: 20px;">
+          <div style="font-size: 1.2em; margin-bottom: 20px; color: #2c3e50;">
+            Para confirmar su <strong>reserva VIP</strong>, debe abonar:
+          </div>
+          <div style="font-size: 2.5em; font-weight: bold; color: #f39c12; margin: 20px 0;">
+            $${precioVIP.toLocaleString('es-AR')}
+          </div>
+          <div style="font-size: 1em; color: #7f8c8d; margin-bottom: 20px;">
+            El pago debe realizarse <strong>en este momento</strong> para confirmar la reserva.
+          </div>
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <i class="fas fa-crown" style="color: #f39c12; margin-right: 8px;"></i>
+            <strong>Beneficios VIP incluidos</strong>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-credit-card"></i> Aceptar y Abonar',
+      cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+      confirmButtonColor: '#27ae60',
+      cancelButtonColor: '#e74c3c',
+      customClass: {
+        popup: 'vip-payment-modal',
+        confirmButton: 'btn-pago-vip',
+        cancelButton: 'btn-cancelar-vip'
+      },
+      showLoaderOnConfirm: true,
+      preConfirm: () => {
+        return this.procesarPagoVIP();
+      }
+    }).then((result) => {
+      if (result.isDismissed) {
+        // Usuario canceló - no hacer nada, mantener en el formulario
+        Swal.fire({
+          title: 'Reserva cancelada',
+          text: 'La reserva VIP no fue confirmada',
+          icon: 'info',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  }
+
+  private async procesarPagoVIP(): Promise<void> {
+    try {
+      // Aquí iría la integración con MercadoPago
+      // Por ahora simularemos la redirección
+      
+      // Mostrar loading
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Redireccionar a MercadoPago (URL de ejemplo)
+      const urlMercadoPago = 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=ejemplo-vip-reservation';
+      
+      // Abrir en nueva ventana/tab
+      window.open(urlMercadoPago, '_blank');
+      
+      // Opcional: Mostrar mensaje de confirmación
+      Swal.fire({
+        title: '¡Redirigiendo a MercadoPago!',
+        text: 'Se abrió una nueva ventana para completar el pago. Una vez confirmado el pago, su reserva VIP será procesada.',
+        icon: 'success',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#27ae60'
+      });
+      
+    } catch (error) {
+      console.error('Error al procesar pago VIP:', error);
+      throw new Error('Error al procesar el pago');
+    }
+  }
+
   resetForm() {
     this.prepararNuevaReserva();
   }
@@ -458,11 +613,7 @@ export class ReservasComponent implements OnInit {
     );
   }
 
-  getMesasDisponibles(): GetMesaDto[] {
-    return this.mesas.filter(mesa => 
-      mesa.estadoMesa === 'DISPONIBLE'
-    );
-  }
+
 
   // Métodos del calendario
   crearDisponibilidadesEjemplo() {
@@ -647,10 +798,17 @@ export class ReservasComponent implements OnInit {
   }
 
   // Métodos para la navegación entre vistas
-  cambiarVista(vista: 'nueva' | 'lista') {
+  async cambiarVista(vista: 'nueva' | 'lista') {
     this.currentView = vista;
     if (vista === 'lista') {
-      this.cargarReservasIniciales();
+      // Cargar personas primero, luego reservas
+      try {
+        await this.cargarPersonas();
+        this.cargarReservasIniciales();
+      } catch (error) {
+        console.error('Error al cargar personas:', error);
+        this.cargarReservasIniciales(); // Cargar reservas aunque falle personas
+      }
     } else if (vista === 'nueva') {
       // Si no estamos en modo edición, resetear el formulario
       if (!this.isEditMode) {
@@ -786,13 +944,11 @@ export class ReservasComponent implements OnInit {
     if (this.busqueda && this.busqueda.trim()) {
       const termino = this.busqueda.toLowerCase().trim();
       reservasFiltradas = reservasFiltradas.filter(reserva => {
-        const nombreCliente = this.getNombreCliente(reserva.idPersona).toLowerCase();
-        const numeroMesa = this.getNumeroMesa(reserva.idMesa).toLowerCase();
+        const nombreCliente = this.getNombreCliente(reserva.idPersona, reserva).toLowerCase();
         const nroReserva = reserva.nroReserva?.toString() || '';
         const evento = this.getEventoDisplayName(reserva.evento).toLowerCase();
         
         return nombreCliente.includes(termino) ||
-               numeroMesa.includes(termino) ||
                nroReserva.includes(termino) ||
                evento.includes(termino);
       });
@@ -815,14 +971,24 @@ export class ReservasComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  getNombreCliente(idPersona: number): string {
+  getNombreCliente(idPersona: number, reserva?: ReservaModel): string {
+    // Si la reserva incluye el nombre del backend, usarlo directamente
+    if (reserva?.nombrePersona) {
+      return reserva.nombrePersona;
+    }
+    
+    // Si tenemos datos de cliente recién creado, usarlos
+    if (reserva?.nombreCliente && reserva?.apellidoCliente) {
+      return `${reserva.nombreCliente} ${reserva.apellidoCliente}`;
+    }
+    
+    // Fallback: buscar en la cache local de personas
     const persona = this.personas.find(p => p.id === idPersona);
-    return persona ? `${persona.nombre} ${persona.apellido}` : 'Cliente no encontrado';
-  }
-
-  getNumeroMesa(idMesa: number): string {
-    const mesa = this.mesas.find(m => m.idMesa === idMesa);
-    return mesa ? mesa.numeroMesa : 'Mesa no encontrada';
+    if (persona) {
+      return `${persona.nombre} ${persona.apellido}`;
+    }
+    
+    return 'Cliente no encontrado';
   }
 
   editarReserva(reserva: ReservaModel) {
@@ -837,7 +1003,6 @@ export class ReservasComponent implements OnInit {
       evento: reserva.evento,
       horario: reserva.horario,
       idPersona: reserva.idPersona,
-      idMesa: reserva.idMesa,
       idDisponibilidad: reserva.idDisponibilidad,
       nroReserva: reserva.nroReserva
     };
@@ -848,8 +1013,7 @@ export class ReservasComponent implements OnInit {
     this.eventoForm.patchValue({ evento: reserva.evento });
     this.horarioForm.patchValue({ horario: reserva.horario });
     this.personaMesaForm.patchValue({ 
-      idPersona: reserva.idPersona,
-      idMesa: reserva.idMesa 
+      idPersona: reserva.idPersona
     });
 
     // Ir al paso 1 y cambiar a vista nueva
@@ -942,6 +1106,6 @@ export class ReservasComponent implements OnInit {
 
   // Método para abrir el modal de reportes
   abrirReportes() {
-    this.reportesModal.show();
+    this.reportesModal.show('reservas');
   }
 }

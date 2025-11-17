@@ -8,6 +8,7 @@ import { ProductoDTO } from '../../models/ProductoModel';
 import { ProductoService } from '../../../services/producto.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PlatoModalComponent } from '../../modales/plato-modal/plato-modal.component';
+import { ReportesModalComponent } from '../../modales/reportes-modal/reportes-modal.component';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -435,6 +436,22 @@ private actualizarPlato(resultado: any): void {
   onModalCerrado(): void {
     console.log('Modal cerrado');
     // Lógica adicional si es necesaria
+  }
+
+  abrirReportes(): void {
+    const modalRef = this.modalService.open(ReportesModalComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      centered: true
+    });
+    modalRef.componentInstance.show('platos');
+    
+    // Manejar el cierre del modal
+    modalRef.result.then(() => {
+      console.log('Modal de reportes cerrado');
+    }).catch(() => {
+      console.log('Modal de reportes cancelado');
+    });
   }
 
 }
