@@ -1,8 +1,6 @@
 package Templa.Tesis.App.servicies;
 
-import Templa.Tesis.App.dtos.PostReservaDTO;
-import Templa.Tesis.App.dtos.ReporteReservasDTO;
-import Templa.Tesis.App.dtos.ReservaDTO;
+import Templa.Tesis.App.dtos.*;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -17,4 +15,8 @@ public interface IReservaService {
 
     List<ReporteReservasDTO> getReporteFechasConcurridas(LocalDate fechaInicio, LocalDate fechaFin);
     List<ReporteReservasDTO> getReporteHorariosConcurridos(LocalDate fechaInicio, LocalDate fechaFin);
+    
+    // Métodos para Mercado Pago / Reservas VIP
+    ReservaVipResponseDto crearReservaConPago(ReservaVipRequestDto request);
+    ReservaDTO obtenerReserva(Integer id);
 }

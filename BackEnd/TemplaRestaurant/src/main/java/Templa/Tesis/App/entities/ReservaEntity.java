@@ -1,5 +1,6 @@
 package Templa.Tesis.App.entities;
 
+import Templa.Tesis.App.Enums.EstadoReserva;
 import Templa.Tesis.App.Enums.EventoReserva;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,15 +27,32 @@ public class ReservaEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_disponibilidad", nullable = false)
     private DisponibilidadEntity disponibilidad;
-
+    @Column
     private int nroReserva;
-
+    @Column
     private int cantidadComensales;
 
+    @Column
     private LocalDate fechaReserva;
 
     @Enumerated(EnumType.STRING)
     private EventoReserva evento;
-
+    @Column
     private LocalTime horario;
+
+    @Column(name = "requiere_pago")
+    private Boolean requierePago = false;
+
+    @Column(name = "pago_completado")
+    private Boolean pagoCompletado = false;
+
+    @Column(name = "mercadopago_payment_id")
+    private String mercadoPagoPaymentId;
+
+    @Column(name = "mercadopago_preference_id")
+    private String mercadoPagoPreferenceId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_reserva")
+    private EstadoReserva estadoReserva;
 }

@@ -113,6 +113,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
+
+        <!--//////////////////////// DEPENDENCIA DE MERCADOPAGO ////////////////////////////-->
+        <dependency>
+            <groupId>com.mercadopago</groupId>
+            <artifactId>sdk-java</artifactId>
+            <version>2.1.29</version>
+        </dependency>
 	</dependencies>
 
 	<build>

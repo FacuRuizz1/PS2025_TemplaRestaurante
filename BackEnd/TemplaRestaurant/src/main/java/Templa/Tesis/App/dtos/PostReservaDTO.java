@@ -23,4 +23,9 @@ public class PostReservaDTO {
     private EventoReserva evento;
     @JsonFormat(pattern = "HH:mm")
     private LocalTime horario;
+
+    // Campos adicionales para reservas VIP
+    private String nombreCliente;
+    private String telefonoCliente;
+    private String ocasionEspecial;
 }

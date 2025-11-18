@@ -112,13 +112,13 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
     const userInfo = this.authService.getUserInfo();
     console.log('User Info para modo configuración:', userInfo); // Debug
     if (userInfo && userInfo.rol) {
-      const rolesPermitidos = ['ADMINISTRADOR', 'ENCARGADO', 'MOZO'];
+      const rolesPermitidos = ['ADMINISTRADOR', 'ENCARGADO'];
       this.puedeConfigurar = rolesPermitidos.includes(userInfo.rol);
       console.log('Puede configurar:', this.puedeConfigurar, '- Rol:', userInfo.rol); // Debug
     } else {
       // Si no hay rol o no está logueado, permitir temporalmente para pruebas
       console.warn('No se detectó rol. Habilitando modo configuración para pruebas.');
-      this.puedeConfigurar = true; // TEMPORAL: cambiar a false en producción
+      this.puedeConfigurar = false; // TEMPORAL: cambiar a false en producción
     }
   }
 
@@ -583,7 +583,7 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (error) => {
         console.error('❌ Error al obtener pedido:', error);
         this.alertService.showError('No se encontró pedido activo para esta mesa');
-      }
+      } 
     });
 
     this.cerrarMenuContextual();

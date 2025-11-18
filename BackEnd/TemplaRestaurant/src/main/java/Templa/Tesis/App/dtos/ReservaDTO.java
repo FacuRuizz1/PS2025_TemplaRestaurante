@@ -1,5 +1,6 @@
 package Templa.Tesis.App.dtos;
 
+import Templa.Tesis.App.Enums.EstadoReserva;
 import Templa.Tesis.App.Enums.EventoReserva;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -26,4 +27,8 @@ public class ReservaDTO {
     private EventoReserva evento;
     @JsonFormat(pattern = "HH:mm")
     private LocalTime horario;
+    private Boolean requierePago;
+    private Boolean pagoCompletado;
+    private String mercadoPagoPaymentId;
+    private EstadoReserva estadoReserva;
 }

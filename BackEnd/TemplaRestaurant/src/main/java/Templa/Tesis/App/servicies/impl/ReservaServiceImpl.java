@@ -1,8 +1,8 @@
 package Templa.Tesis.App.servicies.impl;
 
-import Templa.Tesis.App.dtos.PostReservaDTO;
-import Templa.Tesis.App.dtos.ReporteReservasDTO;
-import Templa.Tesis.App.dtos.ReservaDTO;
+import Templa.Tesis.App.Enums.EstadoReserva;
+import Templa.Tesis.App.Enums.EventoReserva;
+import Templa.Tesis.App.dtos.*;
 import Templa.Tesis.App.entities.DisponibilidadEntity;
 import Templa.Tesis.App.entities.MesaEntity;
 import Templa.Tesis.App.entities.PersonaEntity;
@@ -12,10 +12,19 @@ import Templa.Tesis.App.repositories.MesaRepository;
 import Templa.Tesis.App.repositories.PersonaRepository;
 import Templa.Tesis.App.repositories.ReservaRepository;
 import Templa.Tesis.App.servicies.IReservaService;
+import com.mercadopago.MercadoPagoConfig;
+import com.mercadopago.client.payment.PaymentClient;
+import com.mercadopago.client.preference.*;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
+import com.mercadopago.resources.preference.Preference;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,12 +35,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReservaServiceImpl implements IReservaService {
 
     private final ReservaRepository reservaRepository;
@@ -39,6 +50,7 @@ public class ReservaServiceImpl implements IReservaService {
     private final MesaRepository mesaRepository;
     private final PersonaRepository personaRepository;
     private final DisponibilidadRepository disponibilidadRepository;
+    private final MercadoPagoServiceImpl mercadoPagoService;
 
     @Override
     public ReservaDTO createReserva(PostReservaDTO postReservaDTO) {
@@ -217,6 +229,105 @@ public class ReservaServiceImpl implements IReservaService {
         if (fechaFin == null) fechaFin = LocalDate.now();
 
         return reservaRepository.findReservasPorHorario(fechaInicio, fechaFin);
+    }
+
+    @Override
+    @Transactional
+    public ReservaVipResponseDto crearReservaConPago(ReservaVipRequestDto request) {
+        PostReservaDTO reservaData = request.getReservaData();
+
+        // Validaciones básicas
+        if (reservaData.getNroReserva() == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar el numero de reserva");
+        }
+        if (reservaData.getCantidadComensales() == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe ingresar la cantidad de comensales");
+        }
+
+        // Verificar que la reserva no exista
+        ReservaEntity reservaExiste = reservaRepository.findByNroReserva(reservaData.getNroReserva());
+        if (reservaExiste != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La Reserva ya existe");
+        }
+
+        // Buscar entidades relacionadas
+        PersonaEntity persona = personaRepository.findById(reservaData.getIdPersona())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Persona no encontrada"));
+
+        DisponibilidadEntity disponibilidad = disponibilidadRepository.findById(reservaData.getIdDisponibilidad())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Disponibilidad no encontrada"));
+
+        // Verificar cupos disponibles
+        int cuposOcupados = disponibilidad.getCuposOcupados();
+        int cuposMaximos = disponibilidad.getCuposMaximos();
+
+        if (cuposOcupados + reservaData.getCantidadComensales() > cuposMaximos) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No hay cupos disponibles para esta fecha");
+        }
+
+        // Verificar si es reserva VIP
+        if (reservaData.getEvento() == EventoReserva.VIP) {
+            // Crear reserva en estado PENDIENTE_PAGO
+            ReservaEntity reserva = new ReservaEntity();
+            reserva.setPersona(persona);
+            reserva.setDisponibilidad(disponibilidad);
+            reserva.setNroReserva(reservaData.getNroReserva());
+            reserva.setCantidadComensales(reservaData.getCantidadComensales());
+            reserva.setFechaReserva(reservaData.getFechaReserva());
+            reserva.setEvento(reservaData.getEvento());
+            reserva.setHorario(reservaData.getHorario());
+            reserva.setRequierePago(true);
+            reserva.setPagoCompletado(false);
+            reserva.setEstadoReserva(EstadoReserva.PENDIENTE_PAGO);
+
+            ReservaEntity savedReserva = reservaRepository.save(reserva);
+
+            // Crear preferencia de Mercado Pago con el ID de la reserva
+            ReservaVipResponseDto mpResponse = mercadoPagoService.crearPreferenciaReservaVip(request, savedReserva.getId());
+
+            // Actualizar reserva con preferenceId
+            savedReserva.setMercadoPagoPreferenceId(mpResponse.getPreferenceId());
+            reservaRepository.save(savedReserva);
+
+            // NO actualizar cupos aquí, se actualizarán cuando el pago sea aprobado
+
+            mpResponse.setReservaId(savedReserva.getId());
+            return mpResponse;
+
+        } else {
+            // Reserva normal sin pago
+            ReservaEntity reserva = new ReservaEntity();
+            reserva.setPersona(persona);
+            reserva.setDisponibilidad(disponibilidad);
+            reserva.setNroReserva(reservaData.getNroReserva());
+            reserva.setCantidadComensales(reservaData.getCantidadComensales());
+            reserva.setFechaReserva(reservaData.getFechaReserva());
+            reserva.setEvento(reservaData.getEvento());
+            reserva.setHorario(reservaData.getHorario());
+            reserva.setRequierePago(false);
+            reserva.setPagoCompletado(true);
+            reserva.setEstadoReserva(EstadoReserva.CONFIRMADA);
+
+            ReservaEntity savedReserva = reservaRepository.save(reserva);
+
+            // Actualizar cupos inmediatamente para reservas normales
+            disponibilidad.setCuposOcupados(cuposOcupados + reservaData.getCantidadComensales());
+            disponibilidadRepository.save(disponibilidad);
+
+            return new ReservaVipResponseDto(
+                    savedReserva.getId(),
+                    null, null, null,
+                    false,
+                    0.0
+            );
+        }
+    }
+
+    @Override
+    public ReservaDTO obtenerReserva(Integer id) {
+        ReservaEntity reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada con el ID: " + id));
+        return modelMapper.map(reserva, ReservaDTO.class);
     }
 }
 

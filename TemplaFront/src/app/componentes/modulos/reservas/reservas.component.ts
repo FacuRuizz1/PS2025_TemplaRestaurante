@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ReservaService } from '../../../services/reserva.service';
 import { DisponibilidadService } from '../../../services/disponibilidad.service';
 import { PersonaService } from '../../../services/persona.service';
@@ -125,12 +126,17 @@ export class ReservasComponent implements OnInit {
     private personaService: PersonaService,
     private mesaService: MesaService,
     private notificationService: NotificationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.initializeForms();
   }
 
   async ngOnInit() {
+    // Verificar si venimos de un callback de Mercado Pago
+    this.verificarCallbackPago();
+    
     await this.cargarDatos();
     this.generarCalendario();
     this.aplicarFiltros(); // Usar filtros desde el inicio como mesas
@@ -523,7 +529,7 @@ export class ReservasComponent implements OnInit {
   }
 
   private mostrarModalPagoVIP() {
-    const precioVIP = 100000;
+    const precioVIP = 5000; // Precio configurado en el backend
     
     Swal.fire({
       title: '👑 Reserva VIP',
@@ -536,16 +542,26 @@ export class ReservasComponent implements OnInit {
             $${precioVIP.toLocaleString('es-AR')}
           </div>
           <div style="font-size: 1em; color: #7f8c8d; margin-bottom: 20px;">
-            El pago debe realizarse <strong>en este momento</strong> para confirmar la reserva.
+            Serás redirigido a <strong>Mercado Pago</strong> para completar el pago de forma segura.
           </div>
           <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
             <i class="fas fa-crown" style="color: #f39c12; margin-right: 8px;"></i>
             <strong>Beneficios VIP incluidos</strong>
+            <ul style="text-align: left; margin-top: 10px; color: #555;">
+              <li>Mesa preferencial</li>
+              <li>Atención prioritaria</li>
+              <li>Cortesía de bienvenida</li>
+            </ul>
+          </div>
+          <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 15px;">
+            <small style="color: #2e7d32;">
+              <i class="fas fa-shield-alt"></i> Pago 100% seguro con Mercado Pago
+            </small>
           </div>
         </div>
       `,
       showCancelButton: true,
-      confirmButtonText: '<i class="fas fa-credit-card"></i> Aceptar y Abonar',
+      confirmButtonText: '<i class="fas fa-credit-card"></i> Continuar al Pago',
       cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
       confirmButtonColor: '#27ae60',
       cancelButtonColor: '#e74c3c',
@@ -555,6 +571,7 @@ export class ReservasComponent implements OnInit {
         cancelButton: 'btn-cancelar-vip'
       },
       showLoaderOnConfirm: true,
+      allowOutsideClick: false,
       preConfirm: () => {
         return this.procesarPagoVIP();
       }
@@ -563,7 +580,7 @@ export class ReservasComponent implements OnInit {
         // Usuario canceló - no hacer nada, mantener en el formulario
         Swal.fire({
           title: 'Reserva cancelada',
-          text: 'La reserva VIP no fue confirmada',
+          text: 'Puedes modificar los datos o elegir otro tipo de evento',
           icon: 'info',
           confirmButtonText: 'OK'
         });
@@ -573,30 +590,109 @@ export class ReservasComponent implements OnInit {
 
   private async procesarPagoVIP(): Promise<void> {
     try {
-      // Aquí iría la integración con MercadoPago
-      // Por ahora simularemos la redirección
+      console.log('💳 Iniciando proceso de pago VIP...');
+
+      // 1. Generar número de reserva
+      const nroReserva = this.generarNumeroReserva();
+
+      // 2. Crear persona primero
+      const nuevaPersona: PostPersonaDto = {
+        nombre: this.reservaData.nombre!,
+        apellido: this.reservaData.apellido!,
+        dni: Number(this.reservaData.dni!),
+        telefono: this.reservaData.telefono!,
+        email: this.reservaData.email || '',
+        tipoPersona: TipoPersona.CLIENTE,
+        userAlta: 1
+      };
+
+      console.log('📝 Creando persona:', nuevaPersona);
+      const personaCreada = await this.personaService.crearPersona(nuevaPersona).toPromise();
       
-      // Mostrar loading
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!personaCreada || !personaCreada.id) {
+        throw new Error('Error al crear la persona');
+      }
+
+      console.log('✅ Persona creada:', personaCreada);
+
+      // 3. Preparar request para reserva VIP con Mercado Pago
+      const reservaVipRequest = {
+        reservaData: {
+          idPersona: personaCreada.id,
+          idDisponibilidad: Number(this.reservaData.idDisponibilidad),
+          nroReserva: nroReserva,
+          cantidadComensales: Number(this.reservaData.cantidadComensales),
+          fechaReserva: this.reservaData.fechaReserva,
+          evento: EventoReserva.VIP as EventoReserva.VIP,
+          horario: this.reservaData.horario,
+          nombreCliente: `${personaCreada.nombre} ${personaCreada.apellido}`,
+          telefonoCliente: personaCreada.telefono,
+          ocasionEspecial: 'Reserva VIP'
+        },
+        emailCliente: personaCreada.email || 'sin-email@templa.com',
+        nombreCliente: `${personaCreada.nombre} ${personaCreada.apellido}`
+      };
+
+      console.log('💰 Creando reserva VIP con pago:', reservaVipRequest);
+
+      // 4. Llamar al backend para crear la reserva VIP
+      const response = await this.reservaService.crearReservaVip(reservaVipRequest).toPromise();
       
-      // Redireccionar a MercadoPago (URL de ejemplo)
-      const urlMercadoPago = 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=ejemplo-vip-reservation';
+      if (!response) {
+        throw new Error('No se recibió respuesta del servidor');
+      }
+
+      console.log('✅ Respuesta de Mercado Pago:', response);
+
+      // 5. Abrir el checkout de Mercado Pago
+      const checkoutUrl = response.sandboxInitPoint; // Usar sandboxInitPoint para pruebas
       
-      // Abrir en nueva ventana/tab
-      window.open(urlMercadoPago, '_blank');
-      
-      // Opcional: Mostrar mensaje de confirmación
-      Swal.fire({
-        title: '¡Redirigiendo a MercadoPago!',
-        text: 'Se abrió una nueva ventana para completar el pago. Una vez confirmado el pago, su reserva VIP será procesada.',
+      if (!checkoutUrl) {
+        throw new Error('No se recibió la URL del checkout');
+      }
+
+      // Mostrar mensaje informativo antes de abrir el checkout
+      await Swal.fire({
+        title: '🎉 ¡Reserva Iniciada!',
+        html: `
+          <p>Tu reserva <strong>#${nroReserva}</strong> ha sido iniciada.</p>
+          <p>Serás redirigido a <strong>Mercado Pago</strong> para completar el pago.</p>
+          <p class="text-muted mt-2">
+            <small>Una vez completado el pago, recibirás la confirmación de tu reserva VIP.</small>
+          </p>
+        `,
         icon: 'success',
-        confirmButtonText: 'Entendido',
-        confirmButtonColor: '#27ae60'
+        confirmButtonText: 'Ir a pagar',
+        confirmButtonColor: '#27ae60',
+        timer: 3000,
+        timerProgressBar: true
+      });
+
+      // Abrir Mercado Pago
+      this.reservaService.abrirCheckoutMercadoPago(checkoutUrl, response.reservaId);
+
+      // No hacer nada más - el callback se encargará de mostrar el resultado
+      
+    } catch (error: any) {
+      console.error('❌ Error al procesar pago VIP:', error);
+      
+      let errorMessage = 'No se pudo procesar la reserva VIP. Por favor, intente nuevamente.';
+      
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      Swal.fire({
+        title: 'Error al procesar pago',
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#e74c3c'
       });
       
-    } catch (error) {
-      console.error('Error al procesar pago VIP:', error);
-      throw new Error('Error al procesar el pago');
+      throw error; // Re-lanzar para que SweetAlert lo maneje
     }
   }
 
@@ -849,11 +945,13 @@ export class ReservasComponent implements OnInit {
       next: (page) => {
         console.log('✅ Respuesta del backend:', page);
         this.pageInfo = page;
-        this.reservas = page.content;
-        this.reservasOriginales = [...page.content]; // Guardar copia para filtrado
+        // Filtrar reservas pendientes de pago (solo mostrar confirmadas)
+        const reservasConfirmadas = page.content.filter((r: ReservaModel) => r.estadoReserva !== 'PENDIENTE_PAGO');
+        this.reservas = reservasConfirmadas;
+        this.reservasOriginales = [...reservasConfirmadas]; // Guardar copia para filtrado
         this.paginaActual = page.number;
         this.loading = false;
-        console.log('✅ Reservas cargadas:', page.content.length);
+        console.log('✅ Reservas confirmadas cargadas:', this.reservas.length);
       },
       error: (error) => {
         console.error('❌ Error al cargar reservas:', error);
@@ -906,7 +1004,9 @@ export class ReservasComponent implements OnInit {
       next: (page) => {
         console.log('✅ Respuesta del servidor:', page);
         this.pageInfo = page;
-        this.reservasOriginales = [...page.content]; // Guardar copia original
+        // Filtrar reservas pendientes de pago
+        const reservasConfirmadas = page.content.filter((r: ReservaModel) => r.estadoReserva !== 'PENDIENTE_PAGO');
+        this.reservasOriginales = [...reservasConfirmadas]; // Guardar copia original
         this.paginaActual = page.number;
         
         // Aplicar filtrado del lado cliente para búsqueda
@@ -1091,7 +1191,9 @@ export class ReservasComponent implements OnInit {
       this.reservaService.obtenerReservasConFiltros(filtros).subscribe({
         next: (page) => {
           this.pageInfo = page;
-          this.reservasOriginales = [...page.content]; // Actualizar originales
+          // Filtrar reservas pendientes de pago
+          const reservasConfirmadas = page.content.filter((r: ReservaModel) => r.estadoReserva !== 'PENDIENTE_PAGO');
+          this.reservasOriginales = [...reservasConfirmadas]; // Actualizar originales
           this.paginaActual = page.number;
           this.aplicarFiltradoCliente(); // Aplicar filtrado del lado cliente
           this.loading = false;
@@ -1107,5 +1209,98 @@ export class ReservasComponent implements OnInit {
   // Método para abrir el modal de reportes
   abrirReportes() {
     this.reportesModal.show('reservas');
+  }
+
+  // ==================== MÉTODOS DE MERCADO PAGO ====================
+
+  /**
+   * Verifica si venimos de un callback de Mercado Pago y muestra el resultado
+   */
+  verificarCallbackPago(): void {
+    this.route.queryParams.subscribe(params => {
+      const payment = params['payment'];
+      const reservaId = params['reservaId'];
+
+      if (payment && reservaId) {
+        console.log('💳 Callback de Mercado Pago detectado:', { payment, reservaId });
+
+        // Limpiar los query params de la URL
+        this.router.navigate([], {
+          queryParams: {},
+          replaceUrl: true
+        });
+
+        // Verificar el estado de la reserva en el backend
+        this.reservaService.verificarPagoReserva(Number(reservaId)).subscribe({
+          next: (reserva) => {
+            console.log('✅ Estado de la reserva:', reserva);
+            this.mostrarResultadoPago(payment, reserva);
+          },
+          error: (error) => {
+            console.error('❌ Error al verificar reserva:', error);
+            this.mostrarResultadoPago(payment, null);
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Muestra el resultado del pago según el estado
+   */
+  private mostrarResultadoPago(estadoPago: string, reserva: ReservaModel | null): void {
+    switch (estadoPago) {
+      case 'success':
+        Swal.fire({
+          title: '¡Pago Exitoso!',
+          html: `
+            <p>Tu reserva VIP ha sido confirmada</p>
+            ${reserva ? `
+              <p><strong>Reserva #${reserva.nroReserva}</strong></p>
+              <p>Fecha: ${reserva.fechaReserva}</p>
+              <p>Horario: ${reserva.horario}</p>
+              <p>Comensales: ${reserva.cantidadComensales}</p>
+            ` : ''}
+            <p class="text-success mt-3">¡Te esperamos!</p>
+          `,
+          icon: 'success',
+          confirmButtonText: 'Ver mis reservas',
+          confirmButtonColor: '#27ae60'
+        }).then(() => {
+          this.cambiarVista('lista');
+        });
+        break;
+
+      case 'pending':
+        Swal.fire({
+          title: 'Pago Pendiente',
+          html: `
+            <p>Tu pago está siendo procesado</p>
+            ${reserva ? `<p><strong>Reserva #${reserva.nroReserva}</strong></p>` : ''}
+            <p class="text-warning mt-3">Te notificaremos cuando se confirme el pago</p>
+          `,
+          icon: 'info',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#3498db'
+        }).then(() => {
+          this.cambiarVista('lista');
+        });
+        break;
+
+      case 'failure':
+        Swal.fire({
+          title: 'Pago Rechazado',
+          html: `
+            <p>No se pudo procesar tu pago</p>
+            <p class="text-danger mt-3">Por favor, intenta nuevamente con otro método de pago</p>
+          `,
+          icon: 'error',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#e74c3c'
+        }).then(() => {
+          this.cambiarVista('lista');
+        });
+        break;
+    }
   }
 }

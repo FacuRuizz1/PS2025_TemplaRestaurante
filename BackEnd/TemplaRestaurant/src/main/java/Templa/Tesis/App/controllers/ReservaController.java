@@ -2,6 +2,9 @@ package Templa.Tesis.App.controllers;
 
 import Templa.Tesis.App.dtos.PostReservaDTO;
 import Templa.Tesis.App.dtos.ReservaDTO;
+import Templa.Tesis.App.dtos.ReservaVipRequestDto;
+import Templa.Tesis.App.dtos.ReservaVipResponseDto;
+import Templa.Tesis.App.servicies.IMercadoPagoService;
 import Templa.Tesis.App.servicies.IReservaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +19,7 @@ import java.util.List;
 @RequestMapping("/api/reserva")
 @RequiredArgsConstructor
 public class ReservaController {
-
+    private final IMercadoPagoService mercadoPagoService;
    private final IReservaService reservaService;
 
    @PostMapping("/crear")
@@ -55,4 +58,15 @@ public class ReservaController {
       return ResponseEntity.ok().build();
    }
 
+
+    @PostMapping("/crear-vip")
+    public ResponseEntity<ReservaVipResponseDto> crearReservaVip(
+            @RequestBody ReservaVipRequestDto request) {
+        return ResponseEntity.ok(reservaService.crearReservaConPago(request));
+    }
+
+    @GetMapping("/verificar-pago/{reservaId}")
+    public ResponseEntity<ReservaDTO> verificarPagoReserva(@PathVariable Integer reservaId) {
+        return ResponseEntity.ok(reservaService.obtenerReserva(reservaId));
+    }
 }

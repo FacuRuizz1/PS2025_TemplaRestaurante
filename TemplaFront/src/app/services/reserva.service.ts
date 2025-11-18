@@ -3,6 +3,7 @@ import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ReservaModel, PostReservaModel } from '../componentes/models/ReservaModel';
+import { ReservaVipRequest, ReservaVipResponse } from '../componentes/models/MercadoPagoModels';
 import { AuthService } from './auth.service';
 import Swal from 'sweetalert2';
 
@@ -77,5 +78,67 @@ export class ReservaService {
 
   eliminarReserva(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/eliminar/${id}`, this.getHttpOptions());
+  }
+
+  // ==================== MÉTODOS DE MERCADO PAGO ====================
+
+  /**
+   * Crea una reserva VIP que requiere pago mediante Mercado Pago
+   * @param request Datos de la reserva VIP con información del cliente
+   * @returns Observable con la respuesta que incluye los links de pago
+   */
+  crearReservaVip(request: ReservaVipRequest): Observable<ReservaVipResponse> {
+    console.log('💳 ReservaService - Creando reserva VIP con pago:', request);
+    return this.http.post<ReservaVipResponse>(
+      `${this.baseUrl}/crear-vip`, 
+      request, 
+      this.getHttpOptions()
+    );
+  }
+
+  /**
+   * Verifica el estado del pago de una reserva
+   * @param reservaId ID de la reserva a verificar
+   * @returns Observable con los datos actualizados de la reserva
+   */
+  verificarPagoReserva(reservaId: number): Observable<ReservaModel> {
+    console.log('🔍 ReservaService - Verificando pago de reserva:', reservaId);
+    return this.http.get<ReservaModel>(
+      `${this.baseUrl}/verificar-pago/${reservaId}`, 
+      this.getHttpOptions()
+    );
+  }
+
+  /**
+   * Abre el checkout de Mercado Pago en una nueva ventana
+   * @param checkoutUrl URL del checkout (sandboxInitPoint o initPoint)
+   * @param reservaId ID de la reserva para tracking
+   */
+  abrirCheckoutMercadoPago(checkoutUrl: string, reservaId: number): void {
+    console.log('🌐 Abriendo checkout de Mercado Pago:', {
+      url: checkoutUrl,
+      reservaId: reservaId
+    });
+
+    // Abrir en nueva ventana/pestaña
+    const width = 800;
+    const height = 600;
+    const left = (screen.width / 2) - (width / 2);
+    const top = (screen.height / 2) - (height / 2);
+
+    const ventanaPago = window.open(
+      checkoutUrl,
+      'MercadoPago',
+      `width=${width},height=${height},top=${top},left=${left},toolbar=no,location=no,status=no,menubar=no`
+    );
+
+    if (!ventanaPago) {
+      Swal.fire({
+        title: 'Bloqueador de ventanas emergentes',
+        text: 'Por favor, permite las ventanas emergentes para continuar con el pago',
+        icon: 'warning',
+        confirmButtonText: 'Entendido'
+      });
+    }
   }
 }

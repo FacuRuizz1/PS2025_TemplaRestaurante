@@ -14,6 +14,21 @@ export interface ReservaModel {
   // Datos opcionales del cliente (cuando estén disponibles)
   nombreCliente?: string;
   apellidoCliente?: string;
+  // Campos de Mercado Pago
+  requierePago?: boolean;
+  pagoCompletado?: boolean;
+  mercadoPagoPaymentId?: string;
+  mercadoPagoPreferenceId?: string;
+  estadoReserva?: EstadoReserva;
+}
+
+/**
+ * Estados posibles de una reserva
+ */
+export enum EstadoReserva {
+  PENDIENTE_PAGO = 'PENDIENTE_PAGO',
+  CONFIRMADA = 'CONFIRMADA',
+  CANCELADA = 'CANCELADA'
 }
 
 export interface PostReservaModel {
@@ -24,4 +39,7 @@ export interface PostReservaModel {
   fechaReserva: string; // formato "yyyy-MM-dd"
   evento: EventoReserva;
   horario: string; // formato "HH:mm"
+  nombreCliente?: string;
+  telefonoCliente?: string;
+  ocasionEspecial?: string;
 }

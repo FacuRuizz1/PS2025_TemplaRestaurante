@@ -31,5 +31,5 @@ public interface ReservaRepository extends JpaRepository<ReservaEntity,Integer>,
             "ORDER BY COUNT(r) DESC")
     List<ReporteReservasDTO> findReservasPorHorario(@Param("fechaInicio") LocalDate fechaInicio, @Param("fechaFin") LocalDate fechaFin);
 
-
+    Optional<ReservaEntity> findByMercadoPagoPreferenceId(String preferenceId);
 }
