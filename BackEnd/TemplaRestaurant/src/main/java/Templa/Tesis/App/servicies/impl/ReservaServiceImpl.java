@@ -316,7 +316,10 @@ public class ReservaServiceImpl implements IReservaService {
 
             return new ReservaVipResponseDto(
                     savedReserva.getId(),
-                    null, null, null,
+                    null, 
+                    null, 
+                    null, 
+                    null,  // publicKey no necesario para reservas normales
                     false,
                     0.0
             );

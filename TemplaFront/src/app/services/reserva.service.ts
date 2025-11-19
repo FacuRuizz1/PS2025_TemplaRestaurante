@@ -110,35 +110,29 @@ export class ReservaService {
   }
 
   /**
-   * Abre el checkout de Mercado Pago en una nueva ventana
-   * @param checkoutUrl URL del checkout (sandboxInitPoint o initPoint)
+   * Abre el checkout de Mercado Pago usando el SDK con la public key correcta
+   * @param preferenceId ID de la preferencia creada
+   * @param publicKey Public key de Mercado Pago
    * @param reservaId ID de la reserva para tracking
    */
-  abrirCheckoutMercadoPago(checkoutUrl: string, reservaId: number): void {
-    console.log('🌐 Abriendo checkout de Mercado Pago:', {
-      url: checkoutUrl,
-      reservaId: reservaId
+  abrirCheckoutMercadoPago(preferenceId: string, publicKey: string, reservaId: number): void {
+    console.log('🌐 Abriendo checkout de Mercado Pago con SDK:', {
+      preferenceId,
+      publicKey,
+      reservaId
     });
 
-    // Abrir en nueva ventana/pestaña
-    const width = 800;
-    const height = 600;
-    const left = (screen.width / 2) - (width / 2);
-    const top = (screen.height / 2) - (height / 2);
+    // Usar el SDK de Mercado Pago con la public key correcta
+    const mp = new (window as any).MercadoPago(publicKey, {
+      locale: 'es-AR'
+    });
 
-    const ventanaPago = window.open(
-      checkoutUrl,
-      'MercadoPago',
-      `width=${width},height=${height},top=${top},left=${left},toolbar=no,location=no,status=no,menubar=no`
-    );
-
-    if (!ventanaPago) {
-      Swal.fire({
-        title: 'Bloqueador de ventanas emergentes',
-        text: 'Por favor, permite las ventanas emergentes para continuar con el pago',
-        icon: 'warning',
-        confirmButtonText: 'Entendido'
-      });
-    }
+    // Abrir el checkout
+    mp.checkout({
+      preference: {
+        id: preferenceId
+      },
+      autoOpen: true
+    });
   }
 }

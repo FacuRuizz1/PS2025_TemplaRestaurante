@@ -34,6 +34,7 @@ export interface ReservaVipResponse {
   preferenceId: string;
   initPoint: string; // URL de pago para producción
   sandboxInitPoint: string; // URL de pago para pruebas (sandbox)
+  publicKey: string; // Public key de Mercado Pago para el checkout
   requierePago: boolean;
   monto: number; // Precio de la reserva VIP en ARS
 }

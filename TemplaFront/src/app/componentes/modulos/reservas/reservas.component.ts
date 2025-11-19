@@ -644,11 +644,9 @@ export class ReservasComponent implements OnInit {
 
       console.log('✅ Respuesta de Mercado Pago:', response);
 
-      // 5. Abrir el checkout de Mercado Pago
-      const checkoutUrl = response.sandboxInitPoint; // Usar sandboxInitPoint para pruebas
-      
-      if (!checkoutUrl) {
-        throw new Error('No se recibió la URL del checkout');
+      // 5. Abrir el checkout de Mercado Pago con el SDK y la public key correcta
+      if (!response.preferenceId || !response.publicKey) {
+        throw new Error('No se recibió preference ID o public key del servidor');
       }
 
       // Mostrar mensaje informativo antes de abrir el checkout
@@ -668,8 +666,12 @@ export class ReservasComponent implements OnInit {
         timerProgressBar: true
       });
 
-      // Abrir Mercado Pago
-      this.reservaService.abrirCheckoutMercadoPago(checkoutUrl, response.reservaId);
+      // Abrir Mercado Pago con SDK usando preference ID y public key
+      this.reservaService.abrirCheckoutMercadoPago(
+        response.preferenceId,
+        response.publicKey,
+        response.reservaId
+      );
 
       // No hacer nada más - el callback se encargará de mostrar el resultado
       
@@ -1223,6 +1225,9 @@ export class ReservasComponent implements OnInit {
 
       if (payment && reservaId) {
         console.log('💳 Callback de Mercado Pago detectado:', { payment, reservaId });
+
+        // Cambiar a vista de lista ANTES de limpiar query params
+        this.currentView = 'lista';
 
         // Limpiar los query params de la URL
         this.router.navigate([], {

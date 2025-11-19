@@ -12,6 +12,7 @@ public class ReservaVipResponseDto {
     private String preferenceId;
     private String initPoint;
     private String sandboxInitPoint;
+    private String publicKey;  // Public key para el checkout
     private Boolean requierePago;
     private Double monto;
 }

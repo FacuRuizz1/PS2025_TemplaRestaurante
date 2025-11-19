@@ -18,6 +18,7 @@ import com.mercadopago.resources.preference.Preference;
 import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.exceptions.MPApiException;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +37,8 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
 
     private final ReservaRepository reservaRepository;
     private final DisponibilidadRepository disponibilidadRepository;
+    private final PreferenceClient preferenceClient;
+    private final PaymentClient paymentClient;
 
     @Value("${mercadopago.access.token}")
     private String accessToken;
@@ -45,10 +49,16 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
     @Value("${reserva.vip.precio}")
     private BigDecimal precioReservaVip;
 
+    @PostConstruct
+    public void init() {
+        MercadoPagoConfig.setAccessToken(accessToken);
+        log.info("✅ Mercado Pago inicializado correctamente con access token");
+    }
+
     @Override
     public ReservaVipResponseDto crearPreferenciaReservaVip(ReservaVipRequestDto request, Integer reservaId) {
         try {
-            MercadoPagoConfig.setAccessToken(accessToken);
+            // No es necesario setAccessToken aquí, ya se hizo en @PostConstruct
 
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                     .title("Reserva VIP #" + request.getReservaData().getNroReserva())
@@ -61,26 +71,28 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
             List<PreferenceItemRequest> items = new ArrayList<>();
             items.add(itemRequest);
 
+            // Los backUrls deben apuntar al backend que luego redirige al frontend
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("http://localhost:4200/reservas?payment=success&reservaId=" + reservaId)
-                    .failure("http://localhost:4200/reservas?payment=failure&reservaId=" + reservaId)
-                    .pending("http://localhost:4200/reservas?payment=pending&reservaId=" + reservaId)
+                    .success("https://swaggering-marquerite-intranuclear.ngrok-free.dev/api/mercadopago/callback?payment=success&reservaId=" + reservaId)
+                    .failure("https://swaggering-marquerite-intranuclear.ngrok-free.dev/api/mercadopago/callback?payment=failure&reservaId=" + reservaId)
+                    .pending("https://swaggering-marquerite-intranuclear.ngrok-free.dev/api/mercadopago/callback?payment=pending&reservaId=" + reservaId)
                     .build();
 
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(items)
                     .backUrls(backUrls)
                     .externalReference("reserva-vip-" + request.getReservaData().getNroReserva())
-                    .notificationUrl("http://localhost:8081/api/mercadopago/webhook")
-                    // Payer comentado para evitar conflictos con test users
-                    // .payer(com.mercadopago.client.preference.PreferencePayerRequest.builder()
-                    //         .email("TESTUSER6727133566695233081@testuser.com")
-                    //         .build())
-                    .binaryMode(true)
+                    .notificationUrl("https://swaggering-marquerite-intranuclear.ngrok-free.dev/api/mercadopago/webhook")
+                    .payer(com.mercadopago.client.preference.PreferencePayerRequest.builder()
+                            .email(request.getEmailCliente())
+                            .name(request.getNombreCliente())
+                            .build())
+                    .expires(true)  // La preferencia expira
+                    .expirationDateTo(OffsetDateTime.now().plusMinutes(10L))  // Expira en 10 minutos
                     .build();
 
-            PreferenceClient client = new PreferenceClient();
-            Preference preference = client.create(preferenceRequest);
+            // Usar el cliente inyectado en lugar de crear uno nuevo
+            Preference preference = preferenceClient.create(preferenceRequest);
 
             log.info("Preferencia creada exitosamente: {}", preference.getId());
 
@@ -88,6 +100,7 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
             response.setPreferenceId(preference.getId());
             response.setInitPoint(preference.getInitPoint());
             response.setSandboxInitPoint(preference.getSandboxInitPoint());
+            response.setPublicKey(publicKey);  // Enviar la public key al frontend
             response.setRequierePago(true);
             response.setMonto(precioReservaVip.doubleValue());
 
@@ -109,8 +122,7 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
     @Transactional
     public void procesarPagoReserva(String paymentId) {
         try {
-            MercadoPagoConfig.setAccessToken(accessToken);
-            PaymentClient paymentClient = new PaymentClient();
+            // Usar el cliente inyectado
             Payment payment = paymentClient.get(Long.parseLong(paymentId));
 
             log.info("Procesando pago {} con estado: {}", paymentId, payment.getStatus());
@@ -158,8 +170,7 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
     @Override
     public String obtenerEstadoPago(String paymentId) {
         try {
-            MercadoPagoConfig.setAccessToken(accessToken);
-            PaymentClient paymentClient = new PaymentClient();
+            // Usar el cliente inyectado
             Payment payment = paymentClient.get(Long.parseLong(paymentId));
             return payment.getStatus();
         } catch (MPException | MPApiException e) {

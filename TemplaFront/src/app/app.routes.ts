@@ -11,10 +11,14 @@ import { ReservasComponent } from './componentes/modulos/reservas/reservas.compo
 import { PedidosComponent } from './componentes/modulos/pedidos/pedidos.component';
 import { CocinaComponent } from './componentes/modulos/cocina/cocina.component';
 import { MapaMesasComponent } from './componentes/modulos/mapa-mesas/mapa-mesas.component';
+import { MpResultadoComponent } from './componentes/modulos/mp-resultado/mp-resultado.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+
+  // Ruta de resultado de Mercado Pago (SIN PROTECCIÓN, SIN NAVBAR)
+  { path: 'mp-resultado', component: MpResultadoComponent },
 
   // Rutas principales del menú (PROTEGIDAS)
   {

@@ -39,7 +39,7 @@ export class AppComponent implements OnInit {
   }
 
   private updateNavbarVisibility(url: string) {
-    const hiddenNavbarRoutes = ['/login', '/'];
+    const hiddenNavbarRoutes = ['/login', '/', '/mp-resultado'];
     this.showNavbar = !hiddenNavbarRoutes.some(route => 
       url === route || url.startsWith(route + '?') || url.startsWith(route + '#')
     );
