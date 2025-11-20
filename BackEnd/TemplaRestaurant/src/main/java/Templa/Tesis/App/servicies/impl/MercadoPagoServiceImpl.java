@@ -39,6 +39,7 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
     private final DisponibilidadRepository disponibilidadRepository;
     private final PreferenceClient preferenceClient;
     private final PaymentClient paymentClient;
+    private final EmailService emailService;
 
     @Value("${mercadopago.access.token}")
     private String accessToken;
@@ -149,6 +150,21 @@ public class MercadoPagoServiceImpl implements IMercadoPagoService {
                     disponibilidadRepository.save(disponibilidad);
 
                     reservaRepository.save(reserva);
+
+                    String nombreCompleto = reserva.getPersona().getNombre() + " " + reserva.getPersona().getApellido();
+                    String fechaFormateada = reserva.getFechaReserva().toString(); // O formatear como prefieras
+
+                    emailService.enviarMailConfirmacionReserva(
+                            reserva.getPersona().getEmail(),
+                            nombreCompleto,
+                            reserva.getNroReserva(),
+                            fechaFormateada,
+                            reserva.getHorario().toString(),
+                            reserva.getEvento().name(),
+                            reserva.getCantidadComensales()
+                    );
+
+
                     log.info("Pago aprobado y reserva confirmada: {}", nroReserva);
 
                 } else if ("rejected".equals(payment.getStatus()) || "cancelled".equals(payment.getStatus())) {

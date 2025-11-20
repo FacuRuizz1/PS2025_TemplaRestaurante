@@ -277,6 +277,8 @@ public class PedidoServiceImpl implements IPedidoService {
         // 🔥 Emitir notificación SSE de pedido actualizado
         sseController.sendNotification("cocina", "pedido-actualizado", pedidoActualizado);
 
+        //TODO: Notificar al mozo que el pedido está listo para entregar
+
         return pedidoActualizado;
     }
 

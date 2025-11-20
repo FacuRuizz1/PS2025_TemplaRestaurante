@@ -76,7 +76,7 @@ VALUES ('Milanesa Napolitana', 'Milanesa de ternera con salsa de tomate, jamón 
 
 -- Insertar nuevo plato
 INSERT INTO platos (nombre, descripcion, precio, descuento, disponible, tipo_plato, foto, fecha_alta, user_alta, fecha_baja, user_baja)
-VALUES ('Hamburguesa Completa', 'Hamburguesa de carne con queso, tomate y papas fritas.', 8500.00, 7000.00, TRUE, 'PRINCIPAL', 'https://templarestaurante.s3.us-east-1.amazonaws.com/platos/hamburguesa.jpg',
+VALUES ('Hamburguesa Completa', 'Hamburguesa de carne con queso, tomate y papas fritas.', 8500.00, 7000.00, TRUE, 'PRINCIPAL', 'https://templarestaurante.s3.us-east-1.amazonaws.com/platos/aa871198-377e-4fa7-945a-e28db3e532c4_WhatsApp Image 2025-10-12 at 8.28.20 PM.jpeg',
         NOW(), 1, NULL, NULL);
 
 INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
