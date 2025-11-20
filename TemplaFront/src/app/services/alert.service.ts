@@ -158,4 +158,18 @@ export class AlertService {
     statusChangeError: () => this.showError('Error de Estado', 'No se pudo cambiar el estado del menú'),
     loadError: () => this.showError('Menús No Encontrados', 'No se pudieron cargar los menús. Por favor, inténtelo de nuevo.')
   };
+
+  // ✅ Mensajes específicos para productos
+  producto = {
+    created: () => this.crud.created('el producto'),
+    updated: () => this.crud.updated('el producto'),
+    deleted: () => this.crud.deleted('el producto'),
+    statusChanged: (newStatus: string) => this.crud.statusChanged('el producto', newStatus),
+    createError: () => this.crud.createError('el producto'),
+    updateError: () => this.crud.updateError('el producto'),
+    deleteError: () => this.crud.deleteError('el producto'),
+    statusChangeError: () => this.showError('Error de Estado', 'No se pudo cambiar el estado del producto'),
+    loadError: () => this.crud.loadError('los productos'),
+    confirmDelete: (name: string) => this.crud.confirmDelete('el producto', name)
+  };
 }

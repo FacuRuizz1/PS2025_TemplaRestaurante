@@ -5,6 +5,7 @@ import { ReporteReservasDTO } from '../componentes/models/ReporteReservasDTO';
 import { ReportePedidosPorFechaDTO } from '../componentes/models/ReportePedidosPorFechaDTO';
 import { ReporteStockBajoDTO } from '../componentes/models/ReporteStockBajoDTO';
 import { ReportePlatoProductosDTO } from '../componentes/models/ReportePlatoProductosDTO';
+import { ReporteClientesReservasDTO } from '../componentes/models/ReporteClientesReservasDTO';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
@@ -115,5 +116,18 @@ export class ReporteService {
   // Método para obtener datos de platos por productos para exportar a PDF
   getDatosPlatosProductos(): Observable<ReportePlatoProductosDTO[]> {
     return this.getPlatosPorCantidadProductos();
+  }
+
+  // ✅ NUEVO: Método para obtener reporte de clientes con más reservas
+  getClientesConMasReservas(): Observable<ReporteClientesReservasDTO[]> {
+    const url = `${this.apiUrl}/clientes-reservas`;
+    console.log('URL del reporte de clientes con más reservas:', url);
+    
+    return this.http.get<ReporteClientesReservasDTO[]>(url, this.getHttpOptions());
+  }
+
+  // ✅ NUEVO: Método para obtener datos de clientes para exportar a PDF
+  getDatosClientesReservas(): Observable<ReporteClientesReservasDTO[]> {
+    return this.getClientesConMasReservas();
   }
 }

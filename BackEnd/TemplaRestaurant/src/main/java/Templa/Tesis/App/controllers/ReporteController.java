@@ -73,4 +73,10 @@ public class ReporteController {
         return ResponseEntity.ok(reporte);
     }
 
+    @GetMapping("/clientes-reservas")
+    public ResponseEntity<List<ReporteClientesReservasDTO>> obtenerReporteClientesReservas(){
+        List<ReporteClientesReservasDTO> reporte = reservaService.obtenerReporteClientesPorReserva();
+        return ResponseEntity.ok(reporte);
+    }
+
 }

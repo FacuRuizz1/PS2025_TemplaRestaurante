@@ -8,12 +8,13 @@ import { ProductoService } from '../../../services/producto.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ProductoDTO, PostProductoDTO, TipoProducto, FiltroProducto } from '../../models/ProductoModel';
 import { Page } from '../../models/CommonModels';
+import { AlertService } from '../../../services/alert.service';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReportesModalComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.css'
 })
@@ -34,10 +35,8 @@ export class ProductosComponent implements OnInit {
 
   // ✅ Loading
   cargando: boolean = false;
-  error: string = '';
 
-  // ✅ Modal de reportes
-  @ViewChild('reportesModal') reportesModal!: ReportesModalComponent;
+  // ✅ Modal de reportes - Ya no necesitamos ViewChild, usamos modalService directamente
 
   TipoProducto = TipoProducto;
 
@@ -48,7 +47,8 @@ export class ProductosComponent implements OnInit {
   constructor(
     private modalService: NgbModal,
     private productoService: ProductoService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private alertService: AlertService
   ) {}
 
   ngOnInit() {
@@ -58,7 +58,6 @@ export class ProductosComponent implements OnInit {
   // ✅ Carga inicial
   cargarProductosIniciales() {
     this.cargando = true;
-    this.error = '';
     
     console.log('🚀 Iniciando carga de productos...');
 
@@ -80,12 +79,9 @@ export class ProductosComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('❌ Error completo al cargar productos:', error);
-        console.error('❌ Status:', error.status);
-        console.error('❌ Message:', error.message);
-        console.error('❌ Error body:', error.error);
-        this.error = 'Error al cargar los productos';
+        console.error('❌ Error al cargar productos:', error);
         this.cargando = false;
+        this.alertService.producto.loadError();
       }
     });
   }
@@ -113,7 +109,6 @@ export class ProductosComponent implements OnInit {
   // ✅ Aplicar filtros
   aplicarFiltros() {
     this.cargando = true;
-    this.error = '';
     const filtros = this.construirFiltros(0); // Siempre empezar en página 0
 
     this.productoService.obtenerProductosConFiltros(filtros).subscribe({
@@ -126,8 +121,8 @@ export class ProductosComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al filtrar productos:', error);
-        this.error = 'Error al filtrar productos';
         this.cargando = false;
+        this.alertService.producto.loadError();
       }
     });
   }
@@ -185,8 +180,8 @@ export class ProductosComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error al cambiar página:', error);
-          this.error = 'Error al cambiar de página';
           this.cargando = false;
+          this.alertService.producto.loadError();
         }
       });
     }
@@ -244,24 +239,12 @@ export class ProductosComponent implements OnInit {
         this.verificarStockBajo(productoCreado);
         
         this.cargarProductosIniciales();
-        Swal.fire({
-          title: '¡Éxito!',
-          text: 'Producto creado exitosamente',
-          icon: 'success',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
-        });
+        this.alertService.producto.created();
       },
       error: (error) => {
         console.error('❌ Error al crear producto:', error);
         this.cargando = false;
-        Swal.fire({
-          title: 'Error',
-          text: 'Error al crear el producto',
-          icon: 'error',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
-        });
+        this.alertService.producto.createError();
       }
     });
   }
@@ -278,41 +261,19 @@ export class ProductosComponent implements OnInit {
         this.verificarStockBajo(productoActualizado);
         
         this.aplicarFiltros(); // Recargar con filtros actuales
-        Swal.fire({
-          title: '¡Éxito!',
-          text: 'Producto actualizado exitosamente',
-          icon: 'success',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
-        });
+        this.alertService.producto.updated();
       },
       error: (error) => {
         console.error('❌ Error al actualizar producto:', error);
         this.cargando = false;
-        Swal.fire({
-          title: 'Error',
-          text: 'Error al actualizar el producto',
-          icon: 'error',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
-        });
+        this.alertService.producto.updateError();
       }
     });
   }
 
   // ✅ Eliminar producto
   eliminarProducto(producto: ProductoDTO) {
-    Swal.fire({
-      title: '¿Está seguro?',
-      text: `¿Desea eliminar el producto ${producto.nombre}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-      reverseButtons: true
-    }).then((result) => {
+    this.alertService.producto.confirmDelete(producto.nombre).then((result) => {
       if (result.isConfirmed) {
         this.cargando = true;
         
@@ -322,36 +283,18 @@ export class ProductosComponent implements OnInit {
               console.log('✅ Producto eliminado exitosamente');
               
               this.aplicarFiltros(); // Recargar lista
-              Swal.fire({
-                title: '¡Eliminado!',
-                text: 'Producto eliminado exitosamente',
-                icon: 'success',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#28a745'
-              });
+              this.alertService.producto.deleted();
             },
             error: (error) => {
               console.error('❌ Error al eliminar producto:', error);
               this.cargando = false;
-              Swal.fire({
-                title: 'Error',
-                text: 'Error al eliminar el producto',
-                icon: 'error',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#dc3545'
-              });
+              this.alertService.producto.deleteError();
             }
           });
         } else {
           console.error('❌ No se puede eliminar: producto sin ID');
           this.cargando = false;
-          Swal.fire({
-            title: 'Error',
-            text: 'Error: producto sin ID',
-            icon: 'error',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#dc3545'
-          });
+          this.alertService.showError('Error', 'Producto sin ID válido');
         }
       }
     });
@@ -437,7 +380,19 @@ export class ProductosComponent implements OnInit {
   }
 
   // ✅ Método para abrir el modal de reportes
-  abrirReportes() {
-    this.reportesModal.show('stock');
+  abrirReportes(): void {
+    const modalRef = this.modalService.open(ReportesModalComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      centered: true
+    });
+    modalRef.componentInstance.show('stock');
+    
+    // Manejar el cierre del modal
+    modalRef.result.then(() => {
+      console.log('Modal de reportes cerrado');
+    }).catch(() => {
+      console.log('Modal de reportes cancelado');
+    });
   }
 }

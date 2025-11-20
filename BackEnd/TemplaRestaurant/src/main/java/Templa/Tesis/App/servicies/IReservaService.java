@@ -19,4 +19,6 @@ public interface IReservaService {
     // Métodos para Mercado Pago / Reservas VIP
     ReservaVipResponseDto crearReservaConPago(ReservaVipRequestDto request);
     ReservaDTO obtenerReserva(Integer id);
+
+    List<ReporteClientesReservasDTO> obtenerReporteClientesPorReserva();
 }

@@ -2,17 +2,25 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { MenuItem, RouteMenuData } from '../componentes/models/menu-model';
+import { RoleAccessService } from './role-access.service';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NavbarService {
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private roleAccessService: RoleAccessService,
+    private authService: AuthService
+  ) { }
 
   getMenuItems(): Observable<MenuItem[]> {
-    const menuItems = this.generateMenuFromRoutes();
-    return of(menuItems);
+    const allMenuItems = this.generateMenuFromRoutes();
+    const filteredMenuItems = this.filterMenuByPermissions(allMenuItems);
+    console.log('🔍 NavbarService: Menú filtrado por permisos:', filteredMenuItems);
+    return of(filteredMenuItems);
   }
 
 private generateMenuFromRoutes(): MenuItem[] {
@@ -89,5 +97,116 @@ private generateMenuFromRoutes(): MenuItem[] {
     const route = this.router.config.find(r => r.path === path);
     const data = route?.data as RouteMenuData;
     return data?.order || 999;
+  }
+
+  // ✅ NUEVO: Filtrar menú según permisos del usuario
+  private filterMenuByPermissions(menuItems: MenuItem[]): MenuItem[] {
+    if (!this.authService.isLoggedIn()) {
+      console.log('🔍 NavbarService: Usuario no logueado, retornando menú vacío');
+      return [];
+    }
+
+    return menuItems.filter(menuItem => {
+      const hasAccess = this.checkMenuItemAccess(menuItem);
+      
+      if (hasAccess && menuItem.submenu && menuItem.submenu.length > 0) {
+        // Filtrar submenu items también
+        menuItem.submenu = menuItem.submenu.filter(subItem => {
+          const subItemAccess = this.checkSubmenuItemAccess(subItem);
+          console.log(`🔍 NavbarService: Submenu '${subItem.label}' acceso: ${subItemAccess}`);
+          return subItemAccess;
+        });
+        
+        // Si después del filtrado no quedan subitems, ocultar el item principal
+        if (menuItem.submenu.length === 0) {
+          console.log(`🔍 NavbarService: Item '${menuItem.label}' oculto porque no tiene subitems accesibles`);
+          return false;
+        }
+      }
+      
+      console.log(`🔍 NavbarService: Item '${menuItem.label}' acceso: ${hasAccess}`);
+      return hasAccess;
+    });
+  }
+
+  // ✅ Verificar acceso a un item de menú principal
+  private checkMenuItemAccess(menuItem: MenuItem): boolean {
+    const routePath = menuItem.id;
+    
+    switch (routePath) {
+      case 'personas':
+        return this.roleAccessService.canAccessPersonas();
+      
+      case 'productos':
+        return this.roleAccessService.canAccessProductos();
+      
+      case 'platos':
+        return this.roleAccessService.canAccessPlatos();
+      
+      case 'menu':
+        return this.roleAccessService.canAccessMenu();
+      
+      case 'mesas':
+        return this.roleAccessService.canAccessMesas();
+      
+      case 'reservas':
+        return this.roleAccessService.canAccessReservas();
+      
+      case 'pedidos':
+        return this.roleAccessService.canAccessPedidos();
+      
+      case 'reportes':
+        return this.roleAccessService.canAccessReportes();
+      
+      default:
+        console.log(`🔍 NavbarService: Ruta '${routePath}' no tiene verificación específica, permitiendo acceso`);
+        return true;
+    }
+  }
+
+  // ✅ Verificar acceso a un subitem de menú
+  private checkSubmenuItemAccess(subItem: { label: string; route: string }): boolean {
+    const route = subItem.route;
+    
+    if (route.includes('usuarios')) {
+      return this.roleAccessService.canAccessUsuarios();
+    }
+    
+    if (route.includes('personas')) {
+      return this.roleAccessService.canAccessPersonas();
+    }
+    
+    if (route.includes('cocina')) {
+      return this.roleAccessService.canAccessCocina();
+    }
+    
+    if (route.includes('pedidos')) {
+      return this.roleAccessService.canAccessPedidos();
+    }
+    
+    // Para otros subitems, verificar según el módulo padre
+    if (route.startsWith('/productos')) {
+      return this.roleAccessService.canAccessProductos();
+    }
+    
+    if (route.startsWith('/platos')) {
+      return this.roleAccessService.canAccessPlatos();
+    }
+    
+    if (route.startsWith('/menu')) {
+      return this.roleAccessService.canAccessMenu();
+    }
+    
+    if (route.startsWith('/mesas')) {
+      return this.roleAccessService.canAccessMesas();
+    }
+    
+    if (route.startsWith('/reservas')) {
+      return this.roleAccessService.canAccessReservas();
+    }
+    
+    // Por defecto, permitir acceso
+    console.log(`🔍 NavbarService: Subruta '${route}' no tiene verificación específica, permitiendo acceso`);
+    return true;
   }
 }

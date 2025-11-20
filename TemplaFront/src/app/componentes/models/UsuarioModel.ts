@@ -36,7 +36,8 @@ export enum RolUsuario {
   ADMINISTRADOR = 'ADMINISTRADOR',
   MOZO = 'MOZO',
   COCINA = 'COCINA',
-  ENCARGADO = 'ENCARGADO'
+  ENCARGADO = 'ENCARGADO',
+  CLIENTE = 'CLIENTE'
 }
 
 export interface FiltroUsuario {

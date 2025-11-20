@@ -234,9 +234,11 @@
                      name="email" 
                      formControlName="email" 
                      class="form-control custom-input" 
-                     placeholder="ejemplo@templa.com">
+                     placeholder="ejemplo@templa.com *" 
+                     required>
               <div *ngIf="personaMesaForm.get('email')?.invalid && personaMesaForm.get('email')?.touched" 
                    class="error-message">
+                <span *ngIf="personaMesaForm.get('email')?.errors?.['required']">El email es obligatorio para enviar la confirmación</span>
                 <span *ngIf="personaMesaForm.get('email')?.errors?.['email']">Ingrese un email válido</span>
               </div>
             </div>
@@ -287,6 +289,15 @@
               <div class="resumen-row" *ngIf="personaMesaForm.get('email')?.value">
                 <span class="resumen-label">Email:</span>
                 <span class="resumen-value">{{ personaMesaForm.get('email')?.value }}</span>
+              </div>
+              
+              <!-- Mensaje informativo sobre email de confirmación -->
+              <div class="email-confirmation-info" *ngIf="personaMesaForm.get('email')?.value" 
+                   style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 10px;">
+                <p style="color: #27ae60; margin: 0; font-size: 0.9em;">
+                  <i class="fas fa-envelope"></i> 
+                  Se enviará un email de confirmación a esta dirección
+                </p>
               </div>
             </div>
             
@@ -512,5 +523,15 @@
     </div>
   </div>
 
-<!-- Modal de Reportes -->
+<!-- ✅ NUEVO: Selector de Reportes -->
+<app-selector-reportes-modal 
+  *ngIf="mostrarSelectorReportes"
+  (confirmar)="onReporteSeleccionado($event)"
+  (cancelar)="onCancelarSelector()">
+</app-selector-reportes-modal>
+
+<!-- Modal de Reportes Existente -->
 <app-reportes-modal #reportesModal></app-reportes-modal>
+
+<!-- ✅ NUEVO: Modal de Clientes con Reservas -->
+<app-clientes-reservas-modal #clientesReservasModal></app-clientes-reservas-modal>

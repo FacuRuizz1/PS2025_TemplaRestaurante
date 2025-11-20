@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoginRequest } from '../componentes/models/LoginRequest';
 import {LoginResponse} from '../componentes/models/LoginResponse'
+import { RolUsuario } from '../componentes/models/UsuarioModel';
 import { Observable, tap } from 'rxjs';
 
 @Injectable({
@@ -126,6 +127,64 @@ export class AuthService {
     return null;
   }
 
+  // ✅ NUEVO: Obtener el rol del usuario desde el token
+  getUserRole(): RolUsuario | null {
+    const userInfo = this.getUserInfo();
+    if (!userInfo) {
+      console.warn('🔍 AuthService.getUserRole(): No se pudo obtener userInfo del token');
+      return null;
+    }
+
+    console.log('🔍 AuthService.getUserRole(): userInfo completo:', userInfo);
+
+    // Buscar en varios campos posibles para el rol
+    const possibleRoleFields = ['role', 'roles', 'authorities', 'rolUsuario', 'rol', 'authority'];
+    
+    for (const field of possibleRoleFields) {
+      const fieldValue = userInfo[field];
+      
+      if (fieldValue !== undefined && fieldValue !== null) {
+        console.log(`🔍 AuthService.getUserRole(): Encontrado campo '${field}':`, fieldValue, `(${typeof fieldValue})`);
+        
+        // Si es un string, verificar si es un rol válido
+        if (typeof fieldValue === 'string' && Object.values(RolUsuario).includes(fieldValue as RolUsuario)) {
+          console.log(`✅ AuthService.getUserRole(): Usando ${field} = ${fieldValue}`);
+          return fieldValue as RolUsuario;
+        }
+        
+        // Si es un array, tomar el primer elemento válido
+        if (Array.isArray(fieldValue) && fieldValue.length > 0) {
+          const firstRole = fieldValue[0];
+          if (typeof firstRole === 'string' && Object.values(RolUsuario).includes(firstRole as RolUsuario)) {
+            console.log(`✅ AuthService.getUserRole(): Usando primer elemento de ${field} = ${firstRole}`);
+            return firstRole as RolUsuario;
+          }
+        }
+      }
+    }
+    
+    console.warn('❌ AuthService.getUserRole(): No se encontró rol válido en el token');
+    console.warn('💡 Campos disponibles en token:', Object.keys(userInfo));
+    return null;
+  }
+
+  // ✅ NUEVO: Verificar si el usuario tiene un rol específico
+  hasRole(role: RolUsuario): boolean {
+    const userRole = this.getUserRole();
+    return userRole === role;
+  }
+
+  // ✅ NUEVO: Verificar si el usuario tiene alguno de los roles especificados
+  hasAnyRole(roles: RolUsuario[]): boolean {
+    const userRole = this.getUserRole();
+    return userRole ? roles.includes(userRole) : false;
+  }
+
+  // ✅ NUEVO: Verificar si el usuario es administrador
+  isAdmin(): boolean {
+    return this.hasRole(RolUsuario.ADMINISTRADOR);
+  }
+
   // ✅ Método completo para debug de autenticación
   debugAuthInfo(): void {
     console.log('=================== DEBUG AUTENTICACIÓN ===================');
@@ -141,8 +200,12 @@ export class AuthService {
       
       const username = this.getUsername();
       console.log('🔍 getUsername():', username);
+
+      const userRole = this.getUserRole();
+      console.log('🔍 getUserRole():', userRole);
       
       console.log('🔍 isLoggedIn():', this.isLoggedIn());
+      console.log('🔍 isAdmin():', this.isAdmin());
       
       if (userId === null) {
         console.error('❌ PROBLEMA: No se puede obtener ID del usuario');
@@ -150,7 +213,15 @@ export class AuthService {
         console.log('   - userId (número)');
         console.log('   - id (número)');
         console.log('   - idUsuario (número)');
-      } else {
+      }
+
+      if (userRole === null) {
+        console.error('❌ PROBLEMA: No se puede obtener ROL del usuario');
+        console.log('💡 El backend debe incluir uno de estos campos en el JWT:');
+        console.log('   - role, roles, authorities, rolUsuario, rol, authority');
+      }
+
+      if (userId && userRole) {
         console.log('✅ Autenticación funcionando correctamente');
       }
     } else {

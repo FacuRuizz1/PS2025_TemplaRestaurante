@@ -80,10 +80,7 @@
         </div>
     </div>
 
-    <!-- ✅ Mensaje de error -->
-    <div *ngIf="error" class="alert alert-danger text-center">
-        {{ error }}
-    </div>
+
 
     <!-- ✅ Tabla con datos reales -->
     <div class="listado" *ngIf="!cargando">
@@ -214,5 +211,4 @@
     </div>
 </div>
 
-<!-- Modal de Reportes -->
-<app-reportes-modal #reportesModal></app-reportes-modal>
+<!-- Modal de Reportes se abre programáticamente con modalService -->

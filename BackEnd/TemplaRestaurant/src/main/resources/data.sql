@@ -13,6 +13,40 @@ INSERT INTO usuarios (username, password, rol, activo, id_persona)
 VALUES ('admin','$2a$10$NewaJBkpaQZu/1xsTnpAqOr5nSnIbmVAV0IqPq6kP/SDtfeQJ83Xy',  -- "admin123" ENCRIPTADO
            'ADMINISTRADOR',true,1);
 
+-- ============================================
+-- PERSONAS DEL PERSONAL (empleados)
+-- ============================================
+
+-- Mozo
+INSERT INTO personas (nombre, apellido, email, telefono, dni, tipo_persona, fecha_alta, user_alta, fecha_baja, user_baja_id)
+VALUES ('Juan', 'Pérez', 'mozo@gmail.com', '3333333333', 11111111, 'PERSONAL', NOW(), 1, NULL, NULL);
+
+-- Cocina
+INSERT INTO personas (nombre, apellido, email, telefono, dni, tipo_persona, fecha_alta, user_alta, fecha_baja, user_baja_id)
+VALUES ('María', 'González', 'cocina@gmail.com', '4444444444', 22222222, 'PERSONAL', NOW(), 1, NULL, NULL);
+
+-- Encargado
+INSERT INTO personas (nombre, apellido, email, telefono, dni, tipo_persona, fecha_alta, user_alta, fecha_baja, user_baja_id)
+VALUES ('Carlos', 'Rodríguez', 'encargado@gmail.com', '5555555555', 33333333, 'PERSONAL', NOW(), 1, NULL, NULL);
+
+-- ============================================
+-- USUARIOS PARA CADA ROL
+-- ============================================
+
+-- Usuario MOZO (persona_id = 4)
+INSERT INTO usuarios (username, password, rol, activo, id_persona)
+VALUES ('mozo', '$2a$10$NewaJBkpaQZu/1xsTnpAqOr5nSnIbmVAV0IqPq6kP/SDtfeQJ83Xy', 'MOZO', true, 4);
+
+-- Usuario COCINA (persona_id = 5)
+INSERT INTO usuarios (username, password, rol, activo, id_persona)
+VALUES ('cocina', '$2a$10$NewaJBkpaQZu/1xsTnpAqOr5nSnIbmVAV0IqPq6kP/SDtfeQJ83Xy', 'COCINA', true, 5);
+
+-- Usuario ENCARGADO (persona_id = 6)
+INSERT INTO usuarios (username, password, rol, activo, id_persona)
+VALUES ('encargado', '$2a$10$NewaJBkpaQZu/1xsTnpAqOr5nSnIbmVAV0IqPq6kP/SDtfeQJ83Xy', 'ENCARGADO', true, 6);
+
+
+
 INSERT INTO productos (nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo,precio)
 VALUES ('Harina de Trigo', 'INSUMO', 'KILOGRAMO', 50.0, 10.0, 100.0, true,0);
 
@@ -22,12 +56,50 @@ VALUES ('Papas Fritas', 'ACOMPAÑANTE', 'UNIDAD', 30.0, 5.0, 50.0, true,2000);
 INSERT INTO productos (nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo,precio)
 VALUES ('Coca Cola', 'BEBIDA', 'LITRO', 40.0, 10.0, 100.0, true,3000);
 
+-- Insertar más productos para el nuevo plato
+INSERT INTO productos (nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo, precio)
+VALUES ('Carne de Res', 'INSUMO', 'KILOGRAMO', 25.0, 5.0, 50.0, true, 8000);
+
+INSERT INTO productos (nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo, precio)
+VALUES ('Queso Muzzarella', 'INSUMO', 'KILOGRAMO', 15.0, 3.0, 30.0, true, 5000);
+
+INSERT INTO productos (nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo, precio)
+VALUES ('Tomate', 'INSUMO', 'KILOGRAMO', 20.0, 5.0, 40.0, true, 1500);
+
+INSERT INTO productos (nombre, tipo, unidad_medida, stock_actual, stock_minimo, stock_maximo, activo, precio)
+VALUES ('Pan de Hamburguesa', 'INSUMO', 'UNIDAD', 50.0, 10.0, 100.0, true, 800);
+
+
 INSERT INTO platos (nombre, descripcion, precio, descuento, disponible, tipo_plato, foto, fecha_alta, user_alta, fecha_baja, user_baja)
 VALUES ('Milanesa Napolitana', 'Milanesa de ternera con salsa de tomate, jamón y queso gratinado.', 10000.00, 7500.00, TRUE, 'PRINCIPAL', 'https://templarestaurante.s3.us-east-1.amazonaws.com/platos/5f783b1e-7422-44ac-8252-959cb9cfc158_WhatsApp+Image+2025-10-12+at+8.29.48+PM.jpeg',
         NOW(), 1, NULL, NULL);
 
+-- Insertar nuevo plato
+INSERT INTO platos (nombre, descripcion, precio, descuento, disponible, tipo_plato, foto, fecha_alta, user_alta, fecha_baja, user_baja)
+VALUES ('Hamburguesa Completa', 'Hamburguesa de carne con queso, tomate y papas fritas.', 8500.00, 7000.00, TRUE, 'PRINCIPAL', 'https://templarestaurante.s3.us-east-1.amazonaws.com/platos/hamburguesa.jpg',
+        NOW(), 1, NULL, NULL);
+
 INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
 VALUES (1, 1, 0.2);  -- 200 gramos de harina
+
+-- Insertar detalles del plato (relación plato-productos)
+INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
+VALUES (2, 4, 0.15);  -- 150 gramos de carne
+
+INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
+VALUES (2, 5, 0.05);  -- 50 gramos de queso
+
+INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
+VALUES (2, 6, 0.1);   -- 100 gramos de tomate
+
+INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
+VALUES (2, 7, 1.0);   -- 1 pan de hamburguesa
+
+INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
+VALUES (2, 2, 1.0);   -- 1 porción de papas fritas
+
+INSERT INTO platos_Detalle (id_plato, id_producto, cantidad)
+VALUES (2, 1, 0.05);  -- 50 gramos de harina (para rebozar)
 
 INSERT INTO mesas (numero_mesa, estado_mesa)
 VALUES ('2', 'DISPONIBLE');

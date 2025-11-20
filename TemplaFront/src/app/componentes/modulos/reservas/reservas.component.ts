@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ReservaService } from '../../../services/reserva.service';
 import { DisponibilidadService } from '../../../services/disponibilidad.service';
 import { PersonaService } from '../../../services/persona.service';
@@ -14,6 +15,8 @@ import { Persona, PostPersonaDto, TipoPersona } from '../../models/PersonaModel'
 import { GetMesaDto } from '../../models/MesasModel';
 import { PostReservaModel, ReservaModel } from '../../models/ReservaModel';
 import { ReportesModalComponent } from '../../modales/reportes-modal/reportes-modal.component';
+import { SelectorReportesModalComponent, TipoReporte } from '../../modales/selector-reportes-modal/selector-reportes-modal.component';
+import { ClientesReservasModalComponent } from '../../modales/clientes-reservas-modal/clientes-reservas-modal.component';
 import { environment } from '../../../../environments/environment';
 import Swal from 'sweetalert2';
 
@@ -37,7 +40,7 @@ interface ReservaData {
 @Component({
   selector: 'app-reservas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ReportesModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ReportesModalComponent, SelectorReportesModalComponent, ClientesReservasModalComponent],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.css']
 })
@@ -61,6 +64,12 @@ export class ReservasComponent implements OnInit {
   
   // Referencia al modal de reportes
   @ViewChild('reportesModal') reportesModal!: ReportesModalComponent;
+
+  // ✅ NUEVO: Referencia al modal de clientes con reservas
+  @ViewChild('clientesReservasModal') clientesReservasModal!: ClientesReservasModalComponent;
+
+  // ✅ NUEVO: Control para el selector de reportes
+  mostrarSelectorReportes = false;
   
   // Enums y opciones
   EventoReserva = EventoReserva;
@@ -128,7 +137,8 @@ export class ReservasComponent implements OnInit {
     private notificationService: NotificationService,
     private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private modalService: NgbModal
   ) {
     this.initializeForms();
   }
@@ -176,7 +186,7 @@ export class ReservasComponent implements OnInit {
       apellido: ['', [Validators.required, Validators.minLength(2)]],
       dni: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
       telefono: ['', [Validators.required, Validators.minLength(8)]],
-      email: ['', [Validators.email]]
+      email: ['', [Validators.required, Validators.email]]
     });
   }
 
@@ -364,10 +374,10 @@ export class ReservasComponent implements OnInit {
     this.updateReservaData();
 
     // Validaciones adicionales
-    if (!this.reservaData.nombre || !this.reservaData.apellido || !this.reservaData.dni || !this.reservaData.telefono) {
+    if (!this.reservaData.nombre || !this.reservaData.apellido || !this.reservaData.dni || !this.reservaData.telefono || !this.reservaData.email) {
       Swal.fire({
         title: 'Datos del cliente incompletos',
-        text: 'Debe completar todos los datos requeridos del cliente',
+        text: 'Debe completar todos los datos requeridos del cliente, incluyendo el email para la confirmación',
         icon: 'warning',
         confirmButtonText: 'OK'
       });
@@ -414,7 +424,7 @@ export class ReservasComponent implements OnInit {
       apellido: this.reservaData.apellido!,
       dni: Number(this.reservaData.dni!),
       telefono: this.reservaData.telefono!,
-      email: this.reservaData.email || '',
+      email: this.reservaData.email!, // Email ahora es obligatorio
       tipoPersona: TipoPersona.CLIENTE,
       userAlta: 1 // ID del usuario logueado (puedes ajustar esto según tu lógica)
     };
@@ -450,10 +460,27 @@ export class ReservasComponent implements OnInit {
             console.log('Respuesta exitosa:', response);
             Swal.fire({
               title: '¡Reserva Confirmada!',
-              text: `Su reserva #${nroReserva} ha sido creada exitosamente para ${personaCreada.nombre} ${personaCreada.apellido}`,
+              html: `
+                <div class="confirmation-message">
+                  <p><strong>Su reserva #${nroReserva} ha sido creada exitosamente</strong></p>
+                  <p>Cliente: ${personaCreada.nombre} ${personaCreada.apellido}</p>
+                  <div class="email-confirmation">
+                    <hr style="margin: 15px 0;">
+                    <p style="color: #27ae60;">
+                      <i class="fas fa-envelope"></i> 
+                      Se ha enviado un email de confirmación a:<br>
+                      <strong>${personaCreada.email}</strong>
+                    </p>
+                    <p style="font-size: 0.9em; color: #7f8c8d;">
+                      Revise su bandeja de entrada y spam
+                    </p>
+                  </div>
+                </div>
+              `,
               icon: 'success',
               confirmButtonText: 'Continuar',
-              confirmButtonColor: '#27ae60'
+              confirmButtonColor: '#27ae60',
+              width: '500px'
             }).then(async () => {
               this.resetForm();
               // cambiarVista ya se encarga de cargar personas
@@ -601,7 +628,7 @@ export class ReservasComponent implements OnInit {
         apellido: this.reservaData.apellido!,
         dni: Number(this.reservaData.dni!),
         telefono: this.reservaData.telefono!,
-        email: this.reservaData.email || '',
+        email: this.reservaData.email!, // Email obligatorio para VIP
         tipoPersona: TipoPersona.CLIENTE,
         userAlta: 1
       };
@@ -629,7 +656,7 @@ export class ReservasComponent implements OnInit {
           telefonoCliente: personaCreada.telefono,
           ocasionEspecial: 'Reserva VIP'
         },
-        emailCliente: personaCreada.email || 'sin-email@templa.com',
+        emailCliente: personaCreada.email,
         nombreCliente: `${personaCreada.nombre} ${personaCreada.apellido}`
       };
 
@@ -1208,9 +1235,44 @@ export class ReservasComponent implements OnInit {
     }
   }
 
-  // Método para abrir el modal de reportes
+  // ✅ ACTUALIZADO: Método para abrir el selector de reportes
   abrirReportes() {
-    this.reportesModal.show('reservas');
+    this.mostrarSelectorReportes = true;
+  }
+
+  // ✅ NUEVO: Manejar selección de reporte
+  onReporteSeleccionado(tipoReporte: TipoReporte) {
+    this.mostrarSelectorReportes = false;
+    
+    switch (tipoReporte.id) {
+      case 'pedidos-fecha':
+        // Abrir el modal de reportes usando NgbModal
+        const modalRef = this.modalService.open(ReportesModalComponent, {
+          size: 'xl',
+          backdrop: 'static',
+          centered: true
+        });
+        modalRef.componentInstance.modulo = 'reservas';
+        break;
+        
+      case 'clientes-reservas':
+        // Abrir el nuevo modal de clientes con reservas
+        this.abrirReporteClientesReservas();
+        break;
+        
+      default:
+        console.warn('Tipo de reporte no implementado:', tipoReporte.id);
+    }
+  }
+
+  // ✅ NUEVO: Cerrar selector de reportes
+  onCancelarSelector() {
+    this.mostrarSelectorReportes = false;
+  }
+
+  // ✅ NUEVO: Abrir reporte específico de clientes con reservas
+  private abrirReporteClientesReservas() {
+    this.clientesReservasModal.show();
   }
 
   // ==================== MÉTODOS DE MERCADO PAGO ====================
@@ -1259,18 +1321,32 @@ export class ReservasComponent implements OnInit {
         Swal.fire({
           title: '¡Pago Exitoso!',
           html: `
-            <p>Tu reserva VIP ha sido confirmada</p>
-            ${reserva ? `
-              <p><strong>Reserva #${reserva.nroReserva}</strong></p>
-              <p>Fecha: ${reserva.fechaReserva}</p>
-              <p>Horario: ${reserva.horario}</p>
-              <p>Comensales: ${reserva.cantidadComensales}</p>
-            ` : ''}
-            <p class="text-success mt-3">¡Te esperamos!</p>
+            <div class="vip-confirmation">
+              <p><strong>👑 Tu reserva VIP ha sido confirmada</strong></p>
+              ${reserva ? `
+                <div class="reservation-details">
+                  <p><strong>Reserva #${reserva.nroReserva}</strong></p>
+                  <p>Fecha: ${reserva.fechaReserva}</p>
+                  <p>Horario: ${reserva.horario}</p>
+                  <p>Comensales: ${reserva.cantidadComensales}</p>
+                </div>
+              ` : ''}
+              <div class="email-notification" style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <p style="color: #27ae60; margin: 0;">
+                  <i class="fas fa-envelope"></i> 
+                  Email de confirmación enviado
+                </p>
+                <p style="font-size: 0.9em; color: #2e7d32; margin: 5px 0 0 0;">
+                  Revise su bandeja de entrada con todos los detalles de su reserva VIP
+                </p>
+              </div>
+              <p class="text-success mt-3">¡Te esperamos para una experiencia única!</p>
+            </div>
           `,
           icon: 'success',
           confirmButtonText: 'Ver mis reservas',
-          confirmButtonColor: '#27ae60'
+          confirmButtonColor: '#27ae60',
+          width: '500px'
         }).then(() => {
           this.cambiarVista('lista');
         });

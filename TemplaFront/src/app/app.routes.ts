@@ -12,6 +12,7 @@ import { PedidosComponent } from './componentes/modulos/pedidos/pedidos.componen
 import { CocinaComponent } from './componentes/modulos/cocina/cocina.component';
 import { MapaMesasComponent } from './componentes/modulos/mapa-mesas/mapa-mesas.component';
 import { MpResultadoComponent } from './componentes/modulos/mp-resultado/mp-resultado.component';
+import { RolUsuario } from './componentes/models/UsuarioModel';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -24,14 +25,16 @@ export const routes: Routes = [
   {
     path: 'personas',
     component: PersonasComponent,
-    canActivate: [authGuard], // ← Agregar guard aquí
+    canActivate: [authGuard],
     data: {
       showInMenu: true,
       menuLabel: 'Personas',
       icon: '👥',
       order: 1,
       isPrincipal: true,
-      hasSubmenu: true
+      hasSubmenu: true,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.ENCARGADO],
+      requiredPermission: 'canViewPersonas'
     }
   },
 
@@ -39,21 +42,25 @@ export const routes: Routes = [
   {
     path: 'personas/listado',
     component: PersonasComponent,
-    canActivate: [authGuard], // ← Agregar guard aquí
+    canActivate: [authGuard],
     data: {
       showInMenu: true,
       parentMenu: 'personas',
-      menuLabel: 'Empleados'
+      menuLabel: 'Empleados',
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.ENCARGADO],
+      requiredPermission: 'canViewPersonas'
     }
   },
   {
     path: 'personas/usuarios',
     component: UsuariosComponent,
-    canActivate: [authGuard], // ← Agregar guard aquí
+    canActivate: [authGuard],
     data: {
       showInMenu: true,
       parentMenu: 'personas',
-      menuLabel: 'Usuarios'
+      menuLabel: 'Usuarios',
+      requiredRoles: [RolUsuario.ADMINISTRADOR],
+      requiredPermission: 'canViewUsuarios'
     }
   },
 
@@ -67,7 +74,9 @@ export const routes: Routes = [
       menuLabel: 'Productos',
       icon: '📦',
       order: 2,
-      isPrincipal: true
+      isPrincipal: true,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.COCINA],
+      requiredPermission: 'canViewProductos'
     }
   },
 
@@ -81,7 +90,9 @@ export const routes: Routes = [
       menuLabel: 'Platos',
       icon: '🍽️',
       order: 3,
-      isPrincipal: true
+      isPrincipal: true,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO],
+      requiredPermission: 'canViewPlatos'
     }
   },
 
@@ -95,7 +106,9 @@ export const routes: Routes = [
       menuLabel: 'Menú',
       icon: '📜',
       order: 4,
-      isPrincipal: true
+      isPrincipal: true,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE],
+      requiredPermission: 'canViewMenu'
     }
   },
 
@@ -109,7 +122,9 @@ export const routes: Routes = [
       menuLabel: 'Mesas',
       icon: '🪑',
       order: 5,
-      isPrincipal: true
+      isPrincipal: true,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO],
+      requiredPermission: 'canViewMesas'
     }
   },
 
@@ -124,7 +139,9 @@ export const routes: Routes = [
       icon: '🧾',
       order: 6,
       isPrincipal: true,
-      hasSubmenu: true
+      hasSubmenu: true,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA],
+      requiredPermission: 'canViewPedidos'
     }
   },
 
@@ -136,7 +153,9 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       parentMenu: 'pedidos',
-      menuLabel: 'Gestión de Pedidos'
+      menuLabel: 'Gestión de Pedidos',
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA],
+      requiredPermission: 'canViewPedidos'
     }
   },
   {
@@ -146,7 +165,9 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       parentMenu: 'pedidos',
-      menuLabel: 'Cocina'
+      menuLabel: 'Cocina',
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.COCINA],
+      requiredPermission: 'canViewCocina'
     }
   },
   {
@@ -156,7 +177,9 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       parentMenu: 'pedidos',
-      menuLabel: 'Tomar Pedido'
+      menuLabel: 'Tomar Pedido',
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA],
+      requiredPermission: 'canViewPedidos'
     }
   },
 
@@ -169,8 +192,10 @@ export const routes: Routes = [
       showInMenu: true,
       menuLabel: 'Reservas',
       icon: '📅',
-      order: 6,
-      isPrincipal: true
+      order: 7,
+      isPrincipal: true,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE],
+      requiredPermission: 'canViewReservas'
     }
   },
 

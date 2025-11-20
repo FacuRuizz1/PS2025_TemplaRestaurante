@@ -39,6 +39,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +52,7 @@ public class ReservaServiceImpl implements IReservaService {
     private final PersonaRepository personaRepository;
     private final DisponibilidadRepository disponibilidadRepository;
     private final MercadoPagoServiceImpl mercadoPagoService;
+    private final EmailService emailService;
 
     @Override
     public ReservaDTO createReserva(PostReservaDTO postReservaDTO) {
@@ -108,6 +110,10 @@ public class ReservaServiceImpl implements IReservaService {
             reserva.setHorario(postReservaDTO.getHorario());
 
             ReservaEntity reservaGuardada = reservaRepository.save(reserva);
+
+            // ✅ ENVIAR EMAIL DE CONFIRMACIÓN
+            enviarEmailConfirmacion(reservaGuardada, persona);
+
             return ReservaDTO.builder()
                     .id(reservaGuardada.getId())
                     .idPersona(reservaGuardada.getPersona().getId())
@@ -331,6 +337,52 @@ public class ReservaServiceImpl implements IReservaService {
         ReservaEntity reserva = reservaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada con el ID: " + id));
         return modelMapper.map(reserva, ReservaDTO.class);
+    }
+
+    @Override
+    public List<ReporteClientesReservasDTO> obtenerReporteClientesPorReserva() {
+        List<Object[]> resultados = reservaRepository.findClientesPorCantidadReservas();
+
+        return resultados.stream()
+                .map(resultado -> new ReporteClientesReservasDTO(
+                        (String) resultado[0],           // nombreCompleto
+                        (String) resultado[1],           // email
+                        (String) resultado[2],           // telefono
+                        ((Number) resultado[3]).longValue(), // totalReservas
+                        (EventoReserva) resultado[4]     // Cast directo al enum
+                ))
+                .collect(Collectors.toList());
+
+
+    }
+
+    private void enviarEmailConfirmacion(ReservaEntity reserva, PersonaEntity persona) {
+        try {
+            // Verificar que la persona tenga email
+            if (persona.getEmail() != null && !persona.getEmail().trim().isEmpty()) {
+                String nombreCompleto = persona.getNombre() + " " + persona.getApellido();
+                String fechaFormateada = reserva.getFechaReserva().toString(); // O formatear como prefieras
+
+                emailService.enviarMailConfirmacionReserva(
+                        persona.getEmail(),
+                        nombreCompleto,
+                        reserva.getNroReserva(),
+                        fechaFormateada,
+                        reserva.getHorario().toString(),
+                        reserva.getEvento().name(),
+                        reserva.getCantidadComensales()
+                );
+
+                log.info("✅ Email de confirmación enviado a: {} para la reserva #{}",
+                        persona.getEmail(), reserva.getNroReserva());
+            } else {
+                log.warn("⚠️ No se pudo enviar email de confirmación: el cliente no tiene email registrado");
+            }
+        } catch (Exception e) {
+            log.error("❌ Error al enviar email de confirmación para la reserva #{}. Error: {}",
+                    reserva.getNroReserva(), e.getMessage());
+            // No lanzamos excepción para no interrumpir el flujo de la reserva
+        }
     }
 }
 

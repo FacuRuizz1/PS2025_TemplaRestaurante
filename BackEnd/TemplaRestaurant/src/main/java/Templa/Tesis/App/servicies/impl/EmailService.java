@@ -52,4 +52,25 @@ public class EmailService {
                 "Sistema de Gestión Templa";
         enviarMail(para,asunto,cuerpo);
     }
+
+    public void enviarMailConfirmacionReserva(String para, String nombreCliente, Integer nroReserva,
+                                              String fechaReserva, String horario, String evento,
+                                              Integer cantidadComensales) {
+        String asunto = "Confirmación de Reserva - Templa";
+        String cuerpo = "Hola " + nombreCliente + ",\n\n" +
+                "¡Tu reserva ha sido confirmada exitosamente!\n\n" +
+                "Detalles de tu reserva:\n\n" +
+                "Número de reserva: " + nroReserva + "\n" +
+                "Fecha: " + fechaReserva + "\n" +
+                "Horario: " + horario + "\n" +
+                "Evento: " + evento + "\n" +
+                "Cantidad de comensales: " + cantidadComensales + "\n\n" +
+                "Tu mesa estará lista para cuando nos visites.\n\n" +
+                "Si necesitas modificar o cancelar tu reserva, por favor contáctanos con al menos 24 horas de anticipación.\n\n" +
+                "Te esperamos en Templa para brindarte una experiencia única.\n\n" +
+                "Saludos cordiales,\n" +
+                "El equipo de Templa\n\n";
+
+        enviarMail(para, asunto, cuerpo);
+    }
 }

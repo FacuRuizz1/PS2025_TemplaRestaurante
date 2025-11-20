@@ -5,6 +5,7 @@ import { MenuItem } from '../models/menu-model';
 import { NavbarService } from '../../services/navbar.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService, NotificacionDTO } from '../../services/notification.service';
+import { RoleAccessService } from '../../services/role-access.service';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 
@@ -31,7 +32,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private router: Router,
     private navbarService: NavbarService,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private roleAccessService: RoleAccessService
   ) { }
 
   // ✅ CORREGIR: Getter para módulos principales (CON y SIN submenu)
@@ -54,6 +56,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.loadUserInfo();
     this.setupNotifications();
     this.resetNavbarState();
+    
+    // Debug info para desarrollo
+    if (this.authService.isLoggedIn()) {
+      console.log('🔍 Navbar: Información de debug de autenticación y permisos');
+      this.authService.debugAuthInfo();
+    }
   }
 
   ngOnDestroy() {
@@ -78,19 +86,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private loadUserInfo() {
     // Obtener username del token JWT
-    this.username = this.authService.getUsername();
+    const baseUsername = this.authService.getUsername();
+    const userRole = this.authService.getUserRole();
     
-    // Opcional: Si quieres más información del usuario desde el backend
-    // this.authService.getUserProfile().subscribe({
-    //   next: (userProfile) => {
-    //     this.username = userProfile.nombre || userProfile.username || 'Usuario';
-    //   },
-    //   error: (error) => {
-    //     console.log('No se pudo cargar el perfil del usuario:', error);
-    //     // Fallback al token
-    //     this.username = this.authService.getUsername();
-    //   }
-    // });
+    // Mostrar solo el username, sin el rol
+    this.username = baseUsername;
+    
+    // Debug para desarrollo
+    if (userRole) {
+      console.log(`🔍 Navbar: Usuario cargado - ${this.username} con rol ${userRole}`);
+      this.roleAccessService.debugPermissions();
+    }
   }
 
   private resetNavbarState() {
@@ -141,6 +147,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     console.log('Logout clicked');
     this.authService.logout(); // Esto ya navega a /login y limpia el token
   }
+
+
 
   showNotifications() {
     // Marcar notificaciones como leídas

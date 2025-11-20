@@ -61,33 +61,33 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Endpoints que requieren rol ADMINISTRADOR
-                        .requestMatchers("/api/usuario/crear").hasAuthority("ADMINISTRADOR")
-                        .requestMatchers("/api/usuario/editar/**").hasAuthority("ADMINISTRADOR")
-                        .requestMatchers("/api/usuario/eliminar/**").hasAuthority("ADMINISTRADOR")
-                        .requestMatchers("/api/usuario/listar").hasAuthority("ADMINISTRADOR")
-                        .requestMatchers("/api/usuario/buscar/**").hasAuthority("ADMINISTRADOR")
+                        .requestMatchers("/api/usuario/**").hasAuthority("ADMINISTRADOR")
 
-                        // Endpoints de persona solo ADMINISTRADOR
-                        .requestMatchers("/api/persona/**").hasAuthority("ADMINISTRADOR")
+                        // Endpoints de persona solo ADMINISTRADOR, MOZO Y ENCARGADO
+                        .requestMatchers("/api/persona/**").hasAnyAuthority("ADMINISTRADOR","MOZO","ENCARGADO")
 
-                        // Endpoints de producto solo para ADMINISTRADOR
-                        .requestMatchers("/api/producto/**").hasAuthority("ADMINISTRADOR")
+                        // Endpoints de producto solo para ADMINISTRADOR y COCINA
+                        .requestMatchers("/api/producto/**").hasAnyAuthority("ADMINISTRADOR", "COCINA")
 
-                        // Endpoints de plato solo para ADMINISTRADOR
-                        .requestMatchers("/api/platos/**").hasAuthority("ADMINISTRADOR")
+                        // Endpoints de plato solo para ADMINISTRADOR y ENCARAGADO
+                        .requestMatchers("/api/platos/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO")
 
-                        //Endpoint de Menu solo para ADMINISTRADOR
-                        .requestMatchers("/api/menu/**").hasAuthority("ADMINISTRADOR")
+                        //Endpoint de Menu solo para ADMINISTRADOR  Y CLIENTE
+                        .requestMatchers("/api/menu/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE")
 
-                        //Endpoint de Reserva solo para ADMINISTRADOR
-                        .requestMatchers("/api/reserva/**").hasAuthority("ADMINISTRADOR")
+                        //Endpoint de Mesa solo para ADMINISTRADOR y MOZO
+                        .requestMatchers("/api/mesas/**").hasAnyAuthority("ADMINISTRADOR","MOZO","COCINA")
 
-                        //Endpoint de Disponibilidad solo para ADMINISTRADOR
-                        .requestMatchers("/api/disponibilidad/**").hasAuthority("ADMINISTRADOR")
+                        //Endpoint de Reserva solo para ADMINISTRADOR y CLIENTE
+                        .requestMatchers("/api/reserva/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE")
 
-                        //Enpoint de Pedido solo para ADMINISTRADOR
-                        .requestMatchers("/api/pedido/**").hasAuthority("ADMINISTRADOR")
+                        //Endpoint de Disponibilidad solo para ADMINISTRADOR, MOZO y ENCARGADO
+                        .requestMatchers("/api/disponibilidad/**").hasAnyAuthority("ADMINISTRADOR", "MOZO","ENCARGADO")
 
+                        //Enpoint de Pedido solo para ADMINISTRADOR ,MOZO y COCINA
+                        .requestMatchers("/api/pedido/**").hasAnyAuthority("ADMINISTRADOR","MOZO","COCINA")
+
+                        //Enpoint de Reportes solo para ADMINISTRADOR
                         .requestMatchers("/api/reportes/**").hasAuthority("ADMINISTRADOR")
 
                         // Cualquier otro endpoint requiere autenticación
