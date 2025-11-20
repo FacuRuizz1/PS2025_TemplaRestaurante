@@ -112,7 +112,7 @@
                     <tr>
                         <th scope="row">{{ i + 1 + ((paginaActual) * tamanoPagina) }}</th>
                         <td>
-                            <strong>{{ producto.nombre }}</strong>
+                           {{ producto.nombre }}
                         </td>
                         <td>
                             <span *ngIf="producto.tipo === 'INSUMO'" class="text-muted">

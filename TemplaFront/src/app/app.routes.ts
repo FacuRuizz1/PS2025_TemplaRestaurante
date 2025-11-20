@@ -59,7 +59,7 @@ export const routes: Routes = [
       showInMenu: true,
       parentMenu: 'personas',
       menuLabel: 'Usuarios',
-      requiredRoles: [RolUsuario.ADMINISTRADOR],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewUsuarios'
     }
   },
@@ -75,7 +75,7 @@ export const routes: Routes = [
       icon: '📦',
       order: 2,
       isPrincipal: true,
-      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.COCINA],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.COCINA, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewProductos'
     }
   },
@@ -91,7 +91,7 @@ export const routes: Routes = [
       icon: '🍽️',
       order: 3,
       isPrincipal: true,
-      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO, RolUsuario.COCINA], // ✅ AGREGADO COCINA
       requiredPermission: 'canViewPlatos'
     }
   },
@@ -107,7 +107,7 @@ export const routes: Routes = [
       icon: '📜',
       order: 4,
       isPrincipal: true,
-      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewMenu'
     }
   },
@@ -123,12 +123,12 @@ export const routes: Routes = [
       icon: '🪑',
       order: 5,
       isPrincipal: true,
-      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewMesas'
     }
   },
 
-    // Rutas de pedidos (PROTEGIDAS)
+  // Rutas de pedidos (PROTEGIDAS)
   {
     path: 'pedidos',
     component: PedidosComponent,
@@ -140,7 +140,7 @@ export const routes: Routes = [
       order: 6,
       isPrincipal: true,
       hasSubmenu: true,
-      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewPedidos'
     }
   },
@@ -154,7 +154,7 @@ export const routes: Routes = [
       showInMenu: true,
       parentMenu: 'pedidos',
       menuLabel: 'Gestión de Pedidos',
-      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewPedidos'
     }
   },
@@ -178,7 +178,7 @@ export const routes: Routes = [
       showInMenu: true,
       parentMenu: 'pedidos',
       menuLabel: 'Tomar Pedido',
-      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.COCINA, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewPedidos'
     }
   },
@@ -194,7 +194,7 @@ export const routes: Routes = [
       icon: '📅',
       order: 7,
       isPrincipal: true,
-      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE],
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewReservas'
     }
   },

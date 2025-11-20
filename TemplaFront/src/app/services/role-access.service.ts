@@ -51,9 +51,9 @@ export const ROLE_ACCESS_CONFIG: Record<RolUsuario, RolePermissions> = {
     canViewPersonas: false,    // ADMINISTRADOR, MOZO, ENCARGADO
     canViewUsuarios: false,    // Solo ADMINISTRADOR
     canViewProductos: true,    // ADMINISTRADOR, COCINA
-    canViewPlatos: false,      // ADMINISTRADOR, ENCARGADO
+    canViewPlatos: true,      // ADMINISTRADOR, ENCARGADO
     canViewMenu: false,        // ADMINISTRADOR, CLIENTE
-    canViewMesas: true,        // ADMINISTRADOR, MOZO, COCINA (para ver mapa de mesas)
+    canViewMesas: false,        // ADMINISTRADOR, MOZO, COCINA (para ver mapa de mesas)
     canViewReservas: false,    // ADMINISTRADOR, CLIENTE
     canViewPedidos: true,      // ADMINISTRADOR, MOZO, COCINA (actualizado)
     canViewCocina: true,       // Cocina ve su módulo
@@ -63,13 +63,13 @@ export const ROLE_ACCESS_CONFIG: Record<RolUsuario, RolePermissions> = {
   
   [RolUsuario.ENCARGADO]: {
     canViewPersonas: true,     // ADMINISTRADOR, MOZO, ENCARGADO
-    canViewUsuarios: false,    // Solo ADMINISTRADOR
+    canViewUsuarios: true,    // Solo ADMINISTRADOR
     canViewProductos: false,   // ADMINISTRADOR, COCINA
     canViewPlatos: true,       // ADMINISTRADOR, ENCARGADO
-    canViewMenu: false,        // ADMINISTRADOR, CLIENTE
-    canViewMesas: false,       // ADMINISTRADOR, MOZO
-    canViewReservas: false,    // ADMINISTRADOR, CLIENTE
-    canViewPedidos: false,     // ADMINISTRADOR, MOZO
+    canViewMenu: true,        // ADMINISTRADOR, CLIENTE
+    canViewMesas: true,       // ADMINISTRADOR, MOZO
+    canViewReservas: true,    // ADMINISTRADOR, CLIENTE
+    canViewPedidos: true,     // ADMINISTRADOR, MOZO
     canViewCocina: false,      // Solo acceso específico
     canViewReportes: false,    // Solo ADMINISTRADOR
     canManageUsers: false      // Solo ADMINISTRADOR
