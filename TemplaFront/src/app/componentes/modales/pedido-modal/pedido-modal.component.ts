@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { GetPedidoDto, PostPedidoDto, PostPedidoDetalleDto } from '../../models/PedidoModel';
 import { GetMesaDto } from '../../models/MesasModel';
 import { GetPlatoDto } from '../../models/PlatoModel';
@@ -13,6 +13,8 @@ import { AuthService } from '../../../services/auth.service';
 import { AlertService } from '../../../services/alert.service';
 import { MenuService } from '../../../services/menu.service';
 import { ProductoService } from '../../../services/producto.service';
+import { SseService } from '../../../services/sse.service';
+import { NotificationService } from '../../../services/notification.service';
 import { GetMenuDTO } from '../../models/MenuModel';
 import { ProductoDTO } from '../../models/ProductoModel';
 
@@ -33,7 +35,7 @@ export interface ItemDetalle {
   templateUrl: './pedido-modal.component.html',
   styleUrl: './pedido-modal.component.css'
 })
-export class PedidoModalComponent implements OnInit {
+export class PedidoModalComponent implements OnInit, OnDestroy {
   @Input() isEditMode: boolean = false;
   @Input() pedidoData: GetPedidoDto | null = null;
   @Input() soloLectura: boolean = false;
@@ -70,6 +72,9 @@ export class PedidoModalComponent implements OnInit {
   guardando = false;
   cargandoDatos = true;
 
+  // Suscripciones SSE
+  private sseSubscriptions: Subscription[] = [];
+
   constructor(
     public activeModal: NgbActiveModal,
     private formBuilder: FormBuilder,
@@ -79,7 +84,9 @@ export class PedidoModalComponent implements OnInit {
     private productoService: ProductoService,
     private pedidoService: PedidoService,
     private authService: AuthService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private sseService: SseService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit() {
@@ -106,6 +113,108 @@ export class PedidoModalComponent implements OnInit {
 
     if (this.soloLectura) {
       this.pedidoForm.disable();
+    }
+
+    // Suscribirse a eventos SSE si estamos en modo edición/visualización
+    if ((this.isEditMode || this.soloLectura) && this.pedidoData) {
+      this.suscribirseAActualizacionesPedido();
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar suscripciones SSE
+    this.sseSubscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  /**
+   * Suscribirse a actualizaciones del pedido vía SSE
+   */
+  private suscribirseAActualizacionesPedido(): void {
+    if (!this.pedidoData) return;
+
+    const idPedidoActual = this.pedidoData.idPedido;
+
+    // Asegurarse de que la conexión SSE esté activa
+    this.sseService.iniciarConexion('cocina', ['pedido-actualizado']);
+
+    // Suscribirse a actualizaciones de pedidos
+    const actualizacionSub = this.sseService.onEvento<GetPedidoDto>('pedido-actualizado').subscribe({
+      next: (pedidoActualizado: GetPedidoDto) => {
+        // Solo actualizar si es el pedido que estamos viendo
+        if (pedidoActualizado.idPedido === idPedidoActual) {
+          console.log('🔄 SSE: Pedido actualizado en modal:', pedidoActualizado);
+          this.actualizarDatosPedido(pedidoActualizado);
+          
+          // Notificar al mozo si hay items listos para entregar
+          this.verificarItemsListosParaEntregar(pedidoActualizado);
+        }
+      },
+      error: (error: any) => {
+        console.error('❌ Error en evento SSE pedido-actualizado:', error);
+      }
+    });
+
+    this.sseSubscriptions.push(actualizacionSub);
+  }
+
+  /**
+   * Actualizar los datos del pedido en el modal cuando llega actualización SSE
+   */
+  private actualizarDatosPedido(pedidoActualizado: GetPedidoDto): void {
+    // Si el pedido fue cancelado, cerrar el modal
+    if (pedidoActualizado.estado === 'CANCELADO') {
+      this.alertService.showInfo('Pedido Cancelado', 'Este pedido ha sido cancelado');
+      this.activeModal.close({ accion: 'cancelado', pedido: pedidoActualizado });
+      return;
+    }
+    
+    this.pedidoData = pedidoActualizado;
+    
+    // Actualizar detalles agregados con los nuevos estados
+    this.detallesAgregados = pedidoActualizado.detalles.map(detalle => ({
+      id: detalle.idPedidoDetalle,
+      nombre: detalle.nombreItem,
+      tipo: detalle.tipo,
+      precio: detalle.precioUnitario,
+      cantidad: detalle.cantidad,
+      estado: detalle.estado,
+      esNuevo: false
+    }));
+
+    console.log('✅ Detalles actualizados en modal:', this.detallesAgregados);
+  }
+
+  /**
+   * Verificar si hay items listos para entregar y notificar al mozo
+   */
+  private verificarItemsListosParaEntregar(pedido: GetPedidoDto): void {
+    const itemsListos = pedido.detalles.filter(d => d.estado === 'LISTO_PARA_ENTREGAR');
+    
+    if (itemsListos.length > 0) {
+      const itemsNombres = itemsListos.map(d => `${d.cantidad}x ${d.nombreItem}`).join(', ');
+      
+      // Agregar notificación al sistema
+      this.notificationService.addNotification({
+        tipo: 'ITEMS_LISTOS',
+        mensaje: `Mesa ${pedido.numeroMesa}: ${itemsNombres} Listo/s Para entregar.`,
+        datos: {
+          idPedido: pedido.idPedido,
+          numeroMesa: pedido.numeroMesa,
+          itemsListos: itemsListos
+        },
+        timestamp: new Date().toISOString()
+      });
+      
+      // Notificación del navegador si está permitido
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(`🍽️ Items Listos - Mesa ${pedido.numeroMesa}`, {
+          body: itemsNombres,
+          icon: 'assets/iconos/cocina.png',
+          tag: `pedido-${pedido.idPedido}` // Para evitar duplicados
+        });
+      } else if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
     }
   }
 

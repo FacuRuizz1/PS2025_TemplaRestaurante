@@ -13,6 +13,7 @@ export interface NotificacionDTO {
 })
 export class NotificationService {
   private connected = false;
+  private eventSource: EventSource | null = null;
   
   // Subject para las notificaciones
   private notificationsSubject = new BehaviorSubject<NotificacionDTO[]>([]);
@@ -24,6 +25,47 @@ export class NotificationService {
 
   constructor() {
     // Constructor vacío - las notificaciones se agregarán cuando sea necesario
+  }
+
+  /**
+   * Conectar al endpoint SSE de pedidos listos para un mozo específico
+   * @param idMozo ID del mozo que recibirá las notificaciones
+   */
+  public conectarPedidosListos(idMozo: number): void {
+    if (this.eventSource) {
+      console.log('⚠️ Ya existe una conexión SSE activa, cerrando...');
+      this.disconnect();
+    }
+
+    const url = `http://localhost:8081/api/sse/pedidos-listos/${idMozo}`;
+    console.log(`🔌 Conectando a SSE de pedidos listos para mozo ${idMozo}:`, url);
+
+    this.eventSource = new EventSource(url);
+
+    this.eventSource.onopen = () => {
+      console.log('✅ Conexión SSE establecida para pedidos listos');
+      this.connected = true;
+    };
+
+    this.eventSource.onmessage = (event) => {
+      try {
+        const notificacion: NotificacionDTO = JSON.parse(event.data);
+        console.log('🔔 Notificación de pedido listo recibida:', notificacion);
+        this.addNotification(notificacion);
+      } catch (error) {
+        console.error('❌ Error al parsear notificación de pedido listo:', error);
+      }
+    };
+
+    this.eventSource.onerror = (error) => {
+      console.error('❌ Error en conexión SSE de pedidos listos:', error);
+      this.connected = false;
+      // Reintentar conexión después de 5 segundos
+      setTimeout(() => {
+        console.log('🔄 Reintentando conexión SSE...');
+        this.conectarPedidosListos(idMozo);
+      }, 5000);
+    };
   }
 
   // Método para simular la llegada de una notificación (útil para testing)
@@ -51,7 +93,8 @@ export class NotificationService {
     });
   }
 
-  private addNotification(notification: NotificacionDTO): void {
+  // Método público para agregar cualquier tipo de notificación
+  public addNotification(notification: NotificacionDTO): void {
     const currentNotifications = this.notificationsSubject.value;
     const updatedNotifications = [notification, ...currentNotifications];
     
@@ -106,6 +149,12 @@ export class NotificationService {
   // Limpiar recursos al destruir el servicio
   disconnect(): void {
     console.log('Desconectando servicio de notificaciones...');
+    if (this.eventSource) {
+      this.eventSource.close();
+      this.eventSource = null;
+      this.connected = false;
+      console.log('✅ Conexión SSE cerrada');
+    }
   }
 
   // Getter para saber si está conectado

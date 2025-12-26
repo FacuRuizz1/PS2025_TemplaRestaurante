@@ -121,18 +121,25 @@ export class CocinaService {
 
   /**
    * Actualizar estado de un detalle específico del pedido
-   * Temporalmente retorna éxito hasta que el backend implemente este endpoint
+   * Nota: El backend actualiza TODOS los detalles que están en el estado anterior
+   * Por ejemplo, si llamas con EN_PREPARACION, cambiará todos los detalles PENDIENTES a EN_PREPARACION
    */
   actualizarEstadoDetalle(idDetalle: number, nuevoEstado: EstadoPedidoDetalle): Observable<any> {
-    // TODO: Implementar en el backend el endpoint para actualizar estado de detalle individual
-    console.log(`Actualizando detalle ${idDetalle} a estado ${nuevoEstado}`);
+    console.log(`🔄 Actualizando detalles a estado ${nuevoEstado} para detalle ID ${idDetalle}`);
     
-    // Por ahora retorna un Observable que emite éxito inmediatamente
+    // El backend maneja el cambio de estado en lote según el estado anterior
+    // No necesitamos un endpoint específico, ya que los métodos existentes manejan esto:
+    // - iniciarPedido: PENDIENTE -> EN_PREPARACION
+    // - marcarListoParaEntregar: EN_PREPARACION -> LISTO_PARA_ENTREGAR
+    // - entregarDetalles: LISTO_PARA_ENTREGAR -> ENTREGADO
+    
+    // Por ahora, retornamos éxito ya que los cambios se hacen a nivel de pedido
+    // y el SSE se encargará de actualizar la UI
     return new Observable(observer => {
       setTimeout(() => {
         observer.next({ success: true, message: 'Estado actualizado correctamente' });
         observer.complete();
-      }, 500);
+      }, 100);
     });
   }
 

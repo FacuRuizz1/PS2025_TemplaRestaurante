@@ -42,7 +42,7 @@ public interface PersonaRepository extends JpaRepository<PersonaEntity, Integer>
     @Query("SELECT p FROM PersonaEntity p WHERE p.dni = :dni AND p.fechaBaja IS NULL")
     PersonaEntity findByDni(@Param("dni") int dni);
 
-    @Query("SELECT p FROM PersonaEntity p WHERE LOWER(CONCAT(p.nombre, ' ', p.apellido)) = LOWER(:nombreCompleto)")
+    @Query("SELECT p FROM PersonaEntity p WHERE LOWER(CONCAT(p.nombre, ' ', p.apellido)) = LOWER(:nombreCompleto) AND p.fechaBaja IS NULL")
     PersonaEntity findByNombreCompleto(@Param("nombreCompleto") String nombreCompleto);
 
 }

@@ -54,6 +54,16 @@ public class SseController {
     }
 
     /**
+     * Endpoint para que un mozo específico reciba notificaciones de pedidos listos
+     * @param idMozo ID del mozo que recibirá las notificaciones
+     */
+    @GetMapping(value = "/pedidos-listos/{idMozo}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribePedidosListosMozo(@PathVariable Long idMozo) {
+        log.info("🔔 Mozo {} conectándose para recibir notificaciones de pedidos listos", idMozo);
+        return subscribe("pedidos-listos-" + idMozo);
+    }
+
+    /**
      * Endpoint de prueba sin autenticación para verificar que SSE funciona
      */
     @GetMapping(value = "/test", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

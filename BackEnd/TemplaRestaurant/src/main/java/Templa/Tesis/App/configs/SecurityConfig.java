@@ -66,14 +66,14 @@ public class SecurityConfig {
                         // Endpoints de persona solo ADMINISTRADOR, Y ENCARGADO
                         .requestMatchers("/api/persona/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO")
 
-                        // Endpoints de producto solo para ADMINISTRADOR , COCINA y ENCARGADO
-                        .requestMatchers("/api/producto/**").hasAnyAuthority("ADMINISTRADOR", "COCINA","ENCARGADO")
+                        // Endpoints de producto - MOZO necesita para ver productos en pedidos
+                        .requestMatchers("/api/producto/**").hasAnyAuthority("ADMINISTRADOR", "COCINA","ENCARGADO","MOZO")
 
-                        // Endpoints de plato solo para ADMINISTRADOR , ENCARAGADO y COCINA
-                        .requestMatchers("/api/platos/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO","COCINA")
+                        // Endpoints de plato - MOZO necesita para ver platos en pedidos
+                        .requestMatchers("/api/platos/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO","COCINA","MOZO")
 
-                        //Endpoint de Menu solo para ADMINISTRADOR , CLIENTE y COCINA
-                        .requestMatchers("/api/menu/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE","ENCARGADO")
+                        //Endpoint de Menu - MOZO necesita para ver menus en pedidos
+                        .requestMatchers("/api/menu/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE","ENCARGADO","MOZO")
 
                         //Endpoint de Mesa solo para ADMINISTRADOR y MOZO
                         .requestMatchers("/api/mesas/**").hasAnyAuthority("ADMINISTRADOR","MOZO","ENCARGADO")

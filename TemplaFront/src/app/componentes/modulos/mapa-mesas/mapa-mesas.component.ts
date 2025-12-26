@@ -8,6 +8,7 @@ import { PedidoService } from '../../../services/pedido.service';
 import { SseService } from '../../../services/sse.service';
 import { AuthService } from '../../../services/auth.service';
 import { AlertService } from '../../../services/alert.service';
+import { NotificationService } from '../../../services/notification.service';
 import { EstadoMesa, GetMesaDto } from '../../models/MesasModel';
 import { GetPedidoDto } from '../../models/PedidoModel';
 import { PedidoModalComponent } from '../../modales/pedido-modal/pedido-modal.component';
@@ -85,6 +86,7 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
     private sseService: SseService,
     private authService: AuthService,
     private alertService: AlertService,
+    private notificationService: NotificationService,
     private modalService: NgbModal
   ) {}
 
@@ -188,9 +190,20 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
     const actualizacionPedidoSub = this.sseService.onEvento<GetPedidoDto>('pedido-actualizado').subscribe({
       next: (pedido: GetPedidoDto) => {
         console.log('SSE: Pedido actualizado en mapa-mesas:', pedido);
-        // Recargar mesas para actualizar el estado
-        this.cargarMesasEnPlano();
-        this.alertService.showInfo('Pedido Actualizado', `Mesa ${pedido.numeroMesa} - Pedido #${pedido.idPedido}`);
+        
+        // Si el pedido fue cancelado, recargar mesas para actualizar estados
+        if (pedido.estado === 'CANCELADO') {
+          this.alertService.showInfo('Pedido Cancelado', `Mesa ${pedido.numeroMesa} - Pedido #${pedido.idPedido} cancelado`);
+          this.cargarMesasEnPlano();
+          return;
+        }
+        
+        // Actualizar la mesa correspondiente en el plano si existe
+        const mesa = this.mesasEnPlano.find(m => m.numeroMesa === pedido.numeroMesa);
+        if (mesa) {
+          // Recargar solo esa mesa o actualizar su estado según los detalles del pedido
+          this.actualizarEstadoMesaPorPedido(mesa, pedido);
+        }
       },
       error: (error: any) => {
         console.error('Error en evento pedido-actualizado:', error);
@@ -199,6 +212,50 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Guardar suscripciones para limpieza
     this.sseSubscriptions.push(nuevoPedidoSub, actualizacionPedidoSub);
+  }
+
+  /**
+   * Actualizar el estado visual de una mesa basado en el pedido actualizado
+   */
+  private actualizarEstadoMesaPorPedido(mesa: MesaEnPlano, pedido: GetPedidoDto): void {
+    console.log(`🔄 Actualizando mesa ${mesa.numeroMesa} por cambio en pedido #${pedido.idPedido}`);
+    
+    const todosEntregados = pedido.detalles.every(d => d.estado === 'ENTREGADO');
+    const itemsListos = pedido.detalles.filter(d => d.estado === 'LISTO_PARA_ENTREGAR');
+    
+    if (todosEntregados) {
+      console.log(`✅ Todos los items de la mesa ${mesa.numeroMesa} están entregados`);
+    } else if (itemsListos.length > 0) {
+      console.log(`🍽️ Hay ${itemsListos.length} items listos para entregar en mesa ${mesa.numeroMesa}`);
+      
+      const itemsNombres = itemsListos.map(d => `${d.cantidad}x ${d.nombreItem}`).join(', ');
+      
+      // Agregar notificación al sistema
+      this.notificationService.addNotification({
+        tipo: 'ITEMS_LISTOS',
+        mensaje: `Mesa ${mesa.numeroMesa}: ${itemsNombres}`,
+        datos: {
+          idPedido: pedido.idPedido,
+          idMesa: mesa.idMesa,
+          numeroMesa: mesa.numeroMesa,
+          itemsListos: itemsListos
+        },
+        timestamp: new Date().toISOString()
+      });
+      
+      // Notificación del navegador si está permitido
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(`🍽️ Items Listos - Mesa ${mesa.numeroMesa}`, {
+          body: itemsNombres,
+          icon: 'assets/iconos/cocina.png',
+          tag: `mesa-${mesa.idMesa}`,
+          requireInteraction: true // Mantener la notificación hasta que el usuario la cierre
+        });
+      } else if ('Notification' in window && Notification.permission === 'default') {
+        // Solicitar permiso si aún no se ha pedido
+        Notification.requestPermission();
+      }
+    }
   }
 
   filtrarMesas(): void {

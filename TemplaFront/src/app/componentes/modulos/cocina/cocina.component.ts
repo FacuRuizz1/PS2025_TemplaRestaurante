@@ -249,15 +249,52 @@ export class CocinaComponent implements OnInit, OnDestroy {
   }
 
   cambiarEstadoDetalle(pedido: GetPedidoDto, detalle: GetPedidoDetalleDto, nuevoEstado: EstadoPedidoDetalle) {
-    this.cocinaService.actualizarEstadoDetalle(detalle.idPedidoDetalle, nuevoEstado).subscribe({
-      next: () => {
-        // Actualizar el estado en el objeto original
-        detalle.estado = nuevoEstado;
+    console.log(`🔄 Cambiando estado de detalle: ${detalle.estado} -> ${nuevoEstado}`);
+    
+    // Determinar qué método del servicio llamar según el nuevo estado
+    let observable;
+    
+    switch (nuevoEstado) {
+      case EstadoPedidoDetalle.EN_PREPARACION:
+        // Cambiar todos los detalles PENDIENTES a EN_PREPARACION
+        observable = this.cocinaService.actualizarEstadoPedido(pedido.idPedido, EstadoPedido.EN_PROCESO);
+        break;
         
-        // Reagrupar para reflejar los cambios
-        this.aplicarFiltros();
+      case EstadoPedidoDetalle.LISTO_PARA_ENTREGAR:
+        // Cambiar todos los detalles EN_PREPARACION a LISTO_PARA_ENTREGAR
+        observable = this.cocinaService.actualizarEstadoPedido(pedido.idPedido, EstadoPedido.LISTO_PARA_ENTREGAR);
+        break;
         
-        this.alertService.showSuccess(`Item "${detalle.nombreItem}" marcado como ${this.formatearEstadoDetalle(nuevoEstado)}`, 'Estado Actualizado');
+      case EstadoPedidoDetalle.ENTREGADO:
+        // Cambiar todos los detalles LISTO_PARA_ENTREGAR a ENTREGADO
+        observable = this.cocinaService.actualizarEstadoPedido(pedido.idPedido, EstadoPedido.ENTREGADO);
+        break;
+        
+      case EstadoPedidoDetalle.CANCELADO:
+        // Cancelar detalles pendientes
+        observable = this.cocinaService.actualizarEstadoPedido(pedido.idPedido, EstadoPedido.CANCELADO);
+        break;
+        
+      default:
+        console.warn(`Estado ${nuevoEstado} no manejado`);
+        return;
+    }
+    
+    observable.subscribe({
+      next: (pedidoActualizado: GetPedidoDto) => {
+        console.log('✅ Pedido actualizado:', pedidoActualizado);
+        
+        // Actualizar el pedido en la lista local
+        const index = this.pedidos.findIndex(p => p.idPedido === pedido.idPedido);
+        if (index !== -1) {
+          this.pedidos[index] = pedidoActualizado;
+          this.aplicarFiltros();
+        }
+        
+        this.alertService.showSuccess(
+          `Items actualizados a ${this.formatearEstadoDetalle(nuevoEstado)}`, 
+          'Estado Actualizado'
+        );
       },
       error: (error: any) => {
         console.error('Error al actualizar estado del detalle:', error);
@@ -445,12 +482,8 @@ export class CocinaComponent implements OnInit, OnDestroy {
       confirmButtonColor: '#28a745'
     }).then((result) => {
       if (result.isConfirmed) {
-        // Cambiar estado de todos los items pendientes a EN_PREPARACION
-        pedidoAgrupado.detalles.forEach(detalle => {
-          if (detalle.estado === EstadoPedidoDetalle.PENDIENTE) {
-            this.cambiarEstadoDetalle(pedido, detalle, EstadoPedidoDetalle.EN_PREPARACION);
-          }
-        });
+        // Cambiar estado del pedido a EN_PROCESO, lo cual cambiará todos los detalles PENDIENTES a EN_PREPARACION
+        this.actualizarEstadoPedido(pedido, EstadoPedido.EN_PROCESO);
       }
     });
   }

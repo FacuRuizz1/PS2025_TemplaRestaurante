@@ -53,6 +53,8 @@ public class PedidoServiceImpl implements IPedidoService {
     private EmailService emailService;
     @Autowired
     private SseController sseController;
+    @Autowired
+    private NotificationService notificationService;
 
     @Override
     @Transactional
@@ -277,7 +279,10 @@ public class PedidoServiceImpl implements IPedidoService {
         // 🔥 Emitir notificación SSE de pedido actualizado
         sseController.sendNotification("cocina", "pedido-actualizado", pedidoActualizado);
 
-        //TODO: Notificar al mozo que el pedido está listo para entregar
+        // 🔔 Notificar al mozo que el pedido está listo para entregar
+        Integer idMozo = existe.getMozo().getId();
+        String numeroMesa = existe.getMesa().getNumeroMesa();
+        notificationService.enviarNotificacionPedidoListo(idMozo, existe.getId(), numeroMesa);
 
         return pedidoActualizado;
     }
