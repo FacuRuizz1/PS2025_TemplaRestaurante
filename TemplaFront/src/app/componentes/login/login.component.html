@@ -11,11 +11,6 @@
             <img class="LogoLogin mb-3" src="assets/imagenes/LogoLogin.png" alt="logo Templa Login">
             <h2 class="texto-elegante mb-4">Templa Employee <br>Log In</h2>
 
-            <!-- Mensaje de error -->
-            <div *ngIf="errorMessage" class="alert alert-danger mb-3 w-75 mx-auto">
-                {{ errorMessage }}
-            </div>
-
             <form #loginForm="ngForm" class="d-flex flex-column align-items-center">
                 <div class="mb-4 w-75">
                     <input type="text" id="username" name="username" class="form-control custom-input"

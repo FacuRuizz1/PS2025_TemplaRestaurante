@@ -43,7 +43,6 @@
 
       <!-- Detalles del grupo por estado -->
       <div class="pedido-detalles">
-        <h4>Items en estado "{{formatearEstadoDetalle(pedidoAgrupado.estadoDetalle)}}":</h4>
         <div class="items-resumen">
           <span class="total-items">{{pedidoAgrupado.cantidadItems}} item(s)</span>
         </div>
@@ -56,32 +55,31 @@
             <div class="item-cantidad">
               Cantidad: <strong>{{detalle.cantidad}}</strong>
             </div>
-            <div class="item-estado">
-              <span class="estado-badge-small" 
-                    [ngClass]="obtenerClaseBadgeEstadoDetalle(detalle.estado)">
-                {{formatearEstadoDetalle(detalle.estado)}}
-              </span>
-            </div>
-          </div>
-          
-          <!-- Botones de acción por item -->
-          <div class="item-actions">
-            <button *ngFor="let estado of getPosiblesEstadosDetalleString(detalle.estado)"
-                    class="btn-estado-detalle"
-                    [ngClass]="'btn-' + estado.toLowerCase().replace('_', '-')"
-                    (click)="cambiarEstadoDetalle(pedidoAgrupado.pedidoOriginal, detalle, estado)">
-              {{formatearEstadoDetalle(estado)}}
-            </button>
           </div>
         </div>
       </div>
 
-      <!-- ✅ Botón de cocinar para pedidos nuevos -->
-      <div class="pedido-actions" 
-           *ngIf="pedidoAgrupado.estadoDetalle === EstadoPedidoDetalle.PENDIENTE">
-        <button class="btn-cocinar-pedido"
+      <!-- ✅ Botones de acción según el estado -->
+      <div class="pedido-actions">
+        <!-- Botón de Cocinar para pedidos pendientes -->
+        <button *ngIf="pedidoAgrupado.estadoDetalle === EstadoPedidoDetalle.PENDIENTE"
+                class="btn-cocinar-pedido"
                 (click)="iniciarPreparacionItems(pedidoAgrupado)">
           🍳 Cocinar
+        </button>
+        
+        <!-- Botón de Listo para Entregar para pedidos en preparación -->
+        <button *ngIf="pedidoAgrupado.estadoDetalle === EstadoPedidoDetalle.EN_PREPARACION"
+                class="btn-listo-entregar"
+                (click)="marcarItemsListosParaEntregar(pedidoAgrupado)">
+          ✅ Listo para Entregar
+        </button>
+        
+        <!-- Botón de Entregado para pedidos listos para entregar -->
+        <button *ngIf="pedidoAgrupado.estadoDetalle === EstadoPedidoDetalle.LISTO_PARA_ENTREGAR"
+                class="btn-entregado"
+                (click)="marcarItemsEntregados(pedidoAgrupado)">
+          � Entregado
         </button>
       </div>
 

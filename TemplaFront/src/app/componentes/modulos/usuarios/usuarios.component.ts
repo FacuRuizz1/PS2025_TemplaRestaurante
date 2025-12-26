@@ -221,7 +221,7 @@ export class UsuariosComponent implements OnInit {
       username: usuarioData.username,
       password: usuarioData.password,
       rolUsuario: usuarioData.rolUsuario as RolUsuario,
-      personaNombre: usuarioData.personaNombre
+      personaDni: usuarioData.personaDni
     };
     
     this.userService.crearUsuario(usuarioDto).subscribe({
@@ -260,7 +260,7 @@ export class UsuariosComponent implements OnInit {
       password: usuarioData.password || undefined, // Solo se incluye si hay valor
       rolUsuario: usuarioData.rolUsuario as RolUsuario,
       activo: usuarioData.activo,
-      personaNombre: usuarioData.personaNombre
+      personaDni: usuarioData.personaDni
     };
     
     this.userService.actualizarUsuario(id, usuarioUpdateDto).subscribe({

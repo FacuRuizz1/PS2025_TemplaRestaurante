@@ -56,10 +56,10 @@
       <div class="form-row">
         <div class="form-group full-width">
           <select class="form-select custom-select" 
-                  [(ngModel)]="usuario.personaNombre" 
-                  name="personaNombre">
+                  [(ngModel)]="usuario.personaDni" 
+                  name="personaDni">
             <option value="" selected>Seleccionar Persona (opcional)</option>
-            <option *ngFor="let persona of personas" [value]="persona.nombre + ' ' + persona.apellido">
+            <option *ngFor="let persona of personas" [value]="persona.dni">
               {{ persona.nombre }} {{ persona.apellido }}
             </option>
           </select>

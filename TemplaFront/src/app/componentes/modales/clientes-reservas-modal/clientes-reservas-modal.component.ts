@@ -29,12 +29,12 @@ declare var google: any;
             </div>
             
             <div class="action-buttons">
-              <button class="btn btn-outline-primary" (click)="actualizarDatos()" [disabled]="loading">
-                <span class="btn-icon">🔄</span>
+              <button class="btn btn-primary" (click)="actualizarDatos()" [disabled]="loading">
+                <i class="fas fa-sync-alt me-1"></i>
                 Actualizar
               </button>
               <button class="btn btn-success" (click)="exportarPDF()" [disabled]="loading || datos.length === 0">
-                <span class="btn-icon">📄</span>
+                <i class="fas fa-file-pdf me-1"></i>
                 Exportar PDF
               </button>
             </div>
@@ -220,6 +220,19 @@ declare var google: any;
       gap: 8px;
     }
 
+    .btn-primary {
+      color: var(--templa-beige);
+      background: linear-gradient(135deg, var(--templa-green) 0%, var(--templa-hovergreen) 100%);
+      border-color: var(--templa-green);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--templa-hovergreen) 0%, var(--templa-green) 100%);
+      border-color: var(--templa-hovergreen);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
     .btn-outline-primary {
       background: var(--templa-beige);
       color: var(--templa-dark-green);
@@ -234,15 +247,15 @@ declare var google: any;
     }
 
     .btn-success {
-      background: linear-gradient(135deg, var(--templa-dark-green) 0%, var(--templa-brown) 100%);
-      color: var(--templa-beige);
-      border: 2px solid var(--templa-gold);
+      background-color: #198754;
+      color: white;
+      border: none;
     }
 
     .btn-success:hover:not(:disabled) {
-      background: linear-gradient(135deg, var(--templa-brown) 0%, var(--templa-dark-green) 100%);
+      background-color: #157347;
       transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(159, 118, 61, 0.4);
+      box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
     }
 
     .btn-secondary {
@@ -545,23 +558,33 @@ export class ClientesReservasModalComponent implements OnInit, OnDestroy {
     try {
       const doc = new jsPDF();
       
-      // Título
-      doc.setFontSize(18);
-      doc.setTextColor(40, 40, 40);
-      doc.text('Reporte: Clientes con Más Reservas', 14, 22);
+      // Título del reporte con fondo degradado
+      doc.setFillColor(244, 234, 221); // #F4EADD
+      doc.rect(0, 0, 210, 40, 'F');
       
-      // Fecha
-      doc.setFontSize(11);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, 14, 32);
+      doc.setFontSize(18);
+      doc.setTextColor(105, 104, 72); // #696848
+      doc.setFont('helvetica', 'bold');
+      doc.text('REPORTE: CLIENTES CON MAS RESERVAS', 20, 25);
+      
+      // Información de la fecha de generación
+      doc.setFontSize(10);
+      doc.setTextColor(117, 81, 67); // #755143
+      doc.setFont('helvetica', 'normal');
+      const fechaGeneracion = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      doc.text(`Generado el: ${fechaGeneracion}`, 20, 35);
       
       // Estadísticas generales
-      doc.setFontSize(12);
-      doc.setTextColor(40, 40, 40);
-      doc.text(`Total de clientes: ${this.datos.length}`, 14, 45);
-      
+      doc.setFontSize(10);
+      doc.setTextColor(117, 81, 67);
       const totalReservas = this.datos.reduce((sum, cliente) => sum + cliente.totalReservas, 0);
-      doc.text(`Total de reservas: ${totalReservas}`, 14, 52);
+      doc.text(`Total de clientes: ${this.datos.length} | Total de reservas: ${totalReservas}`, 20, 50);
 
       // Tabla de datos
       const tableData = this.datos.map((cliente, index) => [
@@ -574,17 +597,24 @@ export class ClientesReservasModalComponent implements OnInit, OnDestroy {
       ]);
 
       autoTable(doc, {
-        head: [['#', 'Cliente', 'Email', 'Teléfono', 'Reservas', 'Evento Favorito']],
+        head: [['#', 'Cliente', 'Email', 'Telefono', 'Reservas', 'Evento Favorito']],
         body: tableData,
-        startY: 65,
-        theme: 'striped',
+        startY: 60,
+        theme: 'grid',
         headStyles: {
-          fillColor: [76, 132, 107], // templa-dark-green
-          textColor: 255,
+          fillColor: [105, 104, 72], // #696848 - Color templa-brown
+          textColor: [255, 255, 255],
+          fontSize: 10,
           fontStyle: 'bold'
         },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: [117, 81, 67] // #755143 - Color templa-dark-brown
+        },
+        alternateRowStyles: {
+          fillColor: [250, 250, 250]
+        },
         styles: {
-          fontSize: 8,
           cellPadding: 3
         },
         columnStyles: {

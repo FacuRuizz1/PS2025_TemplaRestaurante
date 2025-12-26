@@ -7,6 +7,7 @@ import { ReporteReservasDTO } from '../../models/ReporteReservasDTO';
 import { ReportePedidosPorFechaDTO } from '../../models/ReportePedidosPorFechaDTO';
 import { ReporteStockBajoDTO } from '../../models/ReporteStockBajoDTO';
 import { ReportePlatoProductosDTO } from '../../models/ReportePlatoProductosDTO';
+import { ReporteMenusMasPedidosDTO } from '../../models/ReporteMenusMasPedidosDTO';
 import { AlertService } from '../../../services/alert.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -26,12 +27,14 @@ export class ReportesModalComponent implements OnInit {
   fechaInicio = '';
   fechaFin = '';
   tipoReporte = 'fechas'; // 'fechas' o 'horarios'
-  categoriaReporte = 'reservas'; // 'reservas', 'pedidos' o 'stock'
+  categoriaReporte = 'reservas'; // 'reservas', 'pedidos', 'stock', 'platos', 'menus'
+  modulo?: 'reservas' | 'pedidos' | 'stock' | 'platos' | 'menus'; // Módulo desde el que se abre
   private currentChart: any = null;
   datosReporte: ReporteReservasDTO[] = [];
   datosPedidos: ReportePedidosPorFechaDTO[] = [];
   datosStock: ReporteStockBajoDTO[] = [];
   datosPlatos: ReportePlatoProductosDTO[] = [];
+  datosMenus: ReporteMenusMasPedidosDTO[] = [];
   
   constructor(
     private reporteService: ReporteService,
@@ -40,6 +43,11 @@ export class ReportesModalComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Si se recibió un módulo, establecerlo como categoría
+    if (this.modulo) {
+      this.categoriaReporte = this.modulo;
+    }
+    
     // Configurar fechas por defecto (último mes)
     const hoy = new Date();
     const mesAnterior = new Date();
@@ -55,10 +63,11 @@ export class ReportesModalComponent implements OnInit {
     google.charts.load('current', { packages: ['corechart'] });
   }
 
-  show(categoria?: 'reservas' | 'pedidos' | 'stock' | 'platos') {
+  show(categoria?: 'reservas' | 'pedidos' | 'stock' | 'platos' | 'menus') {
     // Si se proporciona una categoría, actualizarla
     if (categoria) {
       this.categoriaReporte = categoria;
+      this.modulo = categoria;
     }
     
     this.isVisible = true;
@@ -66,6 +75,18 @@ export class ReportesModalComponent implements OnInit {
     setTimeout(() => {
       this.generarReporte();
     }, 100);
+  }
+
+  // Obtener nombre legible de la categoría
+  getNombreCategoria(): string {
+    const nombres: Record<string, string> = {
+      'reservas': 'Reservas',
+      'pedidos': 'Pedidos',
+      'stock': 'Stock Bajo',
+      'platos': 'Platos',
+      'menus': 'Menús'
+    };
+    return nombres[this.categoriaReporte] || 'Reportes';
   }
 
   hide() {
@@ -79,6 +100,7 @@ export class ReportesModalComponent implements OnInit {
     this.datosPedidos = [];
     this.datosStock = [];
     this.datosPlatos = [];
+    this.datosMenus = [];
     this.isVisible = false;
     // Cerrar modal usando NgBootstrap solo si está disponible
     if (this.activeModal) {
@@ -96,6 +118,8 @@ export class ReportesModalComponent implements OnInit {
         return 'Reportes Stock';
       case 'platos':
         return 'Reportes Platos';
+      case 'menus':
+        return 'Reportes Menús';
       default:
         return 'Reportes';
     }
@@ -114,6 +138,8 @@ export class ReportesModalComponent implements OnInit {
       this.generarReporteStock();
     } else if (this.categoriaReporte === 'platos') {
       this.generarReportePlatos();
+    } else if (this.categoriaReporte === 'menus') {
+      this.generarReporteMenus();
     }
   }
 
@@ -208,6 +234,28 @@ export class ReportesModalComponent implements OnInit {
             mensajeError = error.message;
           }
           this.alertService.showError('Error al cargar el reporte de platos', mensajeError);
+        }
+      });
+  }
+
+  private generarReporteMenus() {
+    console.log('Generando reporte de menús más pedidos desde:', this.fechaInicio, 'hasta:', this.fechaFin);
+    this.reporteService.getMenusMasPedidos(this.fechaInicio, this.fechaFin)
+      .subscribe({
+        next: (data: ReporteMenusMasPedidosDTO[]) => {
+          console.log('Datos del reporte de menús recibidos:', data);
+          this.datosMenus = data;
+          this.crearGraficoTortaMenus(data, 'Menús Más Pedidos', 'chart-menus');
+        },
+        error: (error) => {
+          console.error('Error completo del reporte de menús:', error);
+          let mensajeError = 'No se pudieron obtener los datos del servidor';
+          if (error.error && error.error.message) {
+            mensajeError = error.error.message;
+          } else if (error.message) {
+            mensajeError = error.message;
+          }
+          this.alertService.showError('Error al cargar el reporte de menús', mensajeError);
         }
       });
   }
@@ -524,6 +572,79 @@ export class ReportesModalComponent implements OnInit {
     });
   }
 
+  private crearGraficoTortaMenus(data: ReporteMenusMasPedidosDTO[], titulo: string, elementId: string) {
+    google.charts.setOnLoadCallback(() => {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        console.error(`Elemento ${elementId} no encontrado`);
+        return;
+      }
+
+      const chartData = google.visualization.arrayToDataTable([
+        ['Menú', 'Cantidad de Pedidos'],
+        ...data.map(item => [
+          item.nombreMenu,
+          Number(item.cantidadPedidos)
+        ])
+      ]);
+
+      const options = {
+        title: titulo,
+        titleTextStyle: {
+          fontSize: 18,
+          bold: true,
+          color: '#696848'
+        },
+        pieHole: 0.4, // Crea un donut chart (gráfico de rosquilla)
+        pieSliceTextStyle: {
+          color: '#ffffff',
+          fontSize: 12,
+          bold: true
+        },
+        legend: {
+          position: 'right',
+          alignment: 'center',
+          textStyle: { color: '#755143', fontSize: 12 }
+        },
+        colors: ['#84C473', '#d2a46d', '#696848', '#755143', '#F4EADD', '#8B7355', '#A0C49D', '#E8B86D', '#C68B59', '#DDB892'],
+        backgroundColor: {
+          fill: '#F4EADD',
+          stroke: '#d2a46d',
+          strokeWidth: 2
+        },
+        chartArea: {
+          left: 50,
+          top: 60,
+          right: 250,
+          bottom: 50,
+          width: '70%',
+          height: '75%',
+          backgroundColor: '#ffffff'
+        },
+        animation: {
+          duration: 1000,
+          easing: 'out',
+          startup: true
+        },
+        height: 500,
+        width: '100%',
+        tooltip: {
+          text: 'both', // Muestra valor y porcentaje
+          textStyle: { fontSize: 12 }
+        },
+        pieSliceText: 'percentage' // Muestra porcentaje en las porciones
+      };
+
+      // Limpiar gráfico anterior si existe
+      if (this.currentChart) {
+        this.currentChart.clearChart();
+      }
+
+      this.currentChart = new google.visualization.PieChart(element);
+      this.currentChart.draw(chartData, options);
+    });
+  }
+
   private formatearFecha(fecha: string): string {
     // Convertir de YYYY-MM-DD a DD/MM/YYYY
     const [year, month, day] = fecha.split('-');
@@ -563,6 +684,12 @@ export class ReportesModalComponent implements OnInit {
         return;
       }
       this.exportarPDFPlatos();
+    } else if (this.categoriaReporte === 'menus') {
+      if (!this.datosMenus || this.datosMenus.length === 0) {
+        this.alertService.showInfo('Sin datos', 'No hay datos para exportar. Genere primero un reporte.');
+        return;
+      }
+      this.exportarPDFMenus();
     }
   }
 
@@ -571,28 +698,30 @@ export class ReportesModalComponent implements OnInit {
     try {
       const doc = new jsPDF();
       
-      // Configuración del documento
-      const pageWidth = doc.internal.pageSize.width;
+      // Título del reporte con fondo degradado
+      doc.setFillColor(244, 234, 221); // #F4EADD
+      doc.rect(0, 0, 210, 40, 'F');
       
-      // Header del documento
-      doc.setFontSize(20);
-      doc.setTextColor(105, 104, 72); // Color templa-brown
-      doc.text('Templa Restaurante', pageWidth / 2, 20, { align: 'center' });
+      const titulo = this.tipoReporte === 'fechas' ? 'REPORTE DE RESERVAS POR FECHA' : 'REPORTE DE RESERVAS POR HORARIO';
+      doc.setFontSize(18);
+      doc.setTextColor(105, 104, 72); // #696848
+      doc.setFont('helvetica', 'bold');
+      doc.text(titulo, 20, 25);
       
-      doc.setFontSize(16);
-      doc.setTextColor(117, 81, 67); // Color templa-dark-brown
-      const titulo = this.tipoReporte === 'fechas' ? 'Reporte de Reservas por Fecha' : 'Reporte de Reservas por Horario';
-      doc.text(titulo, pageWidth / 2, 30, { align: 'center' });
-      
-      // Información del período
-      doc.setFontSize(12);
-      doc.setTextColor(100, 100, 100);
+      // Información del período y fecha de generación
+      doc.setFontSize(10);
+      doc.setTextColor(117, 81, 67); // #755143
+      doc.setFont('helvetica', 'normal');
       const fechaInicioFormat = new Date(this.fechaInicio).toLocaleDateString('es-ES');
       const fechaFinFormat = new Date(this.fechaFin).toLocaleDateString('es-ES');
-      doc.text(`Período: ${fechaInicioFormat} - ${fechaFinFormat}`, pageWidth / 2, 40, { align: 'center' });
-      
-      // Fecha de generación
-      doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 47, { align: 'center' });
+      const fechaGeneracion = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      doc.text(`Periodo: ${fechaInicioFormat} - ${fechaFinFormat} | Generado el: ${fechaGeneracion}`, 20, 35);
       
       // Preparar datos para la tabla
       const columns = [
@@ -611,20 +740,20 @@ export class ReportesModalComponent implements OnInit {
       autoTable(doc, {
         columns: columns,
         body: rows,
-        startY: 55,
+        startY: 50,
         theme: 'grid',
         headStyles: {
-          fillColor: [132, 196, 115], // Color templa-green
+          fillColor: [105, 104, 72], // #696848 - Color templa-brown
           textColor: [255, 255, 255],
-          fontSize: 12,
+          fontSize: 10,
           fontStyle: 'bold'
         },
         bodyStyles: {
-          fontSize: 10,
-          textColor: [117, 81, 67] // Color templa-dark-brown
+          fontSize: 9,
+          textColor: [117, 81, 67] // #755143 - Color templa-dark-brown
         },
         alternateRowStyles: {
-          fillColor: [244, 234, 221] // Color templa-light
+          fillColor: [250, 250, 250]
         },
         margin: { left: 20, right: 20 },
         columnStyles: {
@@ -765,22 +894,27 @@ export class ReportesModalComponent implements OnInit {
     try {
       const doc = new jsPDF();
       
-      // Configuración del documento
-      const pageWidth = doc.internal.pageSize.width;
+      // Título del reporte con fondo degradado
+      doc.setFillColor(244, 234, 221); // #F4EADD
+      doc.rect(0, 0, 210, 40, 'F');
       
-      // Header del documento
-      doc.setFontSize(20);
-      doc.setTextColor(105, 104, 72); // Color templa-brown
-      doc.text('Templa Restaurante', pageWidth / 2, 20, { align: 'center' });
+      doc.setFontSize(18);
+      doc.setTextColor(105, 104, 72); // #696848
+      doc.setFont('helvetica', 'bold');
+      doc.text('REPORTE DE PRODUCTOS CON STOCK BAJO', 20, 25);
       
-      doc.setFontSize(16);
-      doc.setTextColor(117, 81, 67); // Color templa-dark-brown
-      doc.text('Reporte de Productos con Stock Bajo', pageWidth / 2, 30, { align: 'center' });
-      
-      // Fecha de generación
-      doc.setFontSize(12);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')} a las ${new Date().toLocaleTimeString('es-ES')}`, pageWidth / 2, 40, { align: 'center' });
+      // Información de la fecha de generación
+      doc.setFontSize(10);
+      doc.setTextColor(117, 81, 67); // #755143
+      doc.setFont('helvetica', 'normal');
+      const fechaGeneracion = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      doc.text(`Generado el: ${fechaGeneracion}`, 20, 35);
       
       // Preparar datos para la tabla
       const columns = [
@@ -808,17 +942,17 @@ export class ReportesModalComponent implements OnInit {
         startY: 50,
         theme: 'grid',
         headStyles: {
-          fillColor: [220, 53, 69], // Color rojo para indicar alerta
+          fillColor: [105, 104, 72], // #696848 - Color templa-brown
           textColor: [255, 255, 255],
           fontSize: 10,
           fontStyle: 'bold'
         },
         bodyStyles: {
           fontSize: 9,
-          textColor: [60, 60, 60]
+          textColor: [117, 81, 67] // #755143 - Color templa-dark-brown
         },
         alternateRowStyles: {
-          fillColor: [245, 245, 245]
+          fillColor: [250, 250, 250]
         },
         margin: { top: 50, left: 15, right: 15 },
         tableWidth: 'auto',
@@ -847,7 +981,8 @@ export class ReportesModalComponent implements OnInit {
         // Alerta
         doc.setFontSize(12);
         doc.setTextColor(220, 53, 69);
-        doc.text('⚠️ ALERTA: Estos productos necesitan reposición urgente', 20, finalY + 40);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ALERTA: Estos productos necesitan reposicion urgente', 20, finalY + 40);
       }
       
       // Generar nombre del archivo
@@ -980,6 +1115,108 @@ export class ReportesModalComponent implements OnInit {
     } catch (error) {
       console.error('Error al generar PDF:', error);
       this.alertService.showError('Error', 'Ocurrió un error al generar el PDF de platos.');
+    }
+  }
+
+  private exportarPDFMenus() {
+    try {
+      const doc = new jsPDF();
+      
+      // Título del reporte con fondo
+      doc.setFillColor(244, 234, 221); // #F4EADD
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setFontSize(18);
+      doc.setTextColor(105, 104, 72); // #696848
+      doc.setFont('helvetica', 'bold');
+      doc.text('REPORTE DE MENÚS MÁS PEDIDOS', 20, 25);
+      
+      // Información del período y fecha de generación
+      doc.setFontSize(10);
+      doc.setTextColor(117, 81, 67); // #755143
+      doc.setFont('helvetica', 'normal');
+      const fechaInicioFormat = new Date(this.fechaInicio).toLocaleDateString('es-ES');
+      const fechaFinFormat = new Date(this.fechaFin).toLocaleDateString('es-ES');
+      const fechaGeneracion = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      doc.text(`Periodo: ${fechaInicioFormat} - ${fechaFinFormat} | Generado el: ${fechaGeneracion}`, 20, 35);
+      
+      // Preparar datos para la tabla
+      const columns = [
+        { header: 'Menú', dataKey: 'nombreMenu' },
+        { header: 'Cantidad de Pedidos', dataKey: 'cantidadPedidos' },
+        { header: 'Porcentaje', dataKey: 'porcentaje' }
+      ];
+      
+      // Calcular total de pedidos
+      const totalPedidos = this.datosMenus.reduce((sum, item) => sum + Number(item.cantidadPedidos), 0);
+      
+      const rows = this.datosMenus.map(item => ({
+        nombreMenu: item.nombreMenu,
+        cantidadPedidos: item.cantidadPedidos.toString(),
+        porcentaje: totalPedidos > 0 ? `${((item.cantidadPedidos / totalPedidos) * 100).toFixed(1)}%` : '0%'
+      }));
+      
+      // Crear la tabla
+      autoTable(doc, {
+        columns: columns,
+        body: rows,
+        startY: 50,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [105, 104, 72], // #696848 - Color templa-brown
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          fontStyle: 'bold'
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: [117, 81, 67] // #755143 - Color templa-dark-brown
+        },
+        alternateRowStyles: {
+          fillColor: [250, 250, 250]
+        },
+        margin: { left: 20, right: 20 },
+        columnStyles: {
+          0: { cellWidth: 80 },
+          1: { cellWidth: 50, halign: 'center' },
+          2: { cellWidth: 40, halign: 'center' }
+        }
+      });
+      
+      // Agregar resumen
+      const finalY = (doc as any).lastAutoTable.finalY + 10;
+      doc.setFontSize(12);
+      doc.setTextColor(117, 81, 67);
+      doc.text('Resumen:', 20, finalY);
+      
+      doc.setFontSize(10);
+      doc.text(`Total de Pedidos: ${totalPedidos}`, 20, finalY + 10);
+      doc.text(`Cantidad de Menús Diferentes: ${this.datosMenus.length}`, 20, finalY + 20);
+      
+      if (this.datosMenus.length > 0) {
+        const promedioPedidosPorMenu = (totalPedidos / this.datosMenus.length).toFixed(1);
+        doc.text(`Promedio de Pedidos por Menú: ${promedioPedidosPorMenu}`, 20, finalY + 30);
+        doc.text(`Menú Más Pedido: ${this.datosMenus[0].nombreMenu} (${this.datosMenus[0].cantidadPedidos} pedidos)`, 20, finalY + 40);
+      }
+      
+      // Generar nombre del archivo
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `reporte-menus-mas-pedidos-${fechaHoy}.pdf`;
+      
+      // Descargar el PDF
+      doc.save(nombreArchivo);
+      
+      this.alertService.showSuccess('PDF Generado', 'El reporte de menús se ha exportado correctamente.');
+      
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      this.alertService.showError('Error', 'Ocurrió un error al generar el PDF de menús.');
     }
   }
 }

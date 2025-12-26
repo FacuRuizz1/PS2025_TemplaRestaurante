@@ -276,6 +276,13 @@ export class SelectorReportesModalComponent implements OnInit {
       icono: '👥',
       tipoChart: 'pie'
     },
+    {
+      id: 'menus-pedidos',
+      titulo: 'Menús Más Pedidos',
+      descripcion: 'Muestra los menús más solicitados y su distribución porcentual',
+      icono: '🍽️',
+      tipoChart: 'pie'
+    }
     // ✅ Puedes agregar más reportes aquí en el futuro
     // {
     //   id: 'productos-stock',

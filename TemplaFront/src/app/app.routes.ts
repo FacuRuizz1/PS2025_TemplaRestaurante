@@ -12,6 +12,7 @@ import { PedidosComponent } from './componentes/modulos/pedidos/pedidos.componen
 import { CocinaComponent } from './componentes/modulos/cocina/cocina.component';
 import { MapaMesasComponent } from './componentes/modulos/mapa-mesas/mapa-mesas.component';
 import { MpResultadoComponent } from './componentes/modulos/mp-resultado/mp-resultado.component';
+import { ReportesComponent } from './componentes/modulos/reportes/reportes.component';
 import { RolUsuario } from './componentes/models/UsuarioModel';
 
 export const routes: Routes = [
@@ -196,6 +197,76 @@ export const routes: Routes = [
       isPrincipal: true,
       requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
       requiredPermission: 'canViewReservas'
+    }
+  },
+
+  // Rutas de Reportes (PROTEGIDAS)
+  {
+    path: 'reportes',
+    component: ReportesComponent,
+    canActivate: [authGuard],
+    data: {
+      showInMenu: true,
+      menuLabel: 'Reportes',
+      icon: '📊',
+      order: 8,
+      isPrincipal: true,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO],
+      requiredPermission: 'canViewReportes'
+    }
+  },
+  {
+    path: 'reportes/reservas-fecha',
+    loadComponent: () => import('./componentes/modulos/reportes/reporte-reservas/reporte-reservas.component').then(m => m.ReporteReservasComponent),
+    canActivate: [authGuard],
+    data: {
+      showInMenu: false,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO]
+    }
+  },
+  {
+    path: 'reportes/clientes-reservas',
+    loadComponent: () => import('./componentes/modulos/reportes/reporte-clientes-reservas/reporte-clientes-reservas.component').then(m => m.ReporteClientesReservasComponent),
+    canActivate: [authGuard],
+    data: {
+      showInMenu: false,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO]
+    }
+  },
+  {
+    path: 'reportes/pedidos-fecha',
+    loadComponent: () => import('./componentes/modulos/reportes/reporte-pedidos/reporte-pedidos.component').then(m => m.ReportePedidosComponent),
+    canActivate: [authGuard],
+    data: {
+      showInMenu: false,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO]
+    }
+  },
+  {
+    path: 'reportes/stock-bajo',
+    loadComponent: () => import('./componentes/modulos/reportes/reporte-stock/reporte-stock.component').then(m => m.ReporteStockComponent),
+    canActivate: [authGuard],
+    data: {
+      showInMenu: false,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO]
+    }
+  },
+  {
+    path: 'reportes/platos-productos',
+    loadComponent: () => import('./componentes/modulos/reportes/reporte-platos/reporte-platos.component').then(m => m.ReportePlatosComponent),
+    canActivate: [authGuard],
+    data: {
+      showInMenu: false,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO]
+    }
+  },
+  {
+    path: 'reportes/menus-pedidos',
+    loadComponent: () => import('./componentes/modulos/reportes/reporte-menus/reporte-menus.component').then(m => m.ReporteMenusComponent),
+    canActivate: [authGuard],
+    data: {
+      showInMenu: false,
+      requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO]
     }
   },
 

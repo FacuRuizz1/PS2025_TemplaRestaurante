@@ -29,17 +29,8 @@
         <!-- Controles de filtro -->
         <div class="row mb-4">
           <div class="col-md-2">
-            <label for="categoriaReporte" class="form-label">Categoría:</label>
-            <select
-              id="categoriaReporte"
-              class="form-select"
-              [(ngModel)]="categoriaReporte"
-              (change)="onCategoriaReporteChange()">
-              <option value="reservas">Reservas</option>
-              <option value="pedidos">Pedidos</option>
-              <option value="stock">Stock Bajo</option>
-              <option value="platos">Platos</option>
-            </select>
+            <label class="form-label">Categoría:</label>
+            <div class="form-control-plaintext fw-bold">{{ getNombreCategoria() }}</div>
           </div>
           
           <div class="col-md-3" *ngIf="categoriaReporte !== 'stock' && categoriaReporte !== 'platos'">
@@ -92,6 +83,7 @@
           <div id="chart-pedidos" *ngIf="categoriaReporte === 'pedidos'"></div>
           <div id="chart-stock" *ngIf="categoriaReporte === 'stock'"></div>
           <div id="chart-platos" *ngIf="categoriaReporte === 'platos'"></div>
+          <div id="chart-menus" *ngIf="categoriaReporte === 'menus'"></div>
         </div>
       </div>
       
@@ -103,7 +95,8 @@
           [disabled]="(categoriaReporte === 'reservas' && (!datosReporte || datosReporte.length === 0)) || 
                      (categoriaReporte === 'pedidos' && (!datosPedidos || datosPedidos.length === 0)) ||
                      (categoriaReporte === 'stock' && (!datosStock || datosStock.length === 0)) ||
-                     (categoriaReporte === 'platos' && (!datosPlatos || datosPlatos.length === 0))">
+                     (categoriaReporte === 'platos' && (!datosPlatos || datosPlatos.length === 0)) ||
+                     (categoriaReporte === 'menus' && (!datosMenus || datosMenus.length === 0))">
           <i class="fas fa-file-pdf me-1"></i>
           Exportar PDF
         </button>

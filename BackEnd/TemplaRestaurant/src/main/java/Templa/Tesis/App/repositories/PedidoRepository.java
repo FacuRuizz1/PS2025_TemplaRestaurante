@@ -31,18 +31,16 @@ public interface PedidoRepository extends JpaRepository<PedidoEntity,Integer>, J
 
 
     @Query("SELECT m.nombre as nombreMenu, " +
-            "COUNT(pd) as cantidadPedidos " +
+            "COUNT(pd. idPedidoDetalle) as cantidadPedidos " +
             "FROM PedidoEntity p " +
             "JOIN p.detalles pd " +
             "JOIN pd.menu m " +
-            "WHERE p.fechaPedido >= :fechaDesdeInicio AND p.fechaPedido < :fechaHastaFin " +
+            "WHERE p. fechaPedido >= :fechaDesdeInicio AND p.fechaPedido < :fechaHastaFin " +
             "AND p.estado != :estadoCancelado " +
-            "AND pd.menu IS NOT NULL " +
             "GROUP BY m.id, m.nombre " +
-            "ORDER BY COUNT(pd) DESC")
+            "ORDER BY COUNT(pd.idPedidoDetalle) DESC")
     List<Object[]> obtenerMenusMasPedidos(@Param("fechaDesdeInicio") LocalDateTime fechaDesde,
                                           @Param("fechaHastaFin") LocalDateTime fechaHasta,
                                           @Param("estadoCancelado") EstadoPedido estadoCancelado);
-
 
 }

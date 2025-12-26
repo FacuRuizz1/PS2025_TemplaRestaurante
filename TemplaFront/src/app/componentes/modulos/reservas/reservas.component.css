@@ -2,7 +2,7 @@
 .reservas-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0;
 }
 
 .multi-step-header {
@@ -619,6 +619,7 @@
 
 .nueva-reserva-view {
   animation: fadeIn 0.3s ease-in;
+  padding: 20px;
 }
 
 @keyframes fadeIn {

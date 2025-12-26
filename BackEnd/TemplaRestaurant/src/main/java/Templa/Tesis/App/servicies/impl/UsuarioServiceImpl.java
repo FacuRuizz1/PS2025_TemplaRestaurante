@@ -34,11 +34,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("El nombre de usuario ya existe");
         }
 
-        // Buscar persona por nombre
-        PersonaEntity persona = personaRepository.findByNombreCompleto(usuarioCreateDTO.getPersonaNombre());
-                if(persona == null){
-                    throw new EntityNotFoundException("Persona no encontrada con el nombre: " + usuarioCreateDTO.getPersonaNombre());
-                }
+        // Buscar persona por DNI (más confiable que por nombre)
+        PersonaEntity persona = personaRepository.findByDni(usuarioCreateDTO.getPersonaDni());
+        if(persona == null){
+            throw new EntityNotFoundException("Persona no encontrada con el DNI: " + usuarioCreateDTO.getPersonaDni());
+        }
 
         UsuarioEntity usuario = UsuarioEntity.builder()
                 .username(usuarioCreateDTO.getUsername())
@@ -102,6 +102,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca un usuario por su identificador único y lo devuelve como DTO.
+     *
+     * @param id el identificador único del usuario a buscar
+     * @return el usuario encontrado convertido a UsuarioDTO
+     * @throws RuntimeException si no existe un usuario con el ID proporcionado
+     */
     @Override
     public UsuarioDTO buscarUsuarioPorId(Integer id) {
         UsuarioEntity usuario = usuarioRepository.findById(id)
@@ -111,6 +118,12 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
 
+    /**
+     * Elimina un usuario del sistema por su identificador único.
+     *
+     * @param id el identificador único del usuario a eliminar
+     * @throws EntityNotFoundException si no existe un usuario con el ID proporcionado
+     */
     @Override
     public void eliminarUsuario(Integer id) {
         if (!usuarioRepository.existsById(id)) {

@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { RoleAccessService } from '../../services/role-access.service';
 import { LoginRequest } from '../models/LoginRequest';
 import { RolUsuario } from '../models/UsuarioModel';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login',
@@ -80,6 +81,16 @@ export class LoginComponent {
       error: (error) => {
         this.isLoading = false;
         this.errorMessage = 'Credenciales inválidas. Por favor, intente nuevamente.';
+        
+        // Mostrar SweetAlert con error
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de autenticación',
+          text: 'Usuario o contraseña inválidos',
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#d33'
+        });
+        
         console.error('❌ Error en login:', error);
         console.error('❌ Detalles del error:', error.error);
         console.error('❌ Status del error:', error.status);

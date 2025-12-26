@@ -21,7 +21,7 @@ export class UsuarioModalComponent implements OnInit {
     password: '',
     rolUsuario: '' as RolUsuario,
     activo: true,
-    personaNombre: ''
+    personaDni: null as number | null 
   };
 
   @Input() personas: any[] = []; // Lista de personas disponibles
@@ -34,7 +34,7 @@ export class UsuarioModalComponent implements OnInit {
       this.usuario = { 
         ...this.usuarioData,
         password: '', // No mostramos la password en edición por seguridad
-        personaNombre: '' // Siempre inicia vacío para mostrar el placeholder
+        personaDni: null
       };
     }
   }

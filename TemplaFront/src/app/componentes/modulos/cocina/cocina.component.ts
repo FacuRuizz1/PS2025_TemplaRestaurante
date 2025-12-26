@@ -69,19 +69,32 @@ export class CocinaComponent implements OnInit, OnDestroy {
     // Suscribirse a nuevos pedidos
     const nuevoPedidoSub = this.cocinaService.onNuevoPedido().subscribe((pedido: GetPedidoDto) => {
       console.log('🍽️ Nuevo pedido recibido en cocina:', pedido);
-      this.pedidos.unshift(pedido);
-      this.aplicarFiltros();
-      this.mostrarNotificacionNuevoPedido(pedido);
+      // Solo agregar si no es un pedido entregado o finalizado
+      if (pedido.estado !== EstadoPedido.ENTREGADO && pedido.estado !== EstadoPedido.FINALIZADO) {
+        this.pedidos.unshift(pedido);
+        this.aplicarFiltros();
+        this.mostrarNotificacionNuevoPedido(pedido);
+      }
     });
 
     // Suscribirse a actualizaciones de pedidos
     const actualizacionSub = this.cocinaService.onActualizacionPedido().subscribe((pedidoActualizado: GetPedidoDto) => {
       console.log('🔄 Pedido actualizado:', pedidoActualizado);
       const index = this.pedidos.findIndex(p => p.idPedido === pedidoActualizado.idPedido);
-      if (index !== -1) {
+      
+      // Si el pedido está entregado o finalizado, eliminarlo de la lista
+      if (pedidoActualizado.estado === EstadoPedido.ENTREGADO || 
+          pedidoActualizado.estado === EstadoPedido.FINALIZADO) {
+        if (index !== -1) {
+          console.log('🗑️ Eliminando pedido entregado/finalizado:', pedidoActualizado.idPedido);
+          this.pedidos = this.pedidos.filter(p => p.idPedido !== pedidoActualizado.idPedido);
+        }
+      } else if (index !== -1) {
+        // Actualizar el pedido si aún debe estar en cocina
         this.pedidos[index] = pedidoActualizado;
-        this.aplicarFiltros();
       }
+      
+      this.aplicarFiltros();
     });
 
     this.subscriptions.push(nuevoPedidoSub, actualizacionSub);
@@ -90,6 +103,7 @@ export class CocinaComponent implements OnInit, OnDestroy {
   aplicarFiltros() {
     this.pedidosFiltrados = this.pedidos.filter(pedido => {
       // Solo mostrar pedidos que necesitan atención en cocina
+      // Excluir explícitamente pedidos ENTREGADOS y FINALIZADOS
       return pedido.estado === EstadoPedido.ORDENADO || 
              pedido.estado === EstadoPedido.EN_PROCESO ||
              pedido.estado === EstadoPedido.LISTO_PARA_ENTREGAR;
@@ -513,5 +527,84 @@ export class CocinaComponent implements OnInit, OnDestroy {
     if (index >= this.pedidosAgrupados.length - 1) return false;
     return this.pedidosAgrupados[index].pedidoOriginal.idPedido === 
            this.pedidosAgrupados[index + 1].pedidoOriginal.idPedido;
+  }
+
+  // ✅ Marcar todos los items en preparación como listos para entregar
+  marcarItemsListosParaEntregar(pedidoAgrupado: PedidoPorEstado) {
+    const pedido = pedidoAgrupado.pedidoOriginal;
+    const cantidadItems = pedidoAgrupado.cantidadItems;
+    
+    Swal.fire({
+      title: '¿Marcar como listo?',
+      text: `¿Marcar ${cantidadItems} item(s) del pedido de la Mesa ${pedido.numeroMesa} como listos para entregar?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, listo',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#007bff'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Cambiar estado de todos los items en preparación a LISTO_PARA_ENTREGAR
+        pedidoAgrupado.detalles.forEach(detalle => {
+          if (detalle.estado === EstadoPedidoDetalle.EN_PREPARACION) {
+            this.cambiarEstadoDetalle(pedido, detalle, EstadoPedidoDetalle.LISTO_PARA_ENTREGAR);
+          }
+        });
+      }
+    });
+  }
+
+  // ✅ Marcar todos los items listos para entregar como entregados
+  marcarItemsEntregados(pedidoAgrupado: PedidoPorEstado) {
+    const pedido = pedidoAgrupado.pedidoOriginal;
+    const cantidadItems = pedidoAgrupado.cantidadItems;
+    
+    Swal.fire({
+      title: '¿Pedido entregado?',
+      text: `¿Confirmar que ${cantidadItems} item(s) del pedido de la Mesa ${pedido.numeroMesa} fueron entregados? El pedido desaparecerá de la cocina.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, entregado',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#28a745'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Cambiar estado de todos los items listos a ENTREGADO
+        let itemsActualizados = 0;
+        const totalItems = pedidoAgrupado.detalles.length;
+        
+        pedidoAgrupado.detalles.forEach(detalle => {
+          if (detalle.estado === EstadoPedidoDetalle.LISTO_PARA_ENTREGAR) {
+            this.cocinaService.actualizarEstadoDetalle(detalle.idPedidoDetalle, EstadoPedidoDetalle.ENTREGADO).subscribe({
+              next: () => {
+                detalle.estado = EstadoPedidoDetalle.ENTREGADO;
+                itemsActualizados++;
+                
+                // Cuando todos los items se actualizaron, verificar si el pedido completo está entregado
+                if (itemsActualizados === totalItems) {
+                  // Verificar si todos los detalles del pedido están entregados
+                  const todosEntregados = pedido.detalles.every(d => 
+                    d.estado === EstadoPedidoDetalle.ENTREGADO || 
+                    d.estado === EstadoPedidoDetalle.CANCELADO
+                  );
+                  
+                  if (todosEntregados) {
+                    // Remover el pedido de la lista
+                    this.pedidos = this.pedidos.filter(p => p.idPedido !== pedido.idPedido);
+                  }
+                  
+                  this.aplicarFiltros();
+                  this.alertService.showSuccess(`Items del pedido #${pedido.idPedido} marcados como entregados`, 'Pedido Entregado');
+                }
+              },
+              error: (error: any) => {
+                console.error('Error al marcar item como entregado:', error);
+                this.alertService.showError('Error al marcar items como entregados', 'Error');
+              }
+            });
+          }
+        });
+      }
+    });
   }
 }

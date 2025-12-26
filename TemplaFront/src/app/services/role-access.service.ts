@@ -71,7 +71,7 @@ export const ROLE_ACCESS_CONFIG: Record<RolUsuario, RolePermissions> = {
     canViewReservas: true,    // ADMINISTRADOR, CLIENTE
     canViewPedidos: true,     // ADMINISTRADOR, MOZO
     canViewCocina: false,      // Solo acceso específico
-    canViewReportes: false,    // Solo ADMINISTRADOR
+    canViewReportes: true,    // ADMINISTRADOR, ENCARGADO
     canManageUsers: false      // Solo ADMINISTRADOR
   },
   

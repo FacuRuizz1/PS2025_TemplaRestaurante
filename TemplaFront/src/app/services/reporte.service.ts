@@ -6,6 +6,7 @@ import { ReportePedidosPorFechaDTO } from '../componentes/models/ReportePedidosP
 import { ReporteStockBajoDTO } from '../componentes/models/ReporteStockBajoDTO';
 import { ReportePlatoProductosDTO } from '../componentes/models/ReportePlatoProductosDTO';
 import { ReporteClientesReservasDTO } from '../componentes/models/ReporteClientesReservasDTO';
+import { ReporteMenusMasPedidosDTO } from '../componentes/models/ReporteMenusMasPedidosDTO';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
@@ -129,5 +130,30 @@ export class ReporteService {
   // ✅ NUEVO: Método para obtener datos de clientes para exportar a PDF
   getDatosClientesReservas(): Observable<ReporteClientesReservasDTO[]> {
     return this.getClientesConMasReservas();
+  }
+
+  // Método para obtener menús más pedidos
+  getMenusMasPedidos(fechaDesde?: string, fechaHasta?: string): Observable<ReporteMenusMasPedidosDTO[]> {
+    let params = new HttpParams();
+    if (fechaDesde) {
+      // Convertir formato de YYYY-MM-DD a DD-MM-YYYY para el backend
+      const [year, month, day] = fechaDesde.split('-');
+      params = params.set('fechaDesde', `${day}-${month}-${year}`);
+    }
+    if (fechaHasta) {
+      const [year, month, day] = fechaHasta.split('-');
+      params = params.set('fechaHasta', `${day}-${month}-${year}`);
+    }
+    
+    const url = `${this.apiUrl}/menus-mas-pedidos`;
+    console.log('URL del reporte de menús más pedidos:', url);
+    console.log('Parámetros:', params.toString());
+    
+    return this.http.get<ReporteMenusMasPedidosDTO[]>(url, this.getHttpOptions(params));
+  }
+
+  // Método para obtener datos de menús para exportar a PDF
+  getDatosMenusMasPedidos(fechaDesde?: string, fechaHasta?: string): Observable<ReporteMenusMasPedidosDTO[]> {
+    return this.getMenusMasPedidos(fechaDesde, fechaHasta);
   }
 }
