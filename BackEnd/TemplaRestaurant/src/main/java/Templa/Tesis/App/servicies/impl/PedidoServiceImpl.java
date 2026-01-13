@@ -56,6 +56,27 @@ public class PedidoServiceImpl implements IPedidoService {
     @Autowired
     private NotificationService notificationService;
 
+    /**
+     * Crea un nuevo pedido en el sistema con todos sus detalles.
+     * Maneja tres tipos de detalles: productos, platos y menús.
+     * Actualiza el estado de la mesa y notifica a la cocina en tiempo real.
+     *
+     * @param dto Objeto DTO con los datos del nuevo pedido.
+     *           Debe incluir: detalles (al menos uno), idMesa, idMozo.
+     * @return PedidoDTO con todos los datos del pedido creado, incluyendo detalles.
+     * @throws RuntimeException si:
+     *         - El pedido no tiene detalles
+     *         - No se especifica mesa o mozo
+     *         - La mesa seleccionada no está disponible
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Cambia el estado de la mesa a OCUPADA automáticamente.
+     * @note Emite notificación SSE a la cocina para notificar nuevo pedido.
+     * @note Maneja tres tipos de detalles:
+     *       1. Productos: reduce stock inmediatamente
+     *       2. Platos: reduce stock de todos sus ingredientes
+     *       3. Menús: reduce stock de todos los items del menú
+     */
     @Override
     @Transactional
     public PedidoDTO crearPedido(PostPedidoDTO dto) {
@@ -107,6 +128,13 @@ public class PedidoServiceImpl implements IPedidoService {
         return pedidoCreado;
     }
 
+    /**
+     * Obtiene un pedido específico por su identificador único.
+     *
+     * @param id Identificador único del pedido a buscar.
+     * @return PedidoDTO con todos los datos del pedido encontrado.
+     * @throws RuntimeException si no existe un pedido con el ID proporcionado.
+     */
     @Override
     public PedidoDTO obtenerPedido(Integer id) {
         PedidoEntity existe = pedidoRepository.findById(id)
@@ -115,6 +143,27 @@ public class PedidoServiceImpl implements IPedidoService {
         return modelMapper.map(existe, PedidoDTO.class);
     }
 
+    /**
+     * Lista pedidos paginados con múltiples filtros de búsqueda.
+     * Permite filtrar por texto, estado del pedido y rango de fechas.
+     * Los resultados se ordenan por fecha de pedido descendente.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @param buscarFiltro Texto para buscar en número de mesa, nombre o apellido del mozo.
+     *                    Si es null o vacío, no se aplica filtro de texto.
+     * @param estadoPedido Estado del pedido a filtrar (ej: "ORDENADO", "EN_PROCESO", "FINALIZADO").
+     *                    Si es null o vacío, no se filtra por estado.
+     * @param fechaDesde Fecha de inicio del período a consultar.
+     *                  Si es null, se establece al primer día del mes actual.
+     * @param fechaHasta Fecha de fin del período a consultar.
+     *                  Si es null, se establece a la fecha actual.
+     * @return Page<PedidoDTO> con los pedidos filtrados, paginados y ordenados.
+     * @throws RuntimeException si el estado de pedido proporcionado no es válido.
+     *
+     * @note Los filtros de fecha se convierten a LocalDateTime (inicio del día a fin del día).
+     * @note Utiliza Specification para consultas dinámicas con joins.
+     */
     @Override
     public Page<PedidoDTO> listarPedidos(int page, int size, String buscarFiltro, String estadoPedido,
                                             LocalDate fechaDesde, LocalDate fechaHasta) {
@@ -164,6 +213,22 @@ public class PedidoServiceImpl implements IPedidoService {
 
     }
 
+    /**
+     * Cancela completamente un pedido existente.
+     * Devuelve el stock de todos los detalles no entregados y libera la mesa.
+     *
+     * @param idPedido Identificador único del pedido a cancelar.
+     * @return PedidoDTO con los datos del pedido cancelado.
+     * @throws RuntimeException si:
+     *         - El pedido no existe
+     *         - El pedido ya está finalizado
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Solo cancela detalles con estado diferente a ENTREGADO.
+     * @note Devuelve automáticamente el stock de productos/ingredientes.
+     * @note Libera la mesa asociada al pedido.
+     * @note Emite notificación SSE a la cocina sobre el pedido actualizado.
+     */
     @Override
     @Transactional
     public PedidoDTO cancelarPedido(Integer idPedido) {
@@ -196,6 +261,19 @@ public class PedidoServiceImpl implements IPedidoService {
         return pedidoCancelado;
     }
 
+    /**
+     * Cancela solo los detalles pendientes de un pedido.
+     * Útil para modificar pedidos parcialmente.
+     *
+     * @param idPedido Identificador único del pedido cuyos detalles se cancelarán.
+     * @return PedidoDTO con los datos actualizados del pedido.
+     * @throws RuntimeException si no existe un pedido con el ID proporcionado.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Solo cancela detalles con estado PENDIENTE.
+     * @note Devuelve automáticamente el stock de los detalles cancelados.
+     * @note Emite notificación SSE a la cocina sobre el pedido actualizado.
+     */
     @Override
     @Transactional
     public PedidoDTO cancelarDetalle(Integer idPedido) {
@@ -220,6 +298,18 @@ public class PedidoServiceImpl implements IPedidoService {
         return pedidoActualizado;
     }
 
+    /**
+     * Marca todos los detalles listos para entregar como entregados.
+     * Avanza el estado de los detalles de LISTO_PARA_ENTREGAR a ENTREGADO.
+     *
+     * @param idPedido Identificador único del pedido cuyos detalles se marcarán como entregados.
+     * @return PedidoDTO con los datos actualizados del pedido.
+     * @throws RuntimeException si no existe un pedido con el ID proporcionado.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Solo afecta detalles con estado LISTO_PARA_ENTREGAR.
+     * @note Emite notificación SSE a la cocina sobre el pedido actualizado.
+     */
     @Override
     @Transactional
     public PedidoDTO marcarDetalleEntregado(Integer idPedido) {
@@ -240,6 +330,18 @@ public class PedidoServiceImpl implements IPedidoService {
         return pedidoActualizado;
     }
 
+    /**
+     * Inicia la preparación de un pedido.
+     * Cambia el estado del pedido a EN_PROCESO y los detalles a EN_PREPARACION.
+     *
+     * @param idPedido Identificador único del pedido a iniciar.
+     * @return PedidoDTO con los datos actualizados del pedido.
+     * @throws RuntimeException si no existe un pedido con el ID proporcionado.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Solo afecta detalles con estado PENDIENTE.
+     * @note Emite notificación SSE a la cocina sobre el pedido actualizado.
+     */
     @Override
     @Transactional
     public PedidoDTO iniciarPedido(Integer idPedido) {
@@ -261,6 +363,19 @@ public class PedidoServiceImpl implements IPedidoService {
         return pedidoActualizado;
     }
 
+    /**
+     * Marca los detalles en preparación como listos para entregar.
+     * Notifica al mozo que el pedido está listo para ser servido.
+     *
+     * @param idPedido Identificador único del pedido cuyos detalles están listos.
+     * @return PedidoDTO con los datos actualizados del pedido.
+     * @throws RuntimeException si no existe un pedido con el ID proporcionado.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Solo afecta detalles con estado EN_PREPARACION.
+     * @note Emite notificación SSE a la cocina sobre el pedido actualizado.
+     * @note Envía notificación específica al mozo asignado al pedido.
+     */
     @Override
     @Transactional
     public PedidoDTO marcarDetalleParaEntregar(Integer idPedido) {
@@ -287,6 +402,22 @@ public class PedidoServiceImpl implements IPedidoService {
         return pedidoActualizado;
     }
 
+    /**
+     * Finaliza completamente un pedido.
+     * Valida que todos los detalles hayan sido entregados antes de finalizar.
+     *
+     * @param idPedido Identificador único del pedido a finalizar.
+     * @return PedidoDTO con los datos del pedido finalizado.
+     * @throws RuntimeException si:
+     *         - El pedido no existe
+     *         - El pedido está cancelado, finalizado o aún ordenado
+     *         - Hay detalles que no han sido entregados
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Valida que todos los detalles tengan estado ENTREGADO.
+     * @note Libera la mesa asociada al pedido.
+     * @note Emite notificación SSE a la cocina sobre el pedido finalizado.
+     */
     @Override
     @Transactional
     public PedidoDTO finalizarPedido(Integer idPedido) {
@@ -314,6 +445,23 @@ public class PedidoServiceImpl implements IPedidoService {
         return pedidoFinalizado;
     }
 
+    /**
+     * Inserta nuevos detalles a un pedido existente.
+     * Permite agregar items adicionales a un pedido ya creado.
+     *
+     * @param idPedido Identificador único del pedido al que se agregarán detalles.
+     * @param dto Objeto DTO con los nuevos detalles a agregar.
+     * @return PedidoDTO con los datos actualizados del pedido, incluyendo nuevos detalles.
+     * @throws RuntimeException si:
+     *         - No se proporcionan detalles
+     *         - El pedido no existe
+     *         - El pedido está finalizado o cancelado
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Cambia el estado del pedido a ORDENADO si se agregan nuevos detalles.
+     * @note Maneja los mismos tipos de detalles que crearPedido (productos, platos, menús).
+     * @note Emite notificación SSE a la cocina sobre el pedido actualizado.
+     */
     @Override
     @Transactional
     public PedidoDTO insertarDetalles(Integer idPedido, PostPedidoDTO dto) {
@@ -351,6 +499,14 @@ public class PedidoServiceImpl implements IPedidoService {
         return pedidoActualizado;
     }
 
+    /**
+     * Obtiene el pedido activo asociado a una mesa específica.
+     * Busca pedidos que no estén finalizados ni cancelados.
+     *
+     * @param idMesa Identificador único de la mesa para buscar pedidos activos.
+     * @return PedidoDTO con el pedido activo encontrado para la mesa.
+     * @throws RuntimeException si no hay pedidos activos para la mesa especificada.
+     */
     @Override
     public PedidoDTO getPedidoByMesa(Integer idMesa) {
         PedidoEntity existe = pedidoRepository.findPedidoActivoByMesa(idMesa)
@@ -359,6 +515,19 @@ public class PedidoServiceImpl implements IPedidoService {
         return modelMapper.map(existe, PedidoDTO.class);
     }
 
+    /**
+     * Genera un reporte de cantidad de pedidos por fecha en un rango específico.
+     * Excluye pedidos cancelados del reporte.
+     *
+     * @param fechaDesde Fecha de inicio del período a analizar.
+     *                  Si es null, se establece a 30 días antes de hoy.
+     * @param fechaHasta Fecha de fin del período a analizar.
+     *                  Si es null, se establece a la fecha actual.
+     * @return List<ReportePedidosPorFechaDTO> con estadísticas de pedidos por fecha.
+     *
+     * @note Excluye automáticamente pedidos con estado CANCELADO.
+     * @note Las fechas se convierten a LocalDateTime (inicio del día a inicio del día siguiente).
+     */
     @Override
     public List<ReportePedidosPorFechaDTO> obtenerReportePedidosPorFecha(LocalDate fechaDesde, LocalDate fechaHasta) {
         if (fechaDesde == null) {
@@ -389,7 +558,19 @@ public class PedidoServiceImpl implements IPedidoService {
         return reporte;
     }
 
-    //TODO: Ver porque devuelve 200 vacio
+    /**
+     * Genera un reporte de los menús más pedidos en un rango de fechas.
+     * Ordena los resultados por cantidad de pedidos descendente.
+     *
+     * @param fechaDesde Fecha de inicio del período a analizar.
+     *                  Si es null, se establece a 30 días antes de hoy.
+     * @param fechaHasta Fecha de fin del período a analizar.
+     *                  Si es null, se establece a la fecha actual.
+     * @return List<ReporteMenusMasPedidosDTO> con estadísticas de menús más populares.
+     *
+     * @note Excluye automáticamente pedidos con estado CANCELADO.
+     * @note Las fechas se convierten a LocalDateTime (inicio del día a inicio del día siguiente).
+     */
     @Override
     public List<ReporteMenusMasPedidosDTO> obtenerMenusMasPedidos(LocalDate fechaDesde, LocalDate fechaHasta) {
         if (fechaDesde == null) {
@@ -416,6 +597,19 @@ public class PedidoServiceImpl implements IPedidoService {
         return reporte;
     }
 
+    /**
+     * Procesa un detalle de tipo producto en un pedido.
+     * Reduce el stock del producto y crea el detalle del pedido.
+     *
+     * @param detalleDto Objeto DTO con los datos del detalle de producto.
+     * @param pedido Entidad del pedido al que se agregará el detalle.
+     * @return GetPedidoDetalleDTO con los datos del detalle creado.
+     * @throws RuntimeException si la cantidad es menor o igual a 0.
+     *
+     * @note Método privado utilizado internamente para manejar detalles de productos.
+     * @note Reduce automáticamente el stock del producto.
+     * @note Establece el precio unitario del producto en el detalle.
+     */
     private GetPedidoDetalleDTO handleProductoDetalle(PostPedidoDetalleDTO detalleDto, PedidoEntity pedido) {
         if (detalleDto.getCantidad() <= 0) {
             throw new RuntimeException("La cantidad debe ser mayor a 0");
@@ -439,6 +633,18 @@ public class PedidoServiceImpl implements IPedidoService {
         return modelMapper.map(nuevoDetalle, GetPedidoDetalleDTO.class);
     }
 
+    /**
+     * Procesa un detalle de tipo plato en un pedido.
+     * Reduce el stock de todos los ingredientes del plato y crea el detalle.
+     *
+     * @param platoDetalleDto Objeto DTO con los datos del detalle de plato.
+     * @param pedido Entidad del pedido al que se agregará el detalle.
+     * @return List<GetPedidoDetalleDTO> con los datos del detalle creado (siempre un solo elemento).
+     *
+     * @note Método privado utilizado internamente para manejar detalles de platos.
+     * @note Reduce automáticamente el stock de todos los ingredientes del plato.
+     * @note Calcula la cantidad necesaria multiplicando cantidad del ingrediente por cantidad del plato.
+     */
     private List<GetPedidoDetalleDTO> handlePlatoDetalle(PostPedidoDetalleDTO platoDetalleDto, PedidoEntity pedido) {
         PlatoEntity plato = platoService.obtenerPlatoConIngredientes(platoDetalleDto.getIdPlato());
 
@@ -460,6 +666,18 @@ public class PedidoServiceImpl implements IPedidoService {
         return List.of(modelMapper.map(detallePlato, GetPedidoDetalleDTO.class));
     }
 
+    /**
+     * Procesa un detalle de tipo menú en un pedido.
+     * Reduce el stock de todos los items (productos y platos) del menú.
+     *
+     * @param detalleDto Objeto DTO con los datos del detalle de menú.
+     * @param pedido Entidad del pedido al que se agregará el detalle.
+     * @return List<GetPedidoDetalleDTO> con los datos del detalle creado (siempre un solo elemento).
+     *
+     * @note Método privado utilizado internamente para manejar detalles de menús.
+     * @note Reduce automáticamente el stock de todos los items del menú.
+     * @note Maneja tanto productos directos como platos con sus ingredientes.
+     */
     private List<GetPedidoDetalleDTO> handleMenuDetalle(PostPedidoDetalleDTO detalleDto, PedidoEntity pedido) {
         GetMenuDTO menu = menuService.obtenerMenuPorId(detalleDto.getIdMenu());
         List<MenuDetalleEntity> itemsDelMenu = menuService.obtenerDetallesMenu(detalleDto.getIdMenu());
@@ -492,6 +710,17 @@ public class PedidoServiceImpl implements IPedidoService {
         return List.of(modelMapper.map(detalleMenu, GetPedidoDetalleDTO.class));
     }
 
+
+    /**
+     * Devuelve el stock de productos/ingredientes asociados a un detalle de pedido.
+     * Utilizado cuando se cancela un detalle o pedido completo.
+     *
+     * @param detalle Entidad del detalle de pedido cuyo stock se devolverá.
+     *
+     * @note Método privado utilizado internamente para reversar operaciones de stock.
+     * @note Maneja tres tipos de detalles: productos, platos y menús.
+     * @note Para platos y menús, devuelve el stock de todos los ingredientes recursivamente.
+     */
     private void devolverStockPorDetalle(PedidoDetalleEntity detalle) {
         if (detalle.getProducto() != null) {
             productoService.aumentarStock(detalle.getProducto().getId(), detalle.getCantidad());
@@ -517,6 +746,16 @@ public class PedidoServiceImpl implements IPedidoService {
         }
     }
 
+    /**
+     * Configuración personalizada del ModelMapper para conversiones específicas.
+     * Se ejecuta automáticamente después de la construcción del bean.
+     *
+     * @note @PostConstruct Este método se ejecuta una vez después de la inyección de dependencias.
+     * @note Configura mapeos personalizados para PedidoEntity → PedidoDTO.
+     * @note Configura mapeos personalizados para PedidoDetalleEntity → GetPedidoDetalleDTO.
+     * @note Calcula automáticamente el nombre completo del mozo y el total del pedido.
+     * @note Determina el tipo de item (PRODUCTO, PLATO, MENU) en los detalles.
+     */
     @PostConstruct
     private void configureModelMapper() {
         modelMapper.createTypeMap(PedidoEntity.class, PedidoDTO.class)

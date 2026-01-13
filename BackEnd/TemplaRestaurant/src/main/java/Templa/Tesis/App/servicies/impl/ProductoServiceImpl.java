@@ -35,6 +35,17 @@ public class ProductoServiceImpl implements IProductoService {
     private final NotificationService notificationService;
     private final EmailService emailService;
 
+    /**
+     * Registra un nuevo producto en el sistema.
+     * Realiza validaciones de campos obligatorios y verifica que no exista un producto con el mismo nombre.
+     *
+     * @param nuevoProducto Objeto DTO con los datos del producto a registrar.
+     *                      Campos obligatorios: nombre, tipo, unidadMedida, precio.
+     * @return ProductoDTO que representa el producto creado exitosamente.
+     * @throws ResponseStatusException con código 400 si falta algún campo obligatorio.
+     * @throws ResponseStatusException con código 409 si ya existe un producto con el mismo nombre.
+     * @throws ResponseStatusException con código 500 si ocurre un error interno durante el guardado.
+     */
     @Override
     public ProductoDTO registrarProducto(PostProductoDTO nuevoProducto) {
         if(nuevoProducto.getNombre() == null){
@@ -68,6 +79,21 @@ public class ProductoServiceImpl implements IProductoService {
         }
     }
 
+    /**
+     * Actualiza completamente un producto existente en el sistema.
+     * Modifica todos los campos del producto y gestiona automáticamente la activación/desactivación
+     * de platos y menús relacionados según el nivel de stock.
+     *
+     * @param id Identificador único del producto a actualizar.
+     * @param productoDTO Objeto DTO con los datos actualizados del producto.
+     * @return ProductoDTO que representa el producto actualizado.
+     * @throws EntityNotFoundException si no existe un producto con el ID proporcionado.
+     * @throws Exception si ocurre un error durante la actualización.
+     *
+     * @note Lógica de activación/desactivación:
+     *       - Si stockActual <= stockMinimo: Desactiva platos y menús que usan el producto.
+     *       - Si stockActual > stockMinimo: Reactiva platos y menús que usan el producto.
+     */
     @Override
     public ProductoDTO actualizarProducto(Integer id, ProductoDTO productoDTO) {
         ProductoEntity productoExistente = productoRepository.findById(id)
@@ -96,6 +122,16 @@ public class ProductoServiceImpl implements IProductoService {
         return productoActualizadoDTO;
     }
 
+    /**
+     * Obtiene una lista paginada de todos los productos registrados en el sistema.
+     * Los productos se ordenan por nombre ascendente.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<ProductoDTO> que contiene los productos de la página solicitada,
+     *         ordenados por nombre ascendente.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
     @Override
     public Page<ProductoDTO> traerProductos(int page, int size) {
         Pageable pageable = PageRequest.of(page,size, Sort.by("nombre").ascending());
@@ -103,6 +139,20 @@ public class ProductoServiceImpl implements IProductoService {
         return productoEntities.map(productoEntity -> modelMapper.map(productoEntity, ProductoDTO.class));
     }
 
+    /**
+     * Obtiene una lista paginada de productos aplicando múltiples filtros de búsqueda.
+     * Permite filtrar por texto, tipo de producto y estado de activación.
+     * Los resultados se ordenan por nombre ascendente.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @param buscar Texto para buscar en el nombre del producto (búsqueda parcial case-insensitive).
+     *               Si es null o vacío, no se aplica filtro de texto.
+     * @param tipo Filtro por tipo de producto (INSUMO, BEBIDA, etc.). Si es null, no se filtra por tipo.
+     * @param activo Filtro por estado de activación (true=activos, false=inactivos, null=todos).
+     * @return Page<ProductoDTO> con los productos filtrados, paginados y ordenados.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
     @Override
     public Page<ProductoDTO> traerProductos(int page, int size, String buscar, TipoProducto tipo, Boolean activo) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending());
@@ -128,6 +178,19 @@ public class ProductoServiceImpl implements IProductoService {
         return entities.map(entity -> modelMapper.map(entity, ProductoDTO.class));
     }
 
+    /**
+     * Elimina físicamente un producto del sistema.
+     * Realiza una eliminación permanente (hard delete) del registro.
+     *
+     * @param id Identificador único del producto a eliminar.
+     * @throws EntityNotFoundException si no existe un producto con el ID proporcionado.
+     * @throws Exception si ocurre un error durante la eliminación o si hay
+     *         violaciones de integridad referencial (producto usado en otras entidades).
+     *
+     * @warning Esta operación es irreversible y puede fallar si el producto
+     *          está siendo referenciado por platos, menús u otras entidades.
+     * @note Considerar usar baja lógica en lugar de eliminación física.
+     */
     @Override
     public void eliminarProducto(Integer id) {
         ProductoEntity producto = productoRepository.findById(id)
@@ -138,6 +201,16 @@ public class ProductoServiceImpl implements IProductoService {
 
     }
 
+    /**
+     * Obtiene una lista paginada exclusivamente de productos de tipo INSUMO.
+     * Los resultados se ordenan por nombre ascendente.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<ProductoDTO> que contiene los insumos de la página solicitada,
+     *         ordenados por nombre ascendente.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
     @Override
     public Page<ProductoDTO> traerInsumos(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending());
@@ -149,6 +222,27 @@ public class ProductoServiceImpl implements IProductoService {
         Page<ProductoEntity> entities = productoRepository.findAll(spec, pageable);
         return entities.map(entity -> modelMapper.map(entity, ProductoDTO.class));
     }
+
+    /**
+     * Reduce el stock disponible de un producto en la cantidad especificada.
+     * Realiza bloqueo optimista para manejo de concurrencia y emite alertas
+     * si el stock cae por debajo del mínimo configurado.
+     *
+     * @param idProducto Identificador único del producto cuyo stock se reducirá.
+     * @param cantidad Cantidad a reducir del stock actual (debe ser positiva).
+     * @return ProductoEntity actualizado con el nuevo stock.
+     * @throws RuntimeException si:
+     *         - El producto no existe
+     *         - Stock insuficiente para la reducción
+     * @throws Exception si ocurre un error durante la transacción.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Lógica de alertas:
+     *       1. Si stockActual <= stockMinimo: Envía notificación y email de alerta.
+     *       2. Si stockActual <= stockMinimo: Desactiva producto, platos y menús relacionados.
+     * @warning Usa bloqueo SELECT FOR UPDATE (@Lock(LockModeType.PESSIMISTIC_WRITE))
+     *          para prevenir condiciones de carrera.
+     */
     @Override
     @Transactional
     public ProductoEntity reducirStock(Integer idProducto, double cantidad) {
@@ -184,6 +278,22 @@ public class ProductoServiceImpl implements IProductoService {
         return productoRepository.save(producto);
     }
 
+    /**
+     * Aumenta el stock disponible de un producto en la cantidad especificada.
+     * Realiza bloqueo optimista para manejo de concurrencia y reactiva
+     * automáticamente el producto, platos y menús si el stock supera el mínimo.
+     *
+     * @param idProducto Identificador único del producto cuyo stock se aumentará.
+     * @param cantidad Cantidad a agregar al stock actual (debe ser positiva).
+     * @throws RuntimeException si el producto no existe.
+     * @throws Exception si ocurre un error durante la transacción.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Lógica de reactivación:
+     *       Si stockActual > stockMinimo: Reactiva producto, platos y menús relacionados.
+     * @warning Usa bloqueo SELECT FOR UPDATE (@Lock(LockModeType.PESSIMISTIC_WRITE))
+     *          para prevenir condiciones de carrera.
+     */
     @Override
     @Transactional
     public void aumentarStock(Integer idProducto, double cantidad) {
@@ -200,6 +310,17 @@ public class ProductoServiceImpl implements IProductoService {
         productoRepository.save(producto);
     }
 
+    /**
+     * Genera un reporte de productos cuyo stock actual está por debajo o igual al stock mínimo configurado.
+     * Calcula automáticamente la cantidad faltante para cada producto.
+     *
+     * @return List<ReporteStockBajoDTO> con información detallada de productos con stock bajo,
+     *         incluyendo cantidad faltante calculada.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     *
+     * @note Los productos incluidos cumplen: stockActual <= stockMinimo.
+     * @note La cantidad faltante se calcula como: stockMinimo - stockActual.
+     */
     @Override
     public List<ReporteStockBajoDTO> obtenerProductosStockBajo() {
         List<Object[]> resultados = productoRepository.findProductosStockBajo();

@@ -26,6 +26,17 @@ public class PersonaServiceImpl implements IPersonaService {
     @Autowired
     private PersonaRepository personaRepository;
 
+    /**
+     * Obtiene una lista paginada y ordenada de todas las personas registradas en el sistema.
+     * Las personas se ordenan por nombre ascendente y fecha de alta ascendente.
+     * Este método retorna tanto personas activas como dadas de baja.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<PersonaDto> que contiene las personas de la página solicitada,
+     *         con información de paginación y ordenación incluida.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
     @Override
     public Page<PersonaDto> traerPersonas(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("nombre", "fechaAlta").ascending());
@@ -33,6 +44,25 @@ public class PersonaServiceImpl implements IPersonaService {
         return personal.map(entity -> modelMapper.map(entity, PersonaDto.class));
     }
 
+    /**
+     * Obtiene una lista paginada de personas aplicando múltiples filtros de búsqueda.
+     * Permite filtrar por texto, tipo de persona y estado (activo/baja/todos).
+     * Los resultados se ordenan por nombre ascendente.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @param buscarFiltro Texto para buscar en nombre, apellido, email, teléfono o DNI.
+     *                     Si es null o vacío, no se aplica filtro de texto.
+     * @param tipoPersona Filtro por tipo de persona (ej: "CLIENTE", "EMPLEADO").
+     *                    Si es null o vacío, no se aplica filtro por tipo.
+     * @param estado Filtro por estado: "ACTIVOS", "BAJA" o null/"TODOS" para ambos.
+     * @return Page<PersonaDto> con las personas filtradas, paginadas y ordenadas.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     *
+     * @note Búsqueda por texto: Busca coincidencias parciales (LIKE) en nombre, apellido,
+     *       email, teléfono y DNI (convertido a string).
+     * @note Filtro de estado: "ACTIVOS" = fechaBaja es null, "BAJA" = fechaBaja no es null.
+     */
     @Override
     public Page<PersonaDto> traerPersonas(int page, int size, String buscarFiltro, String tipoPersona, String estado) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending());
@@ -75,6 +105,24 @@ public class PersonaServiceImpl implements IPersonaService {
         return filtrados.map(entity -> modelMapper.map(entity, PersonaDto.class));
     }
 
+    /**
+     * Registra una nueva persona en el sistema.
+     * Realiza validaciones de datos requeridos y verifica que no exista una persona con el mismo DNI.
+     * Establece automáticamente la fecha de alta y usuario que realizó la operación.
+     *
+     * @param nuevaPersona Objeto DTO con los datos de la persona a crear.
+     *                     Debe incluir DNI, email y nombre como mínimo.
+     * @return PersonaDto que representa la persona creada exitosamente.
+     * @throws ResponseStatusException con código 400 si:
+     *         - El DNI es 0
+     *         - El email es null
+     *         - El nombre es null o vacío
+     * @throws ResponseStatusException con código 409 si ya existe una persona con el mismo DNI.
+     * @throws ResponseStatusException con código 500 si ocurre un error interno durante el guardado.
+     *
+     * @note TODO: El campo userAlta está hardcodeado como 2. Necesita implementación para obtener
+     *       el usuario autenticado que realiza la operación.
+     */
     @Override
     public PersonaDto insertarPersona(PostPersonaDto nuevaPersona) {
         if(nuevaPersona.getDni()==0){
@@ -108,6 +156,20 @@ public class PersonaServiceImpl implements IPersonaService {
 
     }
 
+    /**
+     * Actualiza los datos de una persona existente en el sistema.
+     * Reemplaza completamente los datos de la persona con la información proporcionada.
+     *
+     * @param personaActualizada Objeto DTO con los datos actualizados de la persona.
+     *                           Debe incluir el ID de la persona a actualizar.
+     * @return PersonaDto que representa la persona actualizada.
+     * @throws ResponseStatusException con código 409 si no existe una persona con el ID proporcionado.
+     * @throws ResponseStatusException con código 500 si ocurre un error interno durante el guardado.
+     *
+     * @note Este método realiza un reemplazo completo de los datos. No realiza validaciones
+     *       de unicidad de DNI en la actualización.
+     * @warning Se recomienda añadir validación de DNI duplicado para evitar inconsistencias.
+     */
     @Override
     public PersonaDto actualizarPersona(PersonaDto personaActualizada) {
         PersonaEntity existe = personaRepository.findById(personaActualizada.getId()).orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT, "La Persona que desea modificar no existe."));
@@ -121,6 +183,21 @@ public class PersonaServiceImpl implements IPersonaService {
         }
     }
 
+    /**
+     * Da de baja lógica a una persona en el sistema.
+     * Establece la fecha de baja actual y registra el usuario que realizó la operación.
+     * No elimina físicamente el registro, solo marca como inactivo.
+     *
+     * @param id Identificador único de la persona a dar de baja.
+     * @throws ResponseStatusException con código 404 si no existe una persona con el ID proporcionado.
+     * @throws ResponseStatusException con código 400 si la persona ya se encuentra dada de baja.
+     * @throws ResponseStatusException con código 500 si ocurre un error interno durante la operación.
+     *
+     * @note TODO: El campo userBajaId está hardcodeado como 1. Necesita implementación para obtener
+     *       el usuario autenticado que realiza la operación.
+     * @note La baja es lógica (soft delete). La persona permanece en la base de datos
+     *       con fechaBaja establecida.
+     */
     @Override
     public void bajaPersona(Integer id) {
         PersonaEntity existe = personaRepository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"No existe la Persona"));

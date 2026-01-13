@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @Data
 public class PostIngredientesDto {
     private Integer id;
-    private int cantidad;
+    private double cantidad;
 }

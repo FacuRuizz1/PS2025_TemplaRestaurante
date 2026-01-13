@@ -38,6 +38,16 @@ public class MenuServiceImpl implements IMenuService {
     private final ProductoRepository productoRepository;
     private final ModelMapper modelMapper;
 
+    /**
+     * Obtiene una lista paginada de todos los menús activos en el sistema.
+     * Convierte cada entidad MenuEntity a su representación GetMenuDTO correspondiente.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<GetMenuDTO> que contiene los menús de la página solicitada,
+     *         con información de paginación incluida.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
     @Override
     public Page<GetMenuDTO> getMenus(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -45,6 +55,18 @@ public class MenuServiceImpl implements IMenuService {
         return menuEntities.map(this::convertToDto);
     }
 
+    /**
+     * Obtiene una lista paginada de menús aplicando filtros de búsqueda y estado.
+     * Permite filtrar menús por texto (nombre o descripción) y por estado de activación.
+     *
+     * @param buscarFiltro Texto para filtrar por nombre o descripción del menú.
+     *                    Si es null o vacío, no se aplica filtro de texto.
+     * @param estado Filtro por estado de activación ("activo", "inactivo" o null para todos).
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<GetMenuDTO> con los menús filtrados y paginados.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
     @Override
     public Page<GetMenuDTO> getMenus(String buscarFiltro, String estado, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -78,6 +100,24 @@ public class MenuServiceImpl implements IMenuService {
         return dto;
     }
 
+
+    /**
+     * Crea un nuevo menú en el sistema con los productos y/o platos asociados.
+     * Realiza validaciones de datos, crea la entidad principal y sus detalles,
+     * y mantiene la consistencia transaccional.
+     *
+     * @param postMenuDTO Objeto DTO con los datos del menú a crear, incluyendo
+     *                    nombre, precio, descripción y lista de productos/platos.
+     * @return GetMenuDTO que representa el menú creado con todos sus detalles.
+     * @throws ResponseStatusException con código 400 si:
+     *         - El nombre es nulo o vacío
+     *         - El precio es nulo o menor/igual a 0
+     *         - No se proporcionan productos/platos
+     *         - Un item no tiene ni plato ni producto
+     *         - Un plato o producto referenciado no existe
+     * @throws ResponseStatusException con código 500 si ocurre un error interno.
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     */
     @Override
     @Transactional
     public GetMenuDTO createMenu(PostMenuDTO postMenuDTO) {
@@ -141,6 +181,22 @@ public class MenuServiceImpl implements IMenuService {
         }
     }
 
+    /**
+     * Actualiza completamente un menú existente identificado por su ID.
+     * Modifica todos los campos del menú y reemplaza completamente la lista de productos/platos.
+     *
+     * @param menuActualizar Objeto DTO con los datos actualizados del menú,
+     *                       incluyendo ID, nombre, precio, estado y lista de productos/platos.
+     * @return GetMenuDTO que representa el menú actualizado.
+     * @throws ResponseStatusException con código 400 si:
+     *         - El nombre es nulo o vacío
+     *         - El precio es nulo o menor/igual a 0
+     *         - Un item no tiene ni plato ni producto
+     *         - Un plato o producto referenciado no existe
+     * @throws ResponseStatusException con código 404 si el menú no existe.
+     * @throws ResponseStatusException con código 500 si ocurre un error interno.
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     */
     @Override
     @Transactional
     public GetMenuDTO actualizarMenu(GetMenuDTO menuActualizar) {
@@ -225,6 +281,14 @@ public class MenuServiceImpl implements IMenuService {
         }
     }
 
+    /**
+     * Alterna el estado de activación de un menú (activo ↔ inactivo).
+     * Si el menú está activo, lo desactiva, y viceversa.
+     *
+     * @param id Identificador único del menú a modificar.
+     * @throws ResponseStatusException con código 404 si no existe un menú con el ID proporcionado.
+     * @throws Exception si ocurre un error durante la actualización.
+     */
     @Override
     public void activarDesactivarMenu(Integer id) {
         Optional<MenuEntity> menuOptional = menuRepository.findById(id);
@@ -237,6 +301,14 @@ public class MenuServiceImpl implements IMenuService {
         }
     }
 
+    /**
+     * Desactiva permanentemente un menú, estableciendo su estado activo a false.
+     * Esta operación es irreversible desde este método (requeriría activarDesactivarMenu).
+     *
+     * @param id Identificador único del menú a desactivar.
+     * @throws ResponseStatusException con código 404 si no existe un menú con el ID proporcionado.
+     * @throws Exception si ocurre un error durante la actualización.
+     */
     @Override
     public void bajaMenu(Integer id) {
         Optional<MenuEntity> menuOptional = menuRepository.findById(id);
@@ -259,6 +331,15 @@ public class MenuServiceImpl implements IMenuService {
         return detalles;
     }
 
+    /**
+     * Busca un menú por su identificador único y lo devuelve con todos sus detalles.
+     * Incluye la lista de productos y platos asociados al menú.
+     *
+     * @param id Identificador único del menú a buscar.
+     * @return GetMenuDTO con toda la información del menú y sus detalles.
+     * @throws ResponseStatusException con código 404 si no existe un menú con el ID proporcionado.
+     * @throws Exception si ocurre un error durante la consulta.
+     */
     @Override
     public GetMenuDTO obtenerMenuPorId(Integer id) {
         Optional<MenuEntity> menuOptional = menuRepository.findById(id);
@@ -268,6 +349,7 @@ public class MenuServiceImpl implements IMenuService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu no encontrado con ID: " + id);
         }
     }
+
 
     @Override
     public void desactivarMenusQueUsan(Integer idProducto) {
@@ -301,6 +383,15 @@ public class MenuServiceImpl implements IMenuService {
         }
     }
 
+    /**
+     * Reactiva automáticamente los menús que utilizan un producto específico,
+     * verificando previamente que todos los componentes del menú estén disponibles.
+     * Se utiliza cuando un producto vuelve a estar disponible.
+     *
+     * @param idProducto Identificador del producto que ha vuelto a estar disponible.
+     * @throws Exception si ocurre un error durante las actualizaciones.
+     * @note Solo reactiva menús si todos sus productos/platos están disponibles.
+     */
     @Override
     public void reactivarMenusQueUsan(Integer idProducto) {
         List<MenuEntity> menus = menuRepository.findByDetallesProductoId(idProducto);
@@ -333,6 +424,15 @@ public class MenuServiceImpl implements IMenuService {
         }
     }
 
+    /**
+     * Verifica si todos los items (productos y platos) de un menú están disponibles.
+     * Para productos: deben estar activos y tener stock mayor a 0.
+     * Para platos: deben estar disponibles (disponible = true).
+     *
+     * @param menu Entidad MenuEntity a verificar.
+     * @return true si todos los items del menú están disponibles, false en caso contrario.
+     * @note Retorna false si algún detalle no tiene ni producto ni plato asociado.
+     */
 private boolean todosLosItemsDelMenuDisponibles(MenuEntity menu) {
     List<MenuDetalleEntity> detalles = menuDetalleRepository.findByMenuId(menu.getId());
     return detalles.stream().allMatch(detalle -> {

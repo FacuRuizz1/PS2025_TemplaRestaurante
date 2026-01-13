@@ -28,6 +28,18 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final ModelMapper modelMapper;
 
 
+    /**
+     * Crea un nuevo usuario en el sistema a partir de los datos proporcionados.
+     * Realiza validaciones de existencia de username y persona asociada, encripta la contraseña,
+     * asigna los roles correspondientes y envía un correo de confirmación.
+     *
+     * @param usuarioCreateDTO Objeto DTO que contiene los datos necesarios para crear el usuario,
+     *                         incluyendo username, password, rol y DNI de la persona asociada.
+     * @return UsuarioDTO que representa el usuario creado con éxito, incluyendo nombre completo de la persona.
+     * @throws IllegalArgumentException si el nombre de usuario ya existe en el sistema.
+     * @throws EntityNotFoundException si no se encuentra una persona con el DNI proporcionado.
+     * @throws Exception si ocurre un error durante el proceso de guardado o envío de correo.
+     */
     @Override
     public UsuarioDTO crearUsuario(UsuarioCreateDTO usuarioCreateDTO) {
         if (usuarioRepository.existsByUsername(usuarioCreateDTO.getUsername())) {
@@ -59,7 +71,19 @@ public class UsuarioServiceImpl implements UsuarioService {
         return dto;
     }
 
-
+    /**
+     * Actualiza la información de un usuario existente identificado por su ID.
+     * Permite modificar el nombre de usuario, contraseña, rol y estado activo.
+     * Si se actualiza el nombre de usuario, se valida que no esté siendo utilizado
+     * por otro usuario. La contraseña se vuelve a encriptar si se proporciona una nueva.
+     *
+     * @param id Identificador único del usuario a actualizar.
+     * @param usuarioUpdateDTO Objeto DTO con los campos a modificar. Los campos nulos se ignoran.
+     * @return UsuarioDTO que representa el usuario actualizado.
+     * @throws EntityNotFoundException si no existe un usuario con el ID proporcionado.
+     * @throws IllegalArgumentException si se intenta asignar un username que ya existe en otro usuario.
+     * @throws Exception si ocurre un error durante el proceso de actualización.
+     */
     @Override
     public UsuarioDTO actualizarUsuario(Integer id, UsuarioUpdateDTO usuarioUpdateDTO) {
         UsuarioEntity usuarioExistente = usuarioRepository.findById(id)
@@ -94,6 +118,14 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     }
 
+    /**
+     * Obtiene una lista de todos los usuarios registrados en el sistema.
+     * Convierte cada entidad de usuario a su representación DTO correspondiente.
+     *
+     * @return Lista de UsuarioDTO que contiene información de todos los usuarios.
+     *         Retorna una lista vacía si no existen usuarios registrados.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
     @Override
     public List<UsuarioDTO> listarUsuarios() {
         List<UsuarioEntity> usuarios = usuarioRepository.findAll();

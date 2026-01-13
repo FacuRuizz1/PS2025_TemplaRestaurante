@@ -42,6 +42,15 @@ public class PlatoServiceImpl implements IPlatoService {
     @Autowired
     private S3Service s3Service;
 
+    /**
+     * Obtiene una lista paginada de todos los platos activos del sistema.
+     * Incluye la información de ingredientes asociados a cada plato.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<GetPlatoDto> que contiene los platos de la página solicitada,
+     *         con información de paginación e ingredientes incluida.
+     */
     @Override
     public Page<GetPlatoDto> getPlatos(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -65,6 +74,25 @@ public class PlatoServiceImpl implements IPlatoService {
         return dto;
     }
 
+    /**
+     * Obtiene una lista paginada de platos aplicando múltiples filtros de búsqueda.
+     * Permite filtrar por texto, tipo de plato y estado de disponibilidad.
+     * Los resultados se ordenan por nombre ascendente.
+     *
+     * @param buscarFiltro Texto para buscar en nombre, descripción o precio del plato.
+     *                     Si es null, vacío o igual a "TODOS", no se aplica filtro por texto.
+     * @param tipoPlato Tipo de plato a filtrar (ej: "ENTRADA", "PRINCIPAL", "POSTRE").
+     *                  Si es null, vacío o igual a "TODOS", no se aplica filtro por tipo.
+     * @param estado Estado de disponibilidad del plato: "DISPONIBLES", "NO_DISPONIBLES".
+     *               Si es null o vacío, incluye todos los estados (excepto platos dados de baja).
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<GetPlatoDto> con los platos filtrados, paginados y ordenados.
+     *
+     * @note Excluye automáticamente los platos dados de baja (fechaBaja no nula).
+     * @note La búsqueda por precio acepta valores numéricos para filtrar por precio o descuento.
+     * @note Utiliza Specification para construir consultas dinámicas complejas.
+     */
     @Override
     public Page<GetPlatoDto> getPlatos(String buscarFiltro, String tipoPlato, String estado, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending());
@@ -122,7 +150,27 @@ public class PlatoServiceImpl implements IPlatoService {
         return filtrados.map(this::convertToDto);
     }
 
-
+    /**
+     * Crea un nuevo plato en el sistema con todos sus ingredientes asociados.
+     * Incluye validación de datos, verificación de unicidad y carga de imagen.
+     *
+     * @param platoNuevo Objeto DTO con los datos del nuevo plato a crear.
+     *                   Debe incluir: nombre, precio, tipoPlato, descripción e ingredientes.
+     * @param imagen Archivo de imagen del plato (opcional). Si se proporciona, se sube a S3.
+     * @return GetPlatoDto con los datos completos del plato creado, incluyendo ingredientes.
+     * @throws ResponseStatusException con código 400 si:
+     *         - El nombre está vacío o en blanco
+     *         - El precio es nulo, 0 o negativo
+     *         - No se proporcionan ingredientes
+     * @throws ResponseStatusException con código 404 si algún producto ingrediente no existe.
+     * @throws ResponseStatusException con código 409 si ya existe un plato con el mismo nombre.
+     * @throws ResponseStatusException con código 500 si ocurre un error al guardar el plato.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Carga la imagen del plato en Amazon S3 si se proporciona.
+     * @note Establece automáticamente: disponible=true, fechaAlta=ahora, userAlta=2.
+     * @note Guarda los detalles de ingredientes en la tabla PlatoDetalleEntity.
+     */
     @Override
     @Transactional
     public GetPlatoDto createPlato(PostPlatoDto platoNuevo, MultipartFile imagen) {
@@ -178,6 +226,25 @@ public class PlatoServiceImpl implements IPlatoService {
         }
     }
 
+    /**
+     * Actualiza los datos de un plato existente, incluyendo sus ingredientes e imagen.
+     * Permite modificar todos los campos editables del plato.
+     *
+     * @param platoActualizado Objeto DTO con los datos actualizados del plato.
+     *                         Debe incluir el idPlato para identificar el plato a actualizar.
+     * @param imagen Nueva imagen del plato (opcional). Si se proporciona, reemplaza la anterior.
+     * @return GetPlatoDto con los datos actualizados del plato, incluyendo ingredientes.
+     * @throws ResponseStatusException con código 400 si:
+     *         - El nombre está vacío o en blanco
+     *         - El precio es nulo, 0 o negativo
+     * @throws ResponseStatusException con código 404 si el plato no existe.
+     * @throws ResponseStatusException con código 409 si ya existe otro plato con el mismo nombre.
+     * @throws ResponseStatusException con código 500 si ocurre un error al actualizar.
+     *
+     * @note Si se proporciona nueva imagen, elimina la anterior de S3 antes de subir la nueva.
+     * @note Actualiza completamente la lista de ingredientes (elimina los anteriores).
+     * @note Mantiene la imagen anterior si no se proporciona una nueva.
+     */
     @Override
     public GetPlatoDto updatePlato(GetPlatoDto platoActualizado, MultipartFile imagen) {
 
@@ -225,6 +292,18 @@ public class PlatoServiceImpl implements IPlatoService {
         }
     }
 
+    /**
+     * Actualiza los ingredientes de un plato específico.
+     * Elimina todos los ingredientes anteriores y crea los nuevos proporcionados.
+     *
+     * @param plato Entidad del plato cuyos ingredientes se van a actualizar.
+     * @param nuevosIngredientes Lista de DTOs con los nuevos ingredientes del plato.
+     * @throws ResponseStatusException con código 400 si algún producto ingrediente no existe.
+     *
+     * @note Método privado utilizado internamente para actualizar ingredientes.
+     * @note Realiza una operación de reemplazo completo de ingredientes.
+     * @note Si la lista de nuevos ingredientes es nula o vacía, solo elimina los existentes.
+     */
     private void updateIngredientes(PlatoEntity plato, List<GetIngredientesDto> nuevosIngredientes) {
         List<PlatoDetalleEntity> detallesActuales = platoDetalleRepository.findByPlatoIdPlato(Integer.valueOf(plato.getIdPlato()));
         if (!detallesActuales.isEmpty()) {
@@ -251,6 +330,16 @@ public class PlatoServiceImpl implements IPlatoService {
         }
     }
 
+    /**
+     * Alterna el estado de disponibilidad de un plato (activa/desactiva).
+     * Cambia el valor del campo 'disponible' al opuesto de su estado actual.
+     *
+     * @param id Identificador único del plato cuyo estado se desea cambiar.
+     * @throws ResponseStatusException con código 404 si no existe un plato con el ID proporcionado.
+     *
+     * @note No afecta a platos dados de baja (fechaBaja no nula).
+     * @note Útil para gestionar temporalmente la disponibilidad de platos sin eliminarlos.
+     */
     @Override
     public void activarDesactivarPlato(Integer id) {
         PlatoEntity plato = platoRepository.findById(id)
@@ -260,6 +349,19 @@ public class PlatoServiceImpl implements IPlatoService {
         platoRepository.save(plato);
     }
 
+    /**
+     * Da de baja lógica un plato del sistema.
+     * Establece fecha de baja, usuario que realiza la baja y desactiva el plato.
+     * Elimina la imagen asociada del servicio S3.
+     *
+     * @param id Identificador único del plato a dar de baja.
+     * @throws ResponseStatusException con código 404 si no existe el plato.
+     * @throws ResponseStatusException con código 400 si el plato ya está dado de baja.
+     *
+     * @note La baja es lógica (soft delete), no elimina físicamente el registro.
+     * @note Establece automáticamente: fechaBaja=ahora, userBaja=2, disponible=false.
+     * @note Elimina la imagen del plato de Amazon S3 para liberar espacio.
+     */
     @Override
     public void bajaPlato(Integer id) {
         PlatoEntity plato = platoRepository.findById(id)
@@ -276,6 +378,19 @@ public class PlatoServiceImpl implements IPlatoService {
         platoRepository.save(plato);
     }
 
+    /**
+     * Obtiene un plato con todos sus ingredientes para operaciones internas.
+     * Valida que el plato exista y esté disponible.
+     *
+     * @param idPlato Identificador único del plato a obtener.
+     * @return PlatoEntity con todos sus ingredientes cargados.
+     * @throws RuntimeException si:
+     *         - El plato no existe
+     *         - El plato no está disponible
+     *
+     * @note Método público utilizado para obtener platos con sus relaciones cargadas.
+     * @note Lanza RuntimeException en lugar de ResponseStatusException para uso interno.
+     */
     public PlatoEntity obtenerPlatoConIngredientes(Integer idPlato) {
         PlatoEntity plato = platoRepository.findById(idPlato)
                 .orElseThrow(() -> new RuntimeException("Plato no existe"));
@@ -287,6 +402,16 @@ public class PlatoServiceImpl implements IPlatoService {
         return plato;
     }
 
+    /**
+     * Desactiva todos los platos que utilizan un producto específico como ingrediente.
+     * Útil cuando un producto se agota o deja de estar disponible.
+     *
+     * @param idProducto Identificador único del producto que ha dejado de estar disponible.
+     *
+     * @note Solo desactiva platos que actualmente están disponibles.
+     * @note Registra en consola los platos desactivados para seguimiento.
+     * @note No afecta a platos ya desactivados o dados de baja.
+     */
     @Override
     public void desactivarPlatosQueUsan(Integer idProducto) {
         List<PlatoEntity> platosAfectados = platoRepository.findByIngredienteProductoId(idProducto);
@@ -302,6 +427,16 @@ public class PlatoServiceImpl implements IPlatoService {
         }
     }
 
+    /**
+     * Reactiva los platos que utilizan un producto específico, verificando disponibilidad.
+     * Solo reactiva platos si todos sus ingredientes tienen stock suficiente.
+     *
+     * @param idProducto Identificador único del producto que ha vuelto a estar disponible.
+     *
+     * @note Verifica que todos los productos ingredientes estén activos y tengan stock por encima del mínimo.
+     * @note Solo reactiva platos que actualmente están desactivados.
+     * @note Registra en consola los platos reactivados para seguimiento.
+     */
     @Override
     public void reactivarPlatosQueUsan(Integer idProducto) {
         List<PlatoEntity> platos = platoRepository.findByIngredienteProductoId(idProducto);
@@ -323,6 +458,16 @@ public class PlatoServiceImpl implements IPlatoService {
         }
     }
 
+    /**
+     * Genera un reporte de platos ordenados por cantidad de productos utilizados.
+     * Proporciona estadísticas sobre la complejidad de los platos en términos de ingredientes.
+     *
+     * @return List<ReportePlatoProductosDTO> con estadísticas de platos y sus productos.
+     *
+     * @note Incluye: nombre del plato, cantidad de productos, estado de disponibilidad y tipo de plato.
+     * @note Útil para análisis de costos y complejidad de preparación.
+     * @note El enum TipoPlato se obtiene directamente de la base de datos sin conversión.
+     */
     @Override
     public List<ReportePlatoProductosDTO> obtenerReportePlatosPorProductos() {
         List<Object[]> resultados = platoRepository.findPlatosPorCantidadProductos();

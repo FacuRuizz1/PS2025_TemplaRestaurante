@@ -54,6 +54,27 @@ public class ReservaServiceImpl implements IReservaService {
     private final MercadoPagoServiceImpl mercadoPagoService;
     private final EmailService emailService;
 
+    /**
+     * Crea una nueva reserva en el sistema con validación completa de datos.
+     * Realiza validaciones de campos obligatorios, verifica existencia de entidades relacionadas,
+     * controla la disponibilidad de cupos y actualiza los cupos ocupados automáticamente.
+     *
+     * @param postReservaDTO Objeto DTO con los datos necesarios para crear la reserva.
+     *                      Debe incluir: nroReserva, cantidadComensales, fechaReserva,
+     *                      evento, horario, idPersona e idDisponibilidad.
+     * @return ReservaDTO con los datos completos de la reserva creada, incluyendo
+     *         información de la persona asociada y disponibilidad.
+     * @throws ResponseStatusException con código 400 si:
+     *         - Datos obligatorios no son proporcionados (nroReserva, cantidadComensales, etc.)
+     *         - No hay cupos disponibles para la cantidad de comensales solicitada
+     * @throws ResponseStatusException con código 404 si no se encuentra la persona o disponibilidad.
+     * @throws ResponseStatusException con código 409 si ya existe una reserva con el mismo número.
+     * @throws ResponseStatusException con código 500 si ocurre un error al guardar la reserva.
+     *
+     * @note Actualiza automáticamente los cupos ocupados en la disponibilidad asociada.
+     * @note Envía un email de confirmación al cliente después de crear la reserva.
+     *       Los errores en el envío de email se registran en logs sin interrumpir el proceso.
+     */
     @Override
     public ReservaDTO createReserva(PostReservaDTO postReservaDTO) {
         if (postReservaDTO.getNroReserva() == 0) {
@@ -132,6 +153,18 @@ public class ReservaServiceImpl implements IReservaService {
 
     }
 
+    /**
+     * Actualiza los datos de una reserva existente.
+     * Modifica todos los campos editables de la reserva.
+     *
+     * @param id Identificador único de la reserva a actualizar.
+     * @param postReservaDTO Objeto DTO con los datos actualizados de la reserva.
+     * @return ReservaDTO que representa la reserva actualizada.
+     * @throws EntityNotFoundException si no existe una reserva con el ID proporcionado.
+     * @throws Exception si ocurre un error durante la actualización.
+     *
+     * @note No actualiza cupos de disponibilidad al modificar la reserva.
+     */
     @Override
     public ReservaDTO actualizarReserva(Integer id, PostReservaDTO postReservaDTO) {
         ReservaEntity reserva = reservaRepository.findById(id)
@@ -147,6 +180,18 @@ public class ReservaServiceImpl implements IReservaService {
         return modelMapper.map(reservaActualizada, ReservaDTO.class);
     }
 
+    /**
+     * Obtiene una lista paginada de todas las reservas del sistema.
+     * Las reservas se ordenan por ID ascendente.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<ReservaDTO> que contiene las reservas de la página solicitada,
+     *         con información de paginación incluida.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     *
+     * @note Incluye nombre completo de la persona asociada en la respuesta.
+     */
     @Override
     public Page<ReservaDTO> traerReservas(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
@@ -165,6 +210,19 @@ public class ReservaServiceImpl implements IReservaService {
 
     }
 
+    /**
+     * Obtiene una lista paginada de reservas aplicando filtros de búsqueda.
+     * Permite filtrar por tipo de evento y fecha específica.
+     * Los resultados se ordenan por fecha de reserva descendente.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @param evento Tipo de evento a filtrar (ej: "CENA", "ALMUERZO", "VIP").
+     *               Si es null o vacío, no se aplica filtro por evento.
+     * @param fecha Fecha específica para filtrar reservas. Si es null, no se filtra por fecha.
+     * @return Page<ReservaDTO> con las reservas filtradas, paginadas y ordenadas.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
     @Override
     public Page<ReservaDTO> traerReservas(int page, int size, String evento, LocalDate fecha) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaReserva").descending());
@@ -198,6 +256,17 @@ public class ReservaServiceImpl implements IReservaService {
     }
 
 
+    /**
+     * Elimina una reserva del sistema y actualiza los cupos de disponibilidad.
+     * Libera los cupos ocupados por la reserva al eliminarla.
+     *
+     * @param id Identificador único de la reserva a eliminar.
+     * @throws EntityNotFoundException si no existe una reserva con el ID proporcionado.
+     * @throws Exception si ocurre un error durante la eliminación.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Actualiza automáticamente los cupos ocupados en la disponibilidad asociada.
+     */
     @Override
     @Transactional
     public void eliminarReserva(Integer id) {
@@ -221,6 +290,19 @@ public class ReservaServiceImpl implements IReservaService {
         reservaRepository.delete(reserva);
     }
 
+    /**
+     * Genera un reporte de las fechas más concurridas dentro de un rango de fechas.
+     * Proporciona información agregada de reservas por fecha.
+     *
+     * @param fechaInicio Fecha de inicio del período a analizar.
+     *                   Si es null, se usa un mes atrás desde hoy.
+     * @param fechaFin Fecha de fin del período a analizar.
+     *                 Si es null, se usa la fecha actual.
+     * @return List<ReporteReservasDTO> con estadísticas de reservas por fecha.
+     * @throws Exception si ocurre un error durante la consulta.
+     *
+     * @note Valores por defecto: fechaInicio = hoy - 1 mes, fechaFin = hoy.
+     */
     @Override
     public List<ReporteReservasDTO> getReporteFechasConcurridas(LocalDate fechaInicio, LocalDate fechaFin) {
         if (fechaInicio == null) fechaInicio = LocalDate.now().minusMonths(1);
@@ -229,6 +311,19 @@ public class ReservaServiceImpl implements IReservaService {
         return reservaRepository.findReservasPorFecha(fechaInicio, fechaFin);
     }
 
+    /**
+     * Genera un reporte de los horarios más concurridos dentro de un rango de fechas.
+     * Proporciona información agregada de reservas por horario.
+     *
+     * @param fechaInicio Fecha de inicio del período a analizar.
+     *                   Si es null, se usa un mes atrás desde hoy.
+     * @param fechaFin Fecha de fin del período a analizar.
+     *                 Si es null, se usa la fecha actual.
+     * @return List<ReporteReservasDTO> con estadísticas de reservas por horario.
+     * @throws Exception si ocurre un error durante la consulta.
+     *
+     * @note Valores por defecto: fechaInicio = hoy - 1 mes, fechaFin = hoy.
+     */
     @Override
     public List<ReporteReservasDTO> getReporteHorariosConcurridos(LocalDate fechaInicio, LocalDate fechaFin) {
         if (fechaInicio == null) fechaInicio = LocalDate.now().minusMonths(1);
@@ -237,6 +332,31 @@ public class ReservaServiceImpl implements IReservaService {
         return reservaRepository.findReservasPorHorario(fechaInicio, fechaFin);
     }
 
+    /**
+     * Crea una reserva con soporte para pagos, especialmente diseñado para reservas VIP.
+     * Maneja dos flujos: reservas normales (sin pago) y reservas VIP (con pago requerido).
+     *
+     * @param request Objeto DTO con datos de la reserva y configuración de pago.
+     * @return ReservaVipResponseDto con información de la reserva creada y, si es VIP,
+     *         datos para procesar el pago (preferenceId, initPoint, publicKey).
+     * @throws ResponseStatusException con código 400 si:
+     *         - Datos inválidos en la reserva
+     *         - No hay cupos disponibles
+     * @throws ResponseStatusException con código 404 si no se encuentra persona o disponibilidad.
+     * @throws ResponseStatusException con código 409 si ya existe una reserva con el mismo número.
+     * @throws ResponseStatusException con código 500 si ocurre un error interno.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Para reservas VIP:
+     *       1. Crea reserva con estado PENDIENTE_PAGO
+     *       2. Genera preferencia de pago en Mercado Pago
+     *       3. NO actualiza cupos hasta que el pago sea aprobado
+     *       4. Guarda el preferenceId en la reserva para seguimiento
+     * @note Para reservas normales:
+     *       1. Crea reserva con estado CONFIRMADA
+     *       2. Actualiza cupos inmediatamente
+     *       3. No genera datos de pago
+     */
     @Override
     @Transactional
     public ReservaVipResponseDto crearReservaConPago(ReservaVipRequestDto request) {
@@ -332,6 +452,14 @@ public class ReservaServiceImpl implements IReservaService {
         }
     }
 
+    /**
+     * Obtiene una reserva específica por su identificador único.
+     *
+     * @param id Identificador único de la reserva a buscar.
+     * @return ReservaDTO con todos los datos de la reserva encontrada.
+     * @throws EntityNotFoundException si no existe una reserva con el ID proporcionado.
+     * @throws Exception si ocurre un error durante la consulta.
+     */
     @Override
     public ReservaDTO obtenerReserva(Integer id) {
         ReservaEntity reserva = reservaRepository.findById(id)
@@ -339,6 +467,16 @@ public class ReservaServiceImpl implements IReservaService {
         return modelMapper.map(reserva, ReservaDTO.class);
     }
 
+    /**
+     * Genera un reporte de clientes ordenados por cantidad de reservas realizadas.
+     * Incluye información de contacto y tipo de evento preferido.
+     *
+     * @return List<ReporteClientesReservasDTO> con estadísticas de clientes y sus reservas.
+     * @throws Exception si ocurre un error durante la consulta.
+     *
+     * @note Ordena los clientes por cantidad total de reservas descendente.
+     * @note Incluye el tipo de evento más frecuente para cada cliente.
+     */
     @Override
     public List<ReporteClientesReservasDTO> obtenerReporteClientesPorReserva() {
         List<Object[]> resultados = reservaRepository.findClientesPorCantidadReservas();
@@ -356,6 +494,17 @@ public class ReservaServiceImpl implements IReservaService {
 
     }
 
+    /**
+     * Envía un email de confirmación al cliente después de crear una reserva.
+     * Maneja errores de envío sin interrumpir el flujo principal de la reserva.
+     *
+     * @param reserva Entidad de la reserva creada.
+     * @param persona Entidad de la persona que realizó la reserva.
+     *
+     * @note Registra en logs el resultado del envío (éxito, advertencia o error).
+     * @note No lanza excepciones para evitar interrumpir el proceso de reserva.
+     * @note Verifica que la persona tenga email registrado antes de enviar.
+     */
     private void enviarEmailConfirmacion(ReservaEntity reserva, PersonaEntity persona) {
         try {
             // Verificar que la persona tenga email
