@@ -21,7 +21,7 @@
 
           <!-- Si NO tiene submenú, es link directo -->
           <a *ngIf="!item.hasSubmenu" [routerLink]="item.route" routerLinkActive="active" class="nav-item direct-icon">
-            <span class="nav-icon">{{item.icon}}</span>
+            <i class="nav-icon" [ngClass]="item.icon.startsWith('bi-') ? ['bi', item.icon] : item.icon.split(' ')"></i>
             <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
           </a>
 
@@ -30,7 +30,7 @@
             <!-- Botón principal -->
             <button class="nav-item direct-icon" [class.submenu-active]="expandedSubmenu === item.id"
               (click)="toggleSubmenu(item.id)">
-              <span class="nav-icon">{{item.icon}}</span>
+              <i class="nav-icon" [ngClass]="item.icon.startsWith('bi-') ? ['bi', item.icon] : item.icon.split(' ')"></i>
               <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
             </button>
 
@@ -39,7 +39,7 @@
               *ngIf="item.submenu && item.submenu.length > 0">
               <a *ngFor="let subItem of item.submenu" [routerLink]="subItem.route" routerLinkActive="active"
                 class="nav-item submenu-icon" [title]="subItem.label">
-                <span class="nav-icon">{{getSubmenuIcon(subItem.label)}}</span>
+                <i class="nav-icon" [ngClass]="getSubmenuIcon(subItem.label).startsWith('bi-') ? ['bi', getSubmenuIcon(subItem.label)] : getSubmenuIcon(subItem.label).split(' ')"></i>
               </a>
             </div>
           </div>
@@ -58,13 +58,13 @@
 
             <!-- Si NO tiene submenú, es un link directo -->
             <a *ngIf="!item.hasSubmenu" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">{{item.icon}}</span>
+              <i class="nav-icon" [ngClass]="item.icon.startsWith('bi-') ? ['bi', item.icon] : item.icon.split(' ')"></i>
               <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
             </a>
 
             <!-- Si tiene submenú, es un botón -->
             <button *ngIf="item.hasSubmenu" class="nav-item nav-item-button" (click)="toggleSubmenu(item.id)">
-              <span class="nav-icon">{{item.icon}}</span>
+              <i class="nav-icon" [ngClass]="item.icon.startsWith('bi-') ? ['bi', item.icon] : item.icon.split(' ')"></i>
               <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
               <span class="submenu-arrow" [class.visible]="isExpanded"
                 [class.rotated]="expandedSubmenu === item.id">▶</span>
@@ -89,13 +89,13 @@
 
             <!-- Si NO tiene submenú, es un link directo -->
             <a *ngIf="!item.hasSubmenu" [routerLink]="item.route" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">{{item.icon}}</span>
+              <i class="nav-icon" [ngClass]="item.icon.startsWith('bi-') ? ['bi', item.icon] : item.icon.split(' ')"></i>
               <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
             </a>
 
             <!-- Si tiene submenú, es un botón -->
             <button *ngIf="item.hasSubmenu" class="nav-item nav-item-button" (click)="toggleSubmenu(item.id)">
-              <span class="nav-icon">{{item.icon}}</span>
+              <i class="nav-icon" [ngClass]="item.icon.startsWith('bi-') ? ['bi', item.icon] : item.icon.split(' ')"></i>
               <span class="nav-label" [class.visible]="isExpanded">{{item.label}}</span>
               <span class="submenu-arrow" [class.visible]="isExpanded"
                 [class.rotated]="expandedSubmenu === item.id">▶</span>
@@ -116,7 +116,7 @@
     <!-- Botón inferior (logout) -->
     <div class="navbar-bottom">
       <button class="nav-item bottom-btn" (click)="logout()">
-        <span class="nav-icon">🚪</span>
+        <i class="nav-icon bi bi-box-arrow-right"></i>
         <span class="nav-label" [class.visible]="isExpanded">Salir</span>
       </button>
     </div>
@@ -133,13 +133,13 @@
     <div class="header-user-section">
       <!-- Botón de notificaciones -->
       <button class="notification-btn" (click)="showNotifications()">
-        <span class="notification-icon">🔔</span>
+        <i class="notification-icon bi bi-bell-fill"></i>
         <span class="notification-badge" *ngIf="notificationCount > 0">{{notificationCount}}</span>
       </button>
 
       <!-- Info del usuario -->
       <div class="user-info">
-        <span class="user-icon">👤</span>
+        <i class="user-icon bi bi-person-circle"></i>
         <span class="user-text">Usuario: {{username}}</span>
       </div>
     </div>

@@ -122,17 +122,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   getSubmenuIcon(label: string): string {
     const iconMap: { [key: string]: string } = {
-      'Empleados': '📋',
-      'Usuarios': '👤',
-      'Listado': '📋', 
-      'Usuarios Sistema': '🔧',
-      'Reportes': '📊',
-      'Configuración': '⚙️',
-      'Gestión de Pedidos': '📋',
-      'Cocina': '🍽️'
+      'Empleados': 'bi-person-badge-fill',
+      'Usuarios': 'bi-person-fill',
+      'Listado': 'bi-list-ul', 
+      'Usuarios Sistema': 'bi-gear-fill',
+      'Reportes': 'bi-bar-chart-fill',
+      'Configuración': 'bi-gear-fill',
+      'Gestión de Pedidos': 'fa-solid fa-list-check',
+      'Cocina': 'fa-solid fa-fire',
+      'Tomar Pedido': 'fa-solid fa-pen-to-square'
     };
     
-    return iconMap[label] || '📄';
+    return iconMap[label] || 'bi-file-earmark';
   }
 
   toggleSubmenu(itemId: string) {

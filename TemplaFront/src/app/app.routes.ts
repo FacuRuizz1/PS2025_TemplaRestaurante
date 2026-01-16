@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './componentes/login/login.component';
+import { LandingComponent } from './componentes/landing/landing.component';
 import { PersonasComponent } from './componentes/modulos/personas/personas.component';
 import { UsuariosComponent } from './componentes/modulos/usuarios/usuarios.component';
 import { ProductosComponent } from './componentes/modulos/productos/productos.component';
@@ -16,7 +17,11 @@ import { ReportesComponent } from './componentes/modulos/reportes/reportes.compo
 import { RolUsuario } from './componentes/models/UsuarioModel';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  // Landing page pública (sin autenticación)
+  { path: '', component: LandingComponent },
+  { path: 'home', component: LandingComponent },
+  
+  // Login
   { path: 'login', component: LoginComponent },
 
   // Ruta de resultado de Mercado Pago (SIN PROTECCIÓN, SIN NAVBAR)
@@ -30,7 +35,7 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       menuLabel: 'Personas',
-      icon: '👥',
+      icon: 'bi-people-fill',
       order: 1,
       isPrincipal: true,
       hasSubmenu: true,
@@ -73,7 +78,7 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       menuLabel: 'Productos',
-      icon: '📦',
+      icon: 'bi-box-seam-fill',
       order: 2,
       isPrincipal: true,
       requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.COCINA, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
@@ -89,7 +94,7 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       menuLabel: 'Platos',
-      icon: '🍽️',
+      icon: 'fa-solid fa-utensils',
       order: 3,
       isPrincipal: true,
       requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO, RolUsuario.COCINA], // ✅ AGREGADO COCINA
@@ -105,7 +110,7 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       menuLabel: 'Menú',
-      icon: '📜',
+      icon: 'bi-card-list',
       order: 4,
       isPrincipal: true,
       requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
@@ -121,7 +126,7 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       menuLabel: 'Mesas',
-      icon: '🪑',
+      icon: 'fa-solid fa-chair',
       order: 5,
       isPrincipal: true,
       requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.MOZO, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
@@ -137,7 +142,7 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       menuLabel: 'Pedidos',
-      icon: '🧾',
+      icon: 'fa-solid fa-clipboard-list',
       order: 6,
       isPrincipal: true,
       hasSubmenu: true,
@@ -192,7 +197,7 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       menuLabel: 'Reservas',
-      icon: '📅',
+      icon: 'bi-calendar-check-fill',
       order: 7,
       isPrincipal: true,
       requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.CLIENTE, RolUsuario.ENCARGADO], // ✅ AGREGADO ENCARGADO
@@ -208,7 +213,7 @@ export const routes: Routes = [
     data: {
       showInMenu: true,
       menuLabel: 'Reportes',
-      icon: '📊',
+      icon: 'bi-bar-chart-fill',
       order: 8,
       isPrincipal: true,
       requiredRoles: [RolUsuario.ADMINISTRADOR, RolUsuario.ENCARGADO],
