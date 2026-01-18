@@ -19,7 +19,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
             <div class="info-badge bg-white border border-templa-gold p-2 rounded">
-              <span class="fs-5 me-2">📊</span>
+              <span class="fs-5 me-2"></span>
               <span class="text-templa-brown">Total de clientes: {{datos.length}}</span>
             </div>
             
@@ -30,7 +30,11 @@
               </button>
               <button class="btn btn-danger" (click)="exportarPDF()" [disabled]="loading || datos.length === 0">
                 <i class="bi bi-file-pdf me-1"></i>
-                Exportar PDF
+                PDF
+              </button>
+              <button class="btn btn-success" (click)="exportarExcel()" [disabled]="loading || datos.length === 0">
+                <i class="bi bi-file-earmark-excel me-1"></i>
+                Excel
               </button>
             </div>
           </div>
@@ -54,58 +58,17 @@
   </div>
 
   <!-- Content -->
-  <div class="row g-4" *ngIf="!loading && datos.length > 0">
+  <div class="row" *ngIf="!loading && datos.length > 0">
     <!-- Gráfico -->
-    <div class="col-lg-6">
+    <div class="col-12">
       <div class="card shadow-sm border-templa-gold">
-        <div class="card-header bg-templa-brown text-white">
+        <div class="card-header bg-templa-green text-dark">
           <h5 class="mb-0">
-            <i class="bi bi-pie-chart-fill me-2"></i>
-            Distribución de Reservas
+            Distribución de Reservas por Cliente
           </h5>
         </div>
         <div class="card-body">
-          <div id="pieChart" style="height: 400px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabla -->
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-templa-gold">
-        <div class="card-header bg-templa-brown text-white">
-          <h5 class="mb-0">
-            <i class="bi bi-table me-2"></i>
-            Detalle de Clientes
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-            <table class="table table-hover table-striped">
-              <thead class="table-light sticky-top">
-                <tr>
-                  <th>Cliente</th>
-                  <th>Email</th>
-                  <th>Teléfono</th>
-                  <th class="text-center">Reservas</th>
-                  <th>Evento Favorito</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let cliente of datos; let i = index" [class.table-warning]="i < 3">
-                  <td>
-                    {{cliente.nombreCompleto}}
-                  </td>
-                  <td>{{cliente.email}}</td>
-                  <td>{{cliente.telefono}}</td>
-                  <td class="text-center">
-                    <span class="badge bg-success">{{cliente.totalReservas}}</span>
-                  </td>
-                  <td>{{cliente.eventoMasFrecuente}}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <div id="pieChart" style="height: 500px;"></div>
         </div>
       </div>
     </div>
@@ -135,7 +98,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let cliente of datos; let i = index" [class.table-warning]="i < 3">
+                <tr *ngFor="let cliente of datos; let i = index">
                   <td>{{i + 1}}</td>
                   <td>
                     <strong>{{cliente.nombreCompleto}}</strong>
@@ -143,7 +106,7 @@
                   <td>{{cliente.email}}</td>
                   <td>{{cliente.telefono}}</td>
                   <td class="text-center">
-                    <span class="badge bg-success">{{cliente.totalReservas}}</span>
+                    {{cliente.totalReservas}}
                   </td>
                   <td>{{cliente.eventoMasFrecuente}}</td>
                 </tr>

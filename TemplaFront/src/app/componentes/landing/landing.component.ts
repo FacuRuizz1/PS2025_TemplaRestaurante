@@ -307,7 +307,7 @@ export class LandingComponent implements OnInit {
 
   // Navegar a reservas (si es accesible sin login)
   irAReservas(): void {
-    this.router.navigate(['/reservas']);
+    this.router.navigate(['/nueva-reserva']);
   }
 
   // Ver el menú

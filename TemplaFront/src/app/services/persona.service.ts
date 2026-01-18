@@ -19,8 +19,13 @@ export class PersonaService {
   // ✅ Método simplificado usando solo getToken()
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken(); // ✅ Solo usar getToken()
+    if (token) {
+      return new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+    }
     return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
   }
@@ -32,11 +37,14 @@ export class PersonaService {
 
     const token = this.authService.getToken();
     
+    const headers: any = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const httpOptions = {
       params,
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers
     };
 
     return this.http.get<Page<Persona>>(`${this.apiUrl}/personas`, httpOptions);

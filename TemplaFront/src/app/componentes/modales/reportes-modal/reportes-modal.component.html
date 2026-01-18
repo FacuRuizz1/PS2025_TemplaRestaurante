@@ -85,6 +85,32 @@
           <div id="chart-platos" *ngIf="categoriaReporte === 'platos'"></div>
           <div id="chart-menus" *ngIf="categoriaReporte === 'menus'"></div>
         </div>
+        
+        <!-- Tabla de datos para Menús -->
+        <div class="mt-4" *ngIf="categoriaReporte === 'menus' && datosMenus.length > 0">
+          <h5 class="mb-3">
+            <i class="fas fa-table me-2"></i>
+            Datos del Reporte
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-hover table-striped">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Menú</th>
+                  <th class="text-center">Cantidad de Pedidos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let dato of datosMenus; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td><strong>{{ dato.nombreMenu }}</strong></td>
+                  <td class="text-center">{{ dato.cantidadPedidos }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
       
       <div class="modal-footer">

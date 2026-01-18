@@ -19,7 +19,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
             <div class="info-badge bg-white border border-templa-gold p-2 rounded">
-              <span class="fs-5 me-2">📊</span>
+              <span class="fs-5 me-2"></span>
               <span class="text-templa-brown">Productos con stock bajo: {{datosStock.length}}</span>
             </div>
             
@@ -97,14 +97,14 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let dato of datosStock; let i = index" [class.table-danger]="dato.stockActual < dato.stockMinimo">
+                <tr *ngFor="let dato of datosStock; let i = index">
                   <td>{{i + 1}}</td>
                   <td><strong>{{dato.nombreProducto}}</strong></td>
                   <td class="text-center">
-                    <span class="badge bg-danger">{{dato.stockActual}}</span>
+                    {{dato.stockActual}}
                   </td>
                   <td class="text-center">
-                    <span class="badge bg-warning text-dark">{{dato.stockMinimo}}</span>
+                    {{dato.stockMinimo}}
                   </td>
                   <td>{{dato.tipoProducto}}</td>
                 </tr>

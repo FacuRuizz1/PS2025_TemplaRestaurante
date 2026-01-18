@@ -17,6 +17,10 @@ public class DisponibilidadController {
 
     private final IDisponibilidadService disponibilidadService;
 
+    // ========================================
+    // ENDPOINTS PROTEGIDOS (para el admin)
+    // ========================================
+
     @PostMapping("/crear")
     public ResponseEntity<DisponibilidadDTO> crearDisponibilidad(@RequestBody PostDisponibilidadDTO postDisponibilidadDTO) {
         DisponibilidadDTO disponibilidadCreada = disponibilidadService.createDisponibilidad(postDisponibilidadDTO);
@@ -39,4 +43,22 @@ public class DisponibilidadController {
             @RequestBody PostDisponibilidadDTO postDisponibilidadDTO) {
         return ResponseEntity.ok(disponibilidadService.putDisponibilidad(id, postDisponibilidadDTO));
     }
+
+    // ========================================
+    //  ENDPOINTS PÚBLICOS (para la landing)
+    // ========================================
+
+    // GET /api/disponibilidad/publica - Lista todas las disponibilidades
+    @GetMapping("/publica")
+    public ResponseEntity<List<DisponibilidadDTO>> listarPublica() {
+        return ResponseEntity.ok(disponibilidadService.getAllDisponibilidades());
+    }
+
+    // POST /api/disponibilidad/publica - Crea una nueva disponibilidad
+    @PostMapping("/publica")
+    public ResponseEntity<DisponibilidadDTO> crearPublica(@RequestBody PostDisponibilidadDTO postDisponibilidadDTO) {
+        DisponibilidadDTO disponibilidadCreada = disponibilidadService.createDisponibilidad(postDisponibilidadDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(disponibilidadCreada);
+    }
+
 }

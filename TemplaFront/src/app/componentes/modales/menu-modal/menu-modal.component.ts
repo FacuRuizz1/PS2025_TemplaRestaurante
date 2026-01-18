@@ -35,7 +35,7 @@ export class MenuModalComponent implements OnInit {
   menuForm = {
     nombre: '',
     descripcion: '',
-    precio: 0,
+    precio: null as number | null,
     disponibleDesde: '',
     disponibleHasta: '',
     productos: [] as PostProductosMenuDto[]
@@ -354,6 +354,7 @@ agregarItem(): void {
   esFormularioValido(): boolean {
     const valido = !!(
       this.menuForm.nombre.trim() &&
+      this.menuForm.precio != null &&
       this.menuForm.precio > 0 &&
       this.menuForm.disponibleDesde &&
       this.menuForm.productos.length > 0
@@ -403,7 +404,7 @@ agregarItem(): void {
         id: this.menu.id,
         nombre: this.menuForm.nombre,
         descripcion: this.menuForm.descripcion,
-        precio: this.menuForm.precio,
+        precio: this.menuForm.precio!,
         disponibleDesde: this.menuForm.disponibleDesde,
         disponibleHasta: this.menuForm.disponibleHasta,
         activo: this.activo,
@@ -444,7 +445,7 @@ agregarItem(): void {
       const menuBase: PostMenuDTO = {
         nombre: this.menuForm.nombre,
         descripcion: this.menuForm.descripcion || undefined,
-        precio: this.menuForm.precio,
+        precio: this.menuForm.precio!,
         disponibleDesde: this.menuForm.disponibleDesde || undefined,
         disponibleHasta: this.menuForm.disponibleHasta || undefined,
         productos: this.menuForm.productos

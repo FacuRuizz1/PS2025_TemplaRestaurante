@@ -1,0 +1,335 @@
+/* Variables de colores Templa */
+:root {
+  --templa-brown: #755143;
+  --templa-green: #84C473;
+  --templa-red: #C47373;
+  --templa-gold: #d2a46d;
+  --templa-dark-green: #696848;
+  --templa-beige: #F4EADD;
+}
+
+.reserva-publica-container {
+  background-color: #f4eadd;
+  padding: 20px;
+}
+
+/* Indicador de pasos */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.step-indicator::before {
+  content: '';
+  position: absolute;
+  top: 25px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: var(--templa-beige);
+  z-index: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  max-width: 120px;
+  cursor: pointer;
+}
+
+.step-number {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--templa-beige);
+  color: var(--templa-brown);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.step-title {
+  font-size: 0.85rem;
+  color: var(--templa-brown);
+  text-align: center;
+  font-weight: 500;
+}
+
+.step.active .step-number {
+  background: var(--templa-gold);
+  color: white;
+}
+
+.step.active .step-title {
+  color: var(--templa-dark-green);
+  font-weight: 600;
+}
+
+.step.completed .step-number {
+  background: var(--templa-green);
+  color: white;
+}
+
+.step.completed .step-title {
+  color: var(--templa-dark-green);
+  font-weight: 600;
+}
+
+/* Cards de evento */
+.evento-card {
+  background: white;
+  border: 2px solid var(--templa-beige);
+  border-radius: 12px;
+  padding: 25px 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.evento-card:hover {
+  border-color: var(--templa-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.evento-card.selected {
+  border-color: var(--templa-gold);
+  background: var(--templa-beige);
+  box-shadow: 0 4px 12px rgba(210, 164, 109, 0.2);
+}
+
+.evento-icon {
+  font-size: 2.5rem;
+  color: var(--templa-gold);
+  margin-bottom: 10px;
+}
+
+.evento-name {
+  font-weight: 600;
+  color: var(--templa-dark-green);
+}
+
+/* Cards de horario */
+.horario-card {
+  background: white;
+  border: 2px solid var(--templa-beige);
+  border-radius: 8px;
+  padding: 15px 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--templa-dark-green);
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.horario-card:hover {
+  border-color: var(--templa-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.horario-card.selected {
+  border-color: var(--templa-gold);
+  background: var(--templa-gold);
+  color: white;
+  box-shadow: 0 4px 12px rgba(210, 164, 109, 0.3);
+}
+
+/* Formularios */
+.form-control {
+  border: 2px solid var(--templa-beige);
+  border-radius: 8px;
+  padding: 0.75rem;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  border-color: var(--templa-gold);
+  box-shadow: 0 0 0 0.2rem rgba(210, 164, 109, 0.25);
+}
+
+/* Form Container */
+.form-container {
+  background: var(--templa-beige);
+  padding: 30px;
+  border-radius: 8px;
+  margin-top: 20px;
+  border: 1px solid var(--templa-gold);
+}
+
+/* ===== ESTILOS PARA RESUMEN DE RESERVA ===== */
+.reserva-resumen-container {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.reserva-resumen-card {
+  background: linear-gradient(135deg, var(--templa-beige) 0%, #f8f6f0 100%);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 2px solid var(--templa-gold);
+  max-width: 600px;
+  width: 100%;
+}
+
+.resumen-header {
+  text-align: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--templa-gold);
+}
+
+.resumen-header h4 {
+  color: var(--templa-dark-green);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.resumen-subtitle {
+  color: var(--templa-brown);
+  font-size: 14px;
+  margin: 0;
+  font-style: italic;
+}
+
+.resumen-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.resumen-section h5 {
+  color: var(--templa-dark-green);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resumen-section h5 i {
+  color: var(--templa-gold);
+}
+
+.resumen-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(117, 81, 67, 0.2);
+}
+
+.resumen-row:last-child {
+  border-bottom: none;
+}
+
+.resumen-label {
+  font-weight: 600;
+  color: var(--templa-brown);
+  font-size: 14px;
+}
+
+.resumen-value {
+  color: var(--templa-dark-green);
+  font-weight: 500;
+  font-size: 14px;
+  text-align: right;
+}
+
+.resumen-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--templa-gold), transparent);
+  margin: 10px 0;
+}
+
+/* Botones */
+.btn {
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-success {
+  background-color: var(--templa-gold);
+  border-color: var(--templa-gold);
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #c49760;
+  border-color: #c49760;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn-secondary {
+  background-color: var(--templa-brown);
+  border-color: var(--templa-brown);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5f4035;
+  border-color: #5f4035;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .step-title {
+    font-size: 0.75rem;
+  }
+  
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .evento-card, .horario-card {
+    height: auto;
+    min-height: 80px;
+  }
+  
+  .reserva-resumen-card {
+    margin: 20px 10px;
+    padding: 20px;
+  }
+  
+  .resumen-header h4 {
+    font-size: 20px;
+  }
+  
+  .resumen-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  .resumen-value {
+    text-align: left;
+  }
+}

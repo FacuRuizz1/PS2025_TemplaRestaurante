@@ -4,6 +4,7 @@ import Templa.Tesis.App.Jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,7 +34,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true); // ✅ true para JWT
+        configuration.setAllowCredentials(true); // true para JWT
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -60,41 +61,46 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Endpoints que requieren rol ADMINISTRADOR y ENCARGADO
+                        //  PERSONAS - Crear cliente desde landing (permitir POST con cualquier subruta)
+                        .requestMatchers(HttpMethod.POST, "/api/persona/**").permitAll()
+
+                        //  RESERVAS - Endpoints públicos para landing
+                        .requestMatchers(HttpMethod.POST, "/api/reserva/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reserva/verificar-pago/**").permitAll()
+
+                        //  DISPONIBILIDAD - Endpoints públicos
+                        .requestMatchers("/api/disponibilidad/publica/**").permitAll()
+
+                        // ========================================
+                        // 🔒 ENDPOINTS PROTEGIDOS
+                        // ========================================
+
                         .requestMatchers("/api/usuario/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO")
 
-                        // Endpoints de persona solo ADMINISTRADOR, Y ENCARGADO
-                        .requestMatchers("/api/persona/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO")
+                        // PERSONA - Proteger GET, PUT, DELETE (POST ya es público)
+                        .requestMatchers(HttpMethod.GET, "/api/persona/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO")
+                        .requestMatchers(HttpMethod.PUT, "/api/persona/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/persona/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO")
 
-                        // Endpoints de producto - MOZO necesita para ver productos en pedidos
                         .requestMatchers("/api/producto/**").hasAnyAuthority("ADMINISTRADOR", "COCINA","ENCARGADO","MOZO")
-
-                        // Endpoints de plato - MOZO necesita para ver platos en pedidos
                         .requestMatchers("/api/platos/**").hasAnyAuthority("ADMINISTRADOR","ENCARGADO","COCINA","MOZO")
-
-                        //Endpoint de Menu - MOZO necesita para ver menus en pedidos
                         .requestMatchers("/api/menu/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE","ENCARGADO","MOZO")
-
-                        //Endpoint de Mesa solo para ADMINISTRADOR y MOZO
                         .requestMatchers("/api/mesas/**").hasAnyAuthority("ADMINISTRADOR","MOZO","ENCARGADO")
 
-                        //Endpoint de Reserva solo para ADMINISTRADOR y CLIENTE
-                        .requestMatchers("/api/reserva/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE","ENCARGADO")
+                        // RESERVA - Proteger GET, PUT, DELETE (POST ya es público)
+                        .requestMatchers(HttpMethod.GET, "/api/reserva/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE","ENCARGADO")
+                        .requestMatchers(HttpMethod.PUT, "/api/reserva/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE","ENCARGADO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/reserva/**").hasAnyAuthority("ADMINISTRADOR","CLIENTE","ENCARGADO")
 
-                        //Endpoint de Disponibilidad solo para ADMINISTRADOR, MOZO y ENCARGADO
+                        // DISPONIBILIDAD - Proteger otros endpoints
                         .requestMatchers("/api/disponibilidad/**").hasAnyAuthority("ADMINISTRADOR", "MOZO","ENCARGADO")
 
-                        //Enpoint de Pedido solo para ADMINISTRADOR ,MOZO y COCINA
                         .requestMatchers("/api/pedido/**").hasAnyAuthority("ADMINISTRADOR","MOZO","COCINA","ENCARGADO")
-
-                        //Enpoint de Reportes solo para ADMINISTRADOR
                         .requestMatchers("/api/reportes/**").hasAuthority("ADMINISTRADOR")
 
-                        // Cualquier otro endpoint requiere autenticación
                         .anyRequest().authenticated()
                 )
-                // Configuración especial para H2 Console
-                .headers(AbstractHttpConfigurer::disable) // ← ¡IMPORTANTE!
+                .headers(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )

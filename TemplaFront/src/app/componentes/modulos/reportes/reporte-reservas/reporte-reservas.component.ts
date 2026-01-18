@@ -25,6 +25,7 @@ export class ReporteReservasComponent implements OnInit {
   tipoReporte = 'fechas'; // 'fechas' o 'horarios'
   private currentChart: any = null;
   datosReporte: ReporteReservasDTO[] = [];
+  private googleChartsLoaded = false;
   
   constructor(
     private router: Router,
@@ -44,7 +45,10 @@ export class ReporteReservasComponent implements OnInit {
     // Cargar Google Charts
     if (typeof google !== 'undefined' && google.charts) {
       google.charts.load('current', { 'packages': ['corechart'] });
-      google.charts.setOnLoadCallback(() => this.generarReporte());
+      google.charts.setOnLoadCallback(() => {
+        this.googleChartsLoaded = true; // ← MARCAR COMO CARGADO
+        this.generarReporte();
+      });
     }
   }
 
@@ -75,6 +79,7 @@ export class ReporteReservasComponent implements OnInit {
   onTipoReporteChange() {
     this.generarReporte();
   }
+  
 
   private crearGraficoBarras(data: ReporteReservasDTO[], titulo: string, containerId: string) {
     const chartData: any[] = [['Periodo', 'Total Reservas', 'Total Comensales']];

@@ -1,0 +1,257 @@
+<div class="container-fluid reserva-publica-container bg-templa-beige min-vh-100 py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+      <!-- Header -->
+      <div class="text-center mb-5">
+        <h1 class="display-4 text-templa-brown mb-3">
+          <i class="bi bi-calendar-check me-3"></i>
+          Reservá tu Mesa
+        </h1>
+        <p class="lead text-muted">Completá los siguientes pasos para hacer tu reserva</p>
+      </div>
+
+      <!-- Indicador de pasos -->
+      <div class="step-indicator mb-5">
+        <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1" (click)="goToStep(1)">
+          <span class="step-number">1</span>
+          <span class="step-title">Evento</span>
+        </div>
+        <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2" (click)="goToStep(2)">
+          <span class="step-number">2</span>
+          <span class="step-title">Fecha y Comensales</span>
+        </div>
+        <div class="step" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3" (click)="goToStep(3)">
+          <span class="step-number">3</span>
+          <span class="step-title">Horario</span>
+        </div>
+        <div class="step" [class.active]="currentStep >= 4" [class.completed]="currentStep > 4" (click)="goToStep(4)">
+          <span class="step-number">4</span>
+          <span class="step-title">Tus Datos</span>
+        </div>
+        <div class="step" [class.active]="currentStep >= 5" [class.completed]="currentStep > 5">
+          <span class="step-number">5</span>
+          <span class="step-title">Confirmar</span>
+        </div>
+      </div>
+
+      <!-- Contenido de los pasos -->
+      <div class="card shadow-lg border-templa-gold">
+        <div class="card-body p-5">
+          
+          <!-- Paso 1: Selección de Evento -->
+          <div *ngIf="currentStep === 1" class="step-content">
+            <h3 class="text-center mb-4 text-templa-brown">¿Cuál es el motivo de tu reserva?</h3>
+            <form [formGroup]="formularioPaso1">
+              <div class="row g-3 justify-content-center">
+                <div class="col-6 col-md-3" *ngFor="let evento of eventosDisponibles">
+                  <div class="evento-card" 
+                       [class.selected]="formularioPaso1.get('evento')?.value === evento"
+                       (click)="formularioPaso1.patchValue({evento: evento})">
+                    <div class="text-center">
+                      <div class="evento-icon">
+                        <i [class]="getEventoIcon(evento)"></i>
+                      </div>
+                      <div class="evento-name">{{ getEventoDisplayName(evento) }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Paso 2: Fecha y Comensales -->
+          <div *ngIf="currentStep === 2" class="step-content">
+            <h3 class="text-center mb-4 text-templa-brown">¿Cuándo y para cuántos?</h3>
+            <form [formGroup]="formularioPaso2">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Fecha de la reserva</label>
+                  <input type="date" 
+                         class="form-control" 
+                         formControlName="fechaReserva"
+                         [min]="fechaMinima"
+                         [max]="fechaMaxima">
+                  <div *ngIf="formularioPaso2.get('fechaReserva')?.invalid && formularioPaso2.get('fechaReserva')?.touched" 
+                       class="text-danger mt-1">
+                    La fecha es requerida
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Cantidad de comensales</label>
+                  <input type="number" 
+                         class="form-control" 
+                         formControlName="cantidadComensales"
+                         min="1"
+                         max="20">
+                  <div *ngIf="formularioPaso2.get('cantidadComensales')?.invalid && formularioPaso2.get('cantidadComensales')?.touched" 
+                       class="text-danger mt-1">
+                    Ingrese entre 1 y 20 comensales
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Paso 3: Selección de Horario -->
+          <div *ngIf="currentStep === 3" class="step-content">
+            <h3 class="text-center mb-4 text-templa-brown">Seleccioná tu horario</h3>
+            <form [formGroup]="formularioPaso3">
+              <div *ngIf="horariosDisponibles.length === 0" class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No hay horarios disponibles
+              </div>
+              <div class="row g-3" *ngIf="horariosDisponibles.length > 0">
+                <div class="col-6 col-md-3" *ngFor="let horario of horariosDisponibles">
+                  <div class="horario-card"
+                       [class.selected]="horarioSeleccionado === horario"
+                       (click)="seleccionarHorario(horario)">
+                    <div class="text-center">
+                      <i class="bi bi-clock fs-1 text-templa-green"></i>
+                      <p class="mt-2 mb-0 fw-bold">{{horario}}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Paso 4: Datos del Cliente -->
+          <div *ngIf="currentStep === 4" class="step-content">
+            <h3 class="text-center mb-4 text-templa-brown">Completá tus datos</h3>
+            <form [formGroup]="formularioPaso4">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Nombre</label>
+                  <input type="text" class="form-control" formControlName="nombre">
+                  <div *ngIf="formularioPaso4.get('nombre')?.invalid && formularioPaso4.get('nombre')?.touched" 
+                       class="text-danger mt-1">
+                    El nombre es requerido
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Apellido</label>
+                  <input type="text" class="form-control" formControlName="apellido">
+                  <div *ngIf="formularioPaso4.get('apellido')?.invalid && formularioPaso4.get('apellido')?.touched" 
+                       class="text-danger mt-1">
+                    El apellido es requerido
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">DNI</label>
+                  <input type="text" class="form-control" formControlName="dni" maxlength="8">
+                  <div *ngIf="formularioPaso4.get('dni')?.invalid && formularioPaso4.get('dni')?.touched" 
+                       class="text-danger mt-1">
+                    Ingrese un DNI válido (7-8 dígitos)
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Teléfono</label>
+                  <input type="text" class="form-control" formControlName="telefono" maxlength="10">
+                  <div *ngIf="formularioPaso4.get('telefono')?.invalid && formularioPaso4.get('telefono')?.touched" 
+                       class="text-danger mt-1">
+                    Ingrese un teléfono válido (10 dígitos)
+                  </div>
+                </div>
+                <div class="col-12 mb-3">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" formControlName="email">
+                  <div *ngIf="formularioPaso4.get('email')?.invalid && formularioPaso4.get('email')?.touched" 
+                       class="text-danger mt-1">
+                    Ingrese un email válido
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Paso 5: Resumen y Confirmación -->
+          <div *ngIf="currentStep === 5" class="step-content">
+            <h3 class="text-center mb-4 text-templa-brown">Confirmá tu reserva</h3>
+            <div class="reserva-resumen-container">
+              <div class="reserva-resumen-card">
+                <div class="resumen-header">
+                  <h4><i class="bi bi-clipboard-check"></i> Resumen de tu reserva</h4>
+                  <p class="resumen-subtitle">Confirma que todos los datos sean correctos</p>
+                </div>
+                
+                <div class="resumen-content">
+                  <div class="resumen-section">
+                    <h5><i class="bi bi-calendar-event"></i> Datos de la reserva</h5>
+                    <div class="resumen-row">
+                      <span class="resumen-label">Evento:</span>
+                      <span class="resumen-value">{{eventoSeleccionado}}</span>
+                    </div>
+                    <div class="resumen-row">
+                      <span class="resumen-label">Fecha:</span>
+                      <span class="resumen-value">{{formularioPaso2.get('fechaReserva')?.value | date:'dd/MM/yyyy'}}</span>
+                    </div>
+                    <div class="resumen-row">
+                      <span class="resumen-label">Horario:</span>
+                      <span class="resumen-value">{{horarioSeleccionado}}</span>
+                    </div>
+                    <div class="resumen-row">
+                      <span class="resumen-label">Comensales:</span>
+                      <span class="resumen-value">{{formularioPaso2.get('cantidadComensales')?.value}} persona(s)</span>
+                    </div>
+                  </div>
+                  
+                  <div class="resumen-divider"></div>
+                  
+                  <div class="resumen-section">
+                    <h5><i class="bi bi-person-circle"></i> Datos personales</h5>
+                    <div class="resumen-row">
+                      <span class="resumen-label">Nombre completo:</span>
+                      <span class="resumen-value">{{formularioPaso4.get('nombre')?.value}} {{formularioPaso4.get('apellido')?.value}}</span>
+                    </div>
+                    <div class="resumen-row">
+                      <span class="resumen-label">DNI:</span>
+                      <span class="resumen-value">{{formularioPaso4.get('dni')?.value}}</span>
+                    </div>
+                    <div class="resumen-row">
+                      <span class="resumen-label">Teléfono:</span>
+                      <span class="resumen-value">{{formularioPaso4.get('telefono')?.value}}</span>
+                    </div>
+                    <div class="resumen-row">
+                      <span class="resumen-label">Email:</span>
+                      <span class="resumen-value">{{formularioPaso4.get('email')?.value}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones de navegación -->
+          <div class="d-flex justify-content-between mt-4">
+            <button *ngIf="currentStep > 1" 
+                    class="btn btn-secondary" 
+                    (click)="previousStep()">
+              <i class="bi bi-arrow-left me-2"></i>
+              Anterior
+            </button>
+            <button *ngIf="currentStep === 1" 
+                    class="btn btn-secondary" 
+                    (click)="volverAlInicio()">
+              <i class="bi bi-arrow-left me-2"></i>
+              Volver al inicio
+            </button>
+            <button *ngIf="currentStep < 5" 
+                    class="btn btn-success ms-auto" 
+                    (click)="nextStep()">
+              Siguiente
+              <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+            <button *ngIf="currentStep === 5" 
+                    class="btn btn-success ms-auto" 
+                    (click)="confirmarReserva()">
+              <i class="bi bi-check-circle me-2"></i>
+              Confirmar Reserva
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

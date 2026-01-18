@@ -23,11 +23,16 @@ export class ReservaService {
   // Método helper para crear headers con token
   private getHttpOptions(params?: HttpParams): { headers: HttpHeaders; params?: HttpParams } {
     const token = this.authService.getToken();
+    const headers: any = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const options: any = {
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      })
+      headers: new HttpHeaders(headers)
     };
 
     if (params) {

@@ -55,6 +55,23 @@
   flex: 1;
 }
 
+/* Labels */
+.form-label {
+  font-family: var(--templa-font-body);
+  font-weight: 600;
+  color: var(--templa-dark-green);
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.input-label {
+  font-family: var(--templa-font-body);
+  font-weight: 600;
+  color: var(--templa-dark-green);
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
 .form-select.custom-input {
   background-color: var(--templa-gold)!important;
   color: white;

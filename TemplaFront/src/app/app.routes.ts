@@ -9,6 +9,7 @@ import { PlatosComponent } from './componentes/modulos/platos/platos.component';
 import { MenusComponent } from './componentes/modulos/menus/menus.component';
 import { MesasComponent } from './componentes/modulos/mesas/mesas.component';
 import { ReservasComponent } from './componentes/modulos/reservas/reservas.component';
+import { ReservaPublicaComponent } from './componentes/modulos/reserva-publica/reserva-publica.component';
 import { PedidosComponent } from './componentes/modulos/pedidos/pedidos.component';
 import { CocinaComponent } from './componentes/modulos/cocina/cocina.component';
 import { MapaMesasComponent } from './componentes/modulos/mapa-mesas/mapa-mesas.component';
@@ -23,6 +24,9 @@ export const routes: Routes = [
   
   // Login
   { path: 'login', component: LoginComponent },
+
+  // Ruta pública para crear reservas (SIN PROTECCIÓN)
+  { path: 'nueva-reserva', component: ReservaPublicaComponent },
 
   // Ruta de resultado de Mercado Pago (SIN PROTECCIÓN, SIN NAVBAR)
   { path: 'mp-resultado', component: MpResultadoComponent },

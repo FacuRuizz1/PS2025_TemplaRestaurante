@@ -6,6 +6,7 @@ import { ReporteClientesReservasDTO } from '../../../models/ReporteClientesReser
 import { AlertService } from '../../../../services/alert.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 declare var google: any;
 
@@ -74,12 +75,6 @@ export class ReporteClientesReservasComponent implements OnInit {
       data.addRows(chartData);
 
       const options = {
-        title: 'Distribución de Reservas por Cliente',
-        titleTextStyle: {
-          fontSize: 16,
-          bold: true,
-          color: '#4c846b'
-        },
         pieHole: 0.4,
         colors: [
           '#4c846b', '#9f763d', '#d4a574', '#f4eadd',
@@ -96,9 +91,9 @@ export class ReporteClientesReservasComponent implements OnInit {
         },
         chartArea: {
           left: 20,
-          top: 50,
+          top: 20,
           width: '70%',
-          height: '80%'
+          height: '85%'
         }
       };
 
@@ -190,6 +185,41 @@ export class ReporteClientesReservasComponent implements OnInit {
     } catch (error) {
       console.error('Error al generar PDF:', error);
       this.alertService.showError('Error', 'No se pudo generar el archivo PDF.');
+    }
+  }
+
+  exportarExcel() {
+    try {
+      const excelData = this.datos.map(cliente => ({
+        'Cliente': cliente.nombreCompleto,
+        'Email': cliente.email,
+        'Teléfono': cliente.telefono,
+        'Total Reservas': cliente.totalReservas,
+        'Evento Favorito': cliente.eventoMasFrecuente
+      }));
+
+      const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(excelData);
+      ws['!cols'] = [
+        { wch: 35 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 25 }
+      ];
+
+      const wb: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Clientes con Más Reservas');
+
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `reporte-clientes-reservas-${fechaHoy}.xlsx`;
+
+      XLSX.writeFile(wb, nombreArchivo);
+
+      this.alertService.showSuccess('Excel Generado', 'El reporte se ha exportado correctamente a Excel.');
+
+    } catch (error) {
+      console.error('Error al generar Excel:', error);
+      this.alertService.showError('Error', 'No se pudo generar el archivo Excel.');
     }
   }
 }
