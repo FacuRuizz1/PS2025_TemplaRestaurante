@@ -96,7 +96,7 @@ public class ReservaServiceImpl implements IReservaService {
         ReservaEntity reservaExiste = reservaRepository.findByNroReserva(postReservaDTO.getNroReserva());
 
         if (reservaExiste != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "La Resera ya existe");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La Reserva ya existe");
         }
 
         // BUSCAR LAS ENTIDADES RELACIONADAS

@@ -126,6 +126,10 @@
       (mousemove)="onMouseMove($event)"
       (mouseup)="onMouseUp()"
       (mouseleave)="onMouseUp()"
+      (touchstart)="onTouchStart($event)"
+      (touchmove)="onTouchMove($event)"
+      (touchend)="onTouchEnd($event)"
+      (touchcancel)="onTouchEnd($event)"
       (dragover)="onDragOverMapa($event)"
       (drop)="onDropEnMapa($event)"
       (dragleave)="onDragLeaveMapa()"
@@ -138,6 +142,7 @@
           alt="Plano del {{ pisoSeleccionado.nombre }}"
           class="plano-imagen"
           draggable="false"
+          (load)="onImagenCargada()"
         >
 
         <!-- Círculos de mesas -->
@@ -149,8 +154,8 @@
           [class.estado-reservada]="mesa.estadoMesa === EstadoMesa.RESERVADA"
           [class.estado-fuera-servicio]="mesa.estadoMesa === EstadoMesa.FUERA_SERVICIO"
           [attr.data-id]="mesa.idMesa"
-          [style.left.px]="mesa.posX"
-          [style.top.px]="mesa.posY"
+          [style.left.px]="getPosXEscalada(mesa)"
+          [style.top.px]="getPosYEscalada(mesa)"
           (click)="onClickMesa($event, mesa)"
           [draggable]="modoConfiguracion"
           (dragstart)="onDragStartPanel($event, mesa)"

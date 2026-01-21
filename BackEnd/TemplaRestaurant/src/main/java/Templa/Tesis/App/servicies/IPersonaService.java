@@ -10,4 +10,5 @@ public interface IPersonaService {
     PersonaDto insertarPersona(PostPersonaDto nuevaPersona);
     PersonaDto actualizarPersona(PersonaDto personaActualizada);
     void bajaPersona(Integer id);
+    PersonaDto buscarPorDni(Integer dni);
 }

@@ -124,20 +124,21 @@
 
   <!-- Header superior -->
   <header class="header-container" [class.expanded]="isExpanded">
+    <!-- Notificaciones a la izquierda -->
+    <div class="header-left-section">
+      <button class="notification-btn" (click)="showNotifications()">
+        <i class="notification-icon bi bi-bell-fill"></i>
+        <span class="notification-badge" *ngIf="notificationCount > 0">{{notificationCount}}</span>
+      </button>
+    </div>
+
     <!-- Logo central -->
     <div class="header-logo">
       <img src="assets/imagenes/LogoNavbar.png" alt="Templa" class="templa-logo">
     </div>
 
-    <!-- Información del usuario y notificaciones -->
+    <!-- Información del usuario -->
     <div class="header-user-section">
-      <!-- Botón de notificaciones -->
-      <button class="notification-btn" (click)="showNotifications()">
-        <i class="notification-icon bi bi-bell-fill"></i>
-        <span class="notification-badge" *ngIf="notificationCount > 0">{{notificationCount}}</span>
-      </button>
-
-      <!-- Info del usuario -->
       <div class="user-info">
         <i class="user-icon bi bi-person-circle"></i>
         <span class="user-text">Usuario: {{username}}</span>

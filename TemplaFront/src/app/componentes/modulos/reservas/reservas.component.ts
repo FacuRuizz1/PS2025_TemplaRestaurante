@@ -418,92 +418,92 @@ export class ReservasComponent implements OnInit {
   private crearNuevaReserva() {
     const nroReserva = this.generarNumeroReserva();
     
-    // Primero crear la persona con los datos ingresados
     const nuevaPersona: PostPersonaDto = {
       nombre: this.reservaData.nombre!,
       apellido: this.reservaData.apellido!,
       dni: Number(this.reservaData.dni!),
       telefono: this.reservaData.telefono!,
-      email: this.reservaData.email!, // Email ahora es obligatorio
+      email: this.reservaData.email!,
       tipoPersona: TipoPersona.CLIENTE,
-      userAlta: 1 // ID del usuario logueado (puedes ajustar esto según tu lógica)
+      userAlta: 1
     };
 
-    console.log('Creando persona:', nuevaPersona);
+    console.log('Creando/obteniendo persona por DNI:', nuevaPersona.dni);
 
-    // Crear persona primero
+    // Crear persona (el backend devuelve existente si ya existe)
     this.personaService.crearPersona(nuevaPersona).subscribe({
       next: (personaCreada) => {
-        console.log('Persona creada exitosamente:', personaCreada);
-        
-        // Agregar la persona recién creada a la lista local inmediatamente
-        this.personas.push(personaCreada);
-        console.log('✅ Persona agregada a lista local:', personaCreada);
-        
-        // Ahora crear la reserva con el ID de la persona creada
-        const nuevaReserva: PostReservaModel = {
-          idPersona: personaCreada.id!,
-          idDisponibilidad: Number(this.reservaData.idDisponibilidad),
-          nroReserva: nroReserva,
-          cantidadComensales: Number(this.reservaData.cantidadComensales),
-          fechaReserva: this.reservaData.fechaReserva,
-          evento: this.reservaData.evento!,
-          horario: this.reservaData.horario
-        };
+        console.log('✅ Persona obtenida/creada exitosamente:', personaCreada);
+        // Solo agregar si no existe en el array local
+        if (!this.personas.find(p => p.id === personaCreada.id)) {
+          this.personas.push(personaCreada);
+        }
+        this.crearReservaConPersona(personaCreada, nroReserva);
+      },
+      error: (error: any) => {
+        console.error('❌ Error al obtener/crear persona:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo obtener o crear el cliente. Por favor intente nuevamente.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#e74c3c'
+        });
+      }
+    });
+  }
 
-        console.log('Datos de la nueva reserva a enviar:', nuevaReserva);
-        console.log('URL del endpoint:', `${environment.apiUrl}/reserva/crear`);
-        console.log('Token presente:', this.authService.getToken() ? 'Sí' : 'No');
+  private crearReservaConPersona(persona: Persona, nroReserva: number) {
+    const nuevaReserva: PostReservaModel = {
+      idPersona: persona.id!,
+      idDisponibilidad: Number(this.reservaData.idDisponibilidad),
+      nroReserva: nroReserva,
+      cantidadComensales: Number(this.reservaData.cantidadComensales),
+      fechaReserva: this.reservaData.fechaReserva,
+      evento: this.reservaData.evento!,
+      horario: this.reservaData.horario
+    };
 
-        this.reservaService.crearReserva(nuevaReserva).subscribe({
-          next: (response) => {
-            console.log('Respuesta exitosa:', response);
-            Swal.fire({
-              title: '¡Reserva Confirmada!',
-              html: `
-                <div class="confirmation-message">
-                  <p><strong>Su reserva #${nroReserva} ha sido creada exitosamente</strong></p>
-                  <p>Cliente: ${personaCreada.nombre} ${personaCreada.apellido}</p>
-                  <div class="email-confirmation">
-                    <hr style="margin: 15px 0;">
-                    <p style="color: #27ae60;">
-                      <i class="fas fa-envelope"></i> 
-                      Se ha enviado un email de confirmación a:<br>
-                      <strong>${personaCreada.email}</strong>
-                    </p>
-                    <p style="font-size: 0.9em; color: #7f8c8d;">
-                      Revise su bandeja de entrada y spam
-                    </p>
-                  </div>
-                </div>
-              `,
-              icon: 'success',
-              confirmButtonText: 'Continuar',
-              confirmButtonColor: '#27ae60',
-              width: '500px'
-            }).then(async () => {
-              this.resetForm();
-              // cambiarVista ya se encarga de cargar personas
-              await this.cambiarVista('lista');
-            });
-          },
-          error: (error: any) => {
-            console.error('Error al crear reserva:', error);
-            Swal.fire({
-              title: 'Error al crear reserva',
-              text: 'No se pudo crear la reserva. Por favor intente nuevamente.',
-              icon: 'error',
-              confirmButtonText: 'OK',
-              confirmButtonColor: '#e74c3c'
-            });
-          }
+    console.log('Datos de la nueva reserva a enviar:', nuevaReserva);
+    console.log('URL del endpoint:', `${environment.apiUrl}/reserva/crear`);
+    console.log('Token presente:', this.authService.getToken() ? 'Sí' : 'No');
+
+    this.reservaService.crearReserva(nuevaReserva).subscribe({
+      next: (response) => {
+        console.log('Respuesta exitosa:', response);
+        Swal.fire({
+          title: '¡Reserva Confirmada!',
+          html: `
+            <div class="confirmation-message">
+              <p><strong>Su reserva #${nroReserva} ha sido creada exitosamente</strong></p>
+              <p>Cliente: ${persona.nombre} ${persona.apellido}</p>
+              <div class="email-confirmation">
+                <hr style="margin: 15px 0;">
+                <p style="color: #27ae60;">
+                  <i class="fas fa-envelope"></i> 
+                  Se ha enviado un email de confirmación a:<br>
+                  <strong>${persona.email}</strong>
+                </p>
+                <p style="font-size: 0.9em; color: #7f8c8d;">
+                  Revise su bandeja de entrada y spam
+                </p>
+              </div>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonText: 'Continuar',
+          confirmButtonColor: '#27ae60',
+          width: '500px'
+        }).then(async () => {
+          this.resetForm();
+          await this.cambiarVista('lista');
         });
       },
       error: (error: any) => {
-        console.error('Error al crear persona:', error);
+        console.error('Error al crear reserva:', error);
         Swal.fire({
-          title: 'Error al registrar cliente',
-          text: error.error?.message || `Error ${error.status}: ${error.statusText}`,
+          title: 'Error al crear reserva',
+          text: 'No se pudo crear la reserva. Por favor intente nuevamente.',
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#e74c3c'

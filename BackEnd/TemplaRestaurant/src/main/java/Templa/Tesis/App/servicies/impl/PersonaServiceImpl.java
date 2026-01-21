@@ -138,8 +138,9 @@ public class PersonaServiceImpl implements IPersonaService {
 
         PersonaEntity existe = personaRepository.findByDni(nuevaPersona.getDni());
 
+        // Si ya existe, devolver la persona existente en lugar de lanzar error
         if(existe!=null){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "La Persona ya existe.");
+            return modelMapper.map(existe, PersonaDto.class);
         }
 
         try {
@@ -212,5 +213,20 @@ public class PersonaServiceImpl implements IPersonaService {
         catch(Exception e){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al dar de baja la Persona");
         }
+    }
+
+    /**
+     * Busca una persona por su DNI.
+     * 
+     * @param dni Número de DNI de la persona a buscar.
+     * @return PersonaDto si encuentra la persona, null si no existe.
+     */
+    @Override
+    public PersonaDto buscarPorDni(Integer dni) {
+        PersonaEntity persona = personaRepository.findByDni(dni);
+        if (persona == null) {
+            return null;
+        }
+        return modelMapper.map(persona, PersonaDto.class);
     }
 }

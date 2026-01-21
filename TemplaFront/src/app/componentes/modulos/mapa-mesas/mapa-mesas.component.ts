@@ -62,6 +62,11 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
   private isPanning: boolean = false;
   private lastPanPosition = { x: 0, y: 0 };
 
+  // ✅ Escala responsive del plano
+  private planoOriginalWidth: number = 720; // Ancho original del plano en píxeles
+  private planoOriginalHeight: number = 600; // Alto original del plano en píxeles
+  escalaPlano: number = 1; // Factor de escala calculado dinámicamente
+
   // ✅ Menú contextual
   menuContextual = {
     visible: false,
@@ -101,9 +106,78 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
     // Solo desuscribirse de los eventos, no cerrar la conexión SSE
     // (otros componentes pueden estar usándola)
     this.sseSubscriptions.forEach(sub => sub.unsubscribe());
+    window.removeEventListener('resize', () => this.calcularEscalaPlano());
   }
+  
   ngAfterViewInit(): void {
     this.inicializarInteracciones();
+    this.calcularEscalaPlano();
+    
+    // Recalcular escala en resize
+    window.addEventListener('resize', () => this.calcularEscalaPlano());
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CÁLCULO DE ESCALA RESPONSIVE
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Calcula el factor de escala del plano según el viewport actual
+   */
+  calcularEscalaPlano(): void {
+    if (!this.mapaContainer) return;
+
+    const imgElement = this.mapaContainer.nativeElement.querySelector('.plano-imagen');
+    if (!imgElement) return;
+
+    const rect = imgElement.getBoundingClientRect();
+    const anchoReal = rect.width;
+    const altoReal = rect.height;
+
+    // Si la imagen aún no se cargó, esperar
+    if (anchoReal === 0 || altoReal === 0) {
+      console.warn('⚠️ Imagen del plano aún no cargada, esperando...');
+      return;
+    }
+
+    // Calcular factores de escala
+    const factorX = anchoReal / this.planoOriginalWidth;
+    const factorY = altoReal / this.planoOriginalHeight;
+
+    // Usar el menor factor para mantener proporciones
+    this.escalaPlano = Math.min(factorX, factorY);
+
+    console.log('📐 Escala del plano calculada:', {
+      anchoReal,
+      altoReal,
+      anchoOriginal: this.planoOriginalWidth,
+      altoOriginal: this.planoOriginalHeight,
+      escalaPlano: this.escalaPlano
+    });
+  }
+
+  /**
+   * Callback cuando la imagen del plano se carga
+   */
+  onImagenCargada(): void {
+    console.log('🖼️ Imagen del plano cargada, calculando escala...');
+    setTimeout(() => {
+      this.calcularEscalaPlano();
+    }, 100);
+  }
+
+  /**
+   * Obtiene la posición X escalada de una mesa
+   */
+  getPosXEscalada(mesa: MesaEnPlano): number {
+    return mesa.posX * this.escalaPlano;
+  }
+
+  /**
+   * Obtiene la posición Y escalada de una mesa
+   */
+  getPosYEscalada(mesa: MesaEnPlano): number {
+    return mesa.posY * this.escalaPlano;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -349,6 +423,82 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isPanning = false;
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // SOPORTE TÁCTIL PARA MOBILE (Pan y Zoom)
+  // ═══════════════════════════════════════════════════════════
+
+  onTouchStart(event: TouchEvent): void {
+    const target = event.target as HTMLElement;
+    const isMesaClick = target.closest('.mesa-circulo');
+    
+    if (!isMesaClick) {
+      if (event.touches.length === 1) {
+        // Un dedo: pan
+        this.isPanning = true;
+        this.lastPanPosition = { 
+          x: event.touches[0].clientX, 
+          y: event.touches[0].clientY 
+        };
+        event.preventDefault();
+      } else if (event.touches.length === 2) {
+        // Dos dedos: zoom (pinch)
+        this.isPanning = false;
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        this.lastPinchDistance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+      }
+    }
+  }
+
+  private lastPinchDistance: number = 0;
+
+  onTouchMove(event: TouchEvent): void {
+    if (event.touches.length === 1 && this.isPanning) {
+      // Pan con un dedo
+      const deltaX = event.touches[0].clientX - this.lastPanPosition.x;
+      const deltaY = event.touches[0].clientY - this.lastPanPosition.y;
+      this.panX += deltaX;
+      this.panY += deltaY;
+      this.lastPanPosition = { 
+        x: event.touches[0].clientX, 
+        y: event.touches[0].clientY 
+      };
+      event.preventDefault();
+    } else if (event.touches.length === 2) {
+      // Zoom con dos dedos (pinch)
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
+      const currentDistance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+
+      if (this.lastPinchDistance > 0) {
+        const delta = (currentDistance - this.lastPinchDistance) * 0.01;
+        this.aplicarZoom(delta);
+      }
+
+      this.lastPinchDistance = currentDistance;
+      event.preventDefault();
+    }
+  }
+
+  onTouchEnd(event: TouchEvent): void {
+    if (event.touches.length === 0) {
+      this.isPanning = false;
+      this.lastPinchDistance = 0;
+    } else if (event.touches.length === 1) {
+      // Si queda un dedo, reiniciar pan
+      this.lastPanPosition = { 
+        x: event.touches[0].clientX, 
+        y: event.touches[0].clientY 
+      };
+    }
+  }
+
   get transformStyle(): string {
     return `translate(${this.panX}px, ${this.panY}px) scale(${this.escalaZoom})`;
   }
@@ -415,8 +565,15 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
     if (wrapperElement) {
       const wrapperRect = wrapperElement.getBoundingClientRect();
       
-      const x = (event.clientX - wrapperRect.left) / this.escalaZoom;
-      const y = (event.clientY - wrapperRect.top) / this.escalaZoom;
+      // Calcular posición considerando zoom
+      let x = (event.clientX - wrapperRect.left) / this.escalaZoom;
+      let y = (event.clientY - wrapperRect.top) / this.escalaZoom;
+
+      // Dividir por escala del plano para obtener coordenadas originales
+      x = x / this.escalaPlano;
+      y = y / this.escalaPlano;
+
+      console.log('💾 Guardando mesa en posición original:', { x, y, escalaPlano: this.escalaPlano });
 
       this.vincularMesaEnPosicion(this.mesaArrastrandoDesdePanel, x, y);
     }

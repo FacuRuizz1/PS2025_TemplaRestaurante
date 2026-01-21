@@ -707,8 +707,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 600px;
-  max-height: 700px;
-  height: 600px;
 }
 
 /* Carousel */
@@ -833,16 +831,31 @@
   background: linear-gradient(135deg, var(--templa-brown) 0%, var(--templa-dark-green) 100%);
   text-align: center;
   color: white;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.cta-section .container {
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 .cta-section h2 {
   font-size: 2.5rem;
   margin-bottom: 1rem;
+  font-family: 'Amethysta', serif;
+  letter-spacing: 2px;
+  font-weight: 400;
 }
 
 .cta-section p {
   font-size: 1.2rem;
   margin-bottom: 2rem;
+  font-family: 'Amethysta', serif;
+  letter-spacing: 1px;
 }
 
 /* ============================================
@@ -927,6 +940,19 @@
 
   .menu-button-label {
     font-size: 1.2rem;
+  }
+
+  /* CTA Section */
+  .cta-section {
+    padding: 60px 15px;
+  }
+
+  .cta-section h2 {
+    font-size: 2rem;
+  }
+
+  .cta-section p {
+    font-size: 1.1rem;
   }
 }
 
@@ -1051,15 +1077,18 @@
   /* Contact responsive */
   .contact-container {
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 
   .contact-carousel {
-    min-height: 400px;
+    min-height: 350px;
+    height: auto;
   }
 
   .contact-info {
-    padding: 2rem;
+    padding: 2.5rem 2rem;
     gap: 1.5rem;
+    min-height: auto;
   }
 
   .contact-icon {
@@ -1090,6 +1119,21 @@
   .navbar-container {
     padding: 0 20px;
   }
+
+  /* CTA Section */
+  .cta-section {
+    padding: 80px 10px 90px 10px;
+  }
+
+  .cta-section h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .cta-section p {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1113,5 +1157,38 @@
   .menu-oval-button {
     width: 200px;
     height: 320px;
+  }
+
+  /* CTA Section */
+  .cta-section {
+    padding: 70px 5px 100px 5px;
+  }
+
+  .cta-section .container {
+    padding: 0 10px;
+  }
+
+  .cta-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    padding: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+
+  .cta-section p {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+    padding: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+
+  .btn-lg {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 }

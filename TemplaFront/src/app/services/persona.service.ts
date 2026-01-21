@@ -123,4 +123,15 @@ export class PersonaService {
       headers: this.getHeaders() 
     });
   }
+
+  buscarPersonaPorDni(dni: number): Observable<Persona | null> {
+    const token = this.authService.getToken();
+    const httpOptions = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+
+    return this.http.get<Persona>(`${this.apiUrl}/personas/dni/${dni}`, httpOptions);
+  }
 }

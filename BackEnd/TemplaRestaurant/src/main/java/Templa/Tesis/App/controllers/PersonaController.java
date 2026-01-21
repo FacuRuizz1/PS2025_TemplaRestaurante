@@ -50,12 +50,21 @@ public class PersonaController {
         return personaService.traerPersonas(page, size, buscarFiltro, tipoPersona, estado);
     }
 
+    @GetMapping("/personas/dni/{dni}")
+    public ResponseEntity<PersonaDto> getPersonaPorDni(@PathVariable Integer dni) {
+        PersonaDto persona = personaService.buscarPorDni(dni);
+        if (persona == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(persona);
+    }
+
 
     @PostMapping("/crear")
     public ResponseEntity<PersonaDto> crearPersona( @RequestBody PostPersonaDto nuevaPersona) {
         return ResponseEntity.ok(personaService.insertarPersona(nuevaPersona));
     }
-
+    
     @PutMapping("/actualizar")
     public ResponseEntity<PersonaDto> actualizarPersona(@RequestBody PersonaDto nuevaPersona) {
         return ResponseEntity.ok(personaService.actualizarPersona(nuevaPersona));

@@ -30,3 +30,39 @@
   width: calc(100vw - 250px);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN - Content Area
+   ═══════════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────────────────────
+   TABLET PORTRAIT (768px) - Navbar en la parte inferior
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .content-area {
+    margin-left: 0;
+    margin-bottom: 65px; /* Espacio para navbar inferior */
+    width: 100vw;
+    padding-top: 70px; /* Mantener espacio para header */
+    min-height: calc(100vh - 135px); /* 70px header + 65px navbar */
+  }
+
+  .content-area.navbar-expanded {
+    margin-left: 0;
+    width: 100vw;
+  }
+
+  .content-area.no-navbar {
+    margin-bottom: 0;
+    min-height: 100vh;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────
+   MOBILE (480px)
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .content-area {
+    margin-bottom: 60px; /* Espacio para navbar inferior en mobile */
+    min-height: calc(100vh - 130px); /* 70px header + 60px navbar */
+  }
+}

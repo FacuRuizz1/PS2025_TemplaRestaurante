@@ -97,3 +97,159 @@
 .custom-btn:hover {
     background-color: #91da7e;
 }
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet landscape */
+@media (max-width: 1024px) {
+    .container {
+        width: 85%;
+        height: 75%;
+    }
+
+    .LogoLogin {
+        height: 80px;
+    }
+
+    .texto-elegante {
+        font-size: 24px;
+    }
+
+    .border-image {
+        height: 80%;
+    }
+
+    .custom-input {
+        font-size: 15px;
+        padding: 12px 18px;
+    }
+
+    .custom-btn {
+        font-size: 16px;
+        padding: 10px 25px;
+    }
+}
+
+/* Tablet portrait */
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+        height: auto;
+        min-height: 70%;
+        padding: 2rem 1rem;
+        border-radius: 30px;
+    }
+
+    .image-container {
+        display: none !important;
+    }
+
+    .LogoLogin {
+        height: 70px;
+    }
+
+    .texto-elegante {
+        font-size: 22px;
+        margin-bottom: 2rem !important;
+    }
+
+    .flex-grow-1 {
+        margin: 0 !important;
+    }
+
+    .custom-input {
+        font-size: 15px;
+        padding: 12px 16px;
+    }
+
+    .custom-btn {
+        font-size: 16px;
+        padding: 10px 20px;
+    }
+
+    form .w-75 {
+        width: 85% !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .background {
+        padding: 1rem;
+    }
+
+    .container {
+        width: 95%;
+        height: auto;
+        min-height: 500px;
+        padding: 2rem 1rem;
+        border-radius: 20px;
+    }
+
+    .LogoLogin {
+        height: 60px;
+        margin-bottom: 1rem !important;
+    }
+
+    .texto-elegante {
+        font-size: 18px;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .custom-input {
+        font-size: 14px;
+        padding: 12px 15px;
+        border-radius: 5px 5px 0 0;
+    }
+
+    .custom-btn {
+        font-size: 15px;
+        padding: 10px 20px;
+        border-radius: 20px;
+        margin-top: 1rem !important;
+    }
+
+    form .w-75 {
+        width: 90% !important;
+    }
+
+    form .mb-4 {
+        margin-bottom: 1rem !important;
+    }
+
+    form .mb-5 {
+        margin-bottom: 1.5rem !important;
+    }
+}
+
+/* Mobile extra pequeño */
+@media (max-width: 360px) {
+    .container {
+        width: 98%;
+        padding: 1.5rem 0.75rem;
+    }
+
+    .LogoLogin {
+        height: 50px;
+    }
+
+    .texto-elegante {
+        font-size: 16px;
+    }
+
+    .custom-input {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+
+    .custom-btn {
+        font-size: 14px;
+        padding: 9px 18px;
+    }
+
+    form .w-75 {
+        width: 95% !important;
+    }
+}
