@@ -138,15 +138,14 @@
                 {{ detalle.tipo }} - Cantidad: {{ detalle.cantidad }} - ${{ detalle.precio * detalle.cantidad |
                 number:'1.2-2' }}
               </span>
-            </div>
-
-            <div class="item-actions">
-              <!-- ✅ Estado siempre visible cuando existe -->
+              <!-- ✅ Estado debajo del detalle del item -->
               <span *ngIf="detalle.estado" class="badge estado-badge"
                 [ngClass]="getEstadoDetalleClass(detalle.estado)">
                 {{ getEstadoDetalleTexto(detalle.estado) }}
               </span>
+            </div>
 
+            <div class="item-actions">
               <!-- ✅ Botón Cancelar (solo si está PENDIENTE y no es solo lectura) -->
               <button *ngIf="!soloLectura && detalle.estado === 'PENDIENTE'" 
                       type="button" 

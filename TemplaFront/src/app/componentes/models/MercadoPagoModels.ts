@@ -5,7 +5,7 @@ import { EventoReserva } from './EventoReserva';
  */
 export interface ReservaVipData {
   idPersona: number;
-  idDisponibilidad: number;
+  //idDisponibilidad: number;
   nroReserva: number;
   cantidadComensales: number;
   fechaReserva: string; // formato "yyyy-MM-dd"

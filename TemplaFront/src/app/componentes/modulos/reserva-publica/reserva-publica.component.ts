@@ -18,7 +18,7 @@ interface ReservaData {
   evento: EventoReserva | null;
   horario: string;
   idPersona: number;
-  idDisponibilidad: number;
+  //idDisponibilidad: number;
 }
 
 @Component({
@@ -38,7 +38,7 @@ export class ReservaPublicaComponent implements OnInit {
     evento: null,
     horario: '',
     idPersona: 0,
-    idDisponibilidad: 0
+    //idDisponibilidad: 0
   };
 
   // Datos para los formularios
@@ -211,121 +211,73 @@ export class ReservaPublicaComponent implements OnInit {
   }
 
   async confirmarReserva() {
-    if (!this.personaMesaForm.valid || !this.reservaData.horario || !this.reservaData.evento) {
-      Swal.fire('Error', 'Por favor complete todos los datos', 'error');
-      return;
-    }
-
-    // Verificar si es evento VIP para mostrar modal de pago
-    if (this.reservaData.evento === EventoReserva.VIP) {
-      this.mostrarModalPagoVIP();
-      return;
-    }
-
-    const datosCliente = this.personaMesaForm.value;
-    const fechaReserva = this.reservaData.fechaReserva;
-
-    try {
-      // 1. Buscar o crear disponibilidad para la fecha
-      const disponibilidad = await this.obtenerOCrearDisponibilidad(fechaReserva);
-
-      if (!disponibilidad || !disponibilidad.id) {
-        throw new Error('No se pudo obtener la disponibilidad');
-      }
-
-      // 2. Crear o buscar cliente (el backend devuelve existente si ya existe)
-      const userId = this.authService.getUserId() || 1;
-      
-      const clienteData: PostPersonaDto = {
-        nombre: datosCliente.nombre,
-        apellido: datosCliente.apellido,
-        dni: parseInt(datosCliente.dni),
-        telefono: datosCliente.telefono,
-        email: datosCliente.email,
-        tipoPersona: TipoPersona.CLIENTE,
-        userAlta: userId
-      };
-
-      const cliente = await this.personaService.crearPersona(clienteData).toPromise() || null;
-
-      if (!cliente || !cliente.id) {
-        throw new Error('No se pudo obtener o crear el cliente');
-      }
-
-      // 3. Generar número de reserva
-      const nroReserva = Math.floor(100000 + Math.random() * 900000);
-
-      // 4. Crear la reserva
-      const reservaData: PostReservaModel = {
-        cantidadComensales: this.reservaData.cantidadComensales,
-        fechaReserva: fechaReserva,
-        evento: this.reservaData.evento,
-        horario: this.reservaData.horario,
-        idPersona: cliente.id,
-        idDisponibilidad: disponibilidad.id,
-        nroReserva: nroReserva,
-        nombreCliente: `${datosCliente.nombre} ${datosCliente.apellido}`,
-        telefonoCliente: datosCliente.telefono
-      };
-
-      const reserva = await this.reservaService.crearReserva(reservaData).toPromise();
-
-      Swal.fire({
-        icon: 'success',
-        title: '¡Reserva Confirmada!',
-        html: `
-          <p>Su reserva ha sido creada exitosamente.</p>
-          <p><strong>Número de reserva:</strong> ${reserva?.nroReserva || nroReserva}</p>
-          <p><strong>Fecha:</strong> ${this.formatearFecha(fechaReserva)}</p>
-          <p><strong>Horario:</strong> ${this.reservaData.horario}</p>
-          <p><strong>Comensales:</strong> ${reservaData.cantidadComensales}</p>
-          <div style="margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 8px;">
-            <p style="color: #27ae60; margin: 0;">
-              <i class="fas fa-envelope"></i> 
-              Se ha enviado un email de confirmación a: <strong>${datosCliente.email}</strong>
-            </p>
-          </div>
-        `,
-        confirmButtonText: 'Volver al inicio',
-        confirmButtonColor: '#27ae60'
-      }).then(() => {
-        this.router.navigate(['/']);
-      });
-
-    } catch (error: any) {
-      console.error('Error al crear reserva:', error);
-      Swal.fire('Error', error.error?.message || 'No se pudo crear la reserva', 'error');
-    }
+  if (!this.personaMesaForm.valid || !this.reservaData.horario || !this.reservaData.evento) {
+    Swal.fire('Error', 'Por favor complete todos los datos', 'error');
+    return;
   }
 
-  // Obtener o crear disponibilidad
-  private async obtenerOCrearDisponibilidad(fecha: string): Promise<DisponibilidadModel | null> {
-    try {
-      // Intentar obtener todas las disponibilidades
-      const disponibilidades = await this.disponibilidadService.obtenerTodasLasDisponibilidades().toPromise();
-      
-      // Buscar si ya existe una para esta fecha
-      const existente = disponibilidades?.find(d => d.fecha === fecha && d.activo);
-      
-      if (existente) {
-        return existente;
-      }
-
-      // Si no existe, crear una nueva
-      const nuevaDisponibilidad: any = {
-        fecha: fecha,
-        cuposOcupados: 1,
-        cuposMaximos: 100,
-        activo: true
-      };
-
-      const resultado = await this.disponibilidadService.crearDisponibilidad(nuevaDisponibilidad).toPromise();
-      return resultado || null;
-    } catch (error) {
-      console.error('Error al obtener/crear disponibilidad:', error);
-      return null;
-    }
+  if (this.reservaData.evento === EventoReserva.VIP) {
+    this.mostrarModalPagoVIP();
+    return;
   }
+
+  const datosCliente = this.personaMesaForm.value;
+
+  try {
+    // 1. Crear o buscar cliente
+    const userId = this.authService.getUserId() || 1;
+    
+    const clienteData: PostPersonaDto = {
+      nombre: datosCliente.nombre,
+      apellido: datosCliente.apellido,
+      dni: parseInt(datosCliente.dni),
+      telefono: datosCliente.telefono,
+      email: datosCliente.email,
+      tipoPersona: TipoPersona.CLIENTE,
+      userAlta: userId
+    };
+
+    const cliente = await this.personaService.crearPersona(clienteData).toPromise() || null;
+
+    if (!cliente || !cliente.id) {
+      throw new Error('No se pudo obtener o crear el cliente');
+    }
+
+    // 2. Generar número de reserva
+    const nroReserva = Math.floor(100000 + Math.random() * 900000);
+
+    // 3. Crear la reserva (el backend se encarga de la disponibilidad)
+    const reservaData: PostReservaModel = {
+      cantidadComensales: this.reservaData.cantidadComensales,
+      fechaReserva: this.reservaData.fechaReserva,
+      evento: this.reservaData.evento,
+      horario: this.reservaData.horario,
+      idPersona: cliente.id,
+      // ❌ Ya no enviamos idDisponibilidad
+      nroReserva: nroReserva,
+      nombreCliente: `${datosCliente.nombre} ${datosCliente.apellido}`,
+      telefonoCliente: datosCliente.telefono
+    };
+
+    const reserva = await this.reservaService.crearReserva(reservaData).toPromise();
+
+    Swal.fire({
+      icon: 'success',
+      title: '¡Reserva Confirmada!',
+      html: `...`,
+      confirmButtonText: 'Volver al inicio',
+      confirmButtonColor: '#27ae60'
+    }).then(() => {
+      this.router.navigate(['/']);
+    });
+
+  } catch (error: any) {
+    console.error('Error al crear reserva:', error);
+    Swal.fire('Error', error.error?.message || 'No se pudo crear la reserva', 'error');
+  }
+}
+
+
 
   // Métodos del calendario
   crearDisponibilidadesEjemplo() {
@@ -436,11 +388,6 @@ export class ReservaPublicaComponent implements OnInit {
       this.reservaData.fechaReserva = dia.fecha;
       this.fechaForm.patchValue({ fechaReserva: dia.fecha });
       
-      // Buscar la disponibilidad correspondiente
-      const disponibilidad = this.disponibilidades.find(d => d.fecha === dia.fecha);
-      if (disponibilidad) {
-        this.reservaData.idDisponibilidad = disponibilidad.id!;
-      }
     }
   }
 
@@ -573,127 +520,88 @@ export class ReservaPublicaComponent implements OnInit {
     });
   }
 
-  private async procesarPagoVIP(): Promise<void> {
-    try {
-      console.log('💳 Iniciando proceso de pago VIP...');
+ private async procesarPagoVIP(): Promise<void> {
+  try {
+    console.log('💳 Iniciando proceso de pago VIP...');
 
-      const datosCliente = this.personaMesaForm.value;
-      const fechaReserva = this.reservaData.fechaReserva;
+    const datosCliente = this.personaMesaForm.value;
 
-      // 1. Obtener o crear disponibilidad
-      const disponibilidad = await this.obtenerOCrearDisponibilidad(fechaReserva);
+    // 1. Generar número de reserva
+    const nroReserva = Math.floor(100000 + Math.random() * 900000);
 
-      if (!disponibilidad || !disponibilidad.id) {
-        throw new Error('No se pudo obtener la disponibilidad');
-      }
+    // 2. Crear o buscar persona
+    const userId = this.authService.getUserId() || 1;
+    
+    const clienteData: PostPersonaDto = {
+      nombre: datosCliente.nombre,
+      apellido: datosCliente.apellido,
+      dni: parseInt(datosCliente.dni),
+      telefono: datosCliente.telefono,
+      email: datosCliente.email,
+      tipoPersona: TipoPersona.CLIENTE,
+      userAlta: userId
+    };
 
-      // 2. Generar número de reserva
-      const nroReserva = Math.floor(100000 + Math.random() * 900000);
-
-      // 3. Crear o buscar persona (el backend devuelve existente si ya existe)
-      const userId = this.authService.getUserId() || 1;
-      
-      const clienteData: PostPersonaDto = {
-        nombre: datosCliente.nombre,
-        apellido: datosCliente.apellido,
-        dni: parseInt(datosCliente.dni),
-        telefono: datosCliente.telefono,
-        email: datosCliente.email,
-        tipoPersona: TipoPersona.CLIENTE,
-        userAlta: userId
-      };
-
-      console.log('📝 Creando/obteniendo persona:', clienteData);
-      const personaCreada = await this.personaService.crearPersona(clienteData).toPromise() || null;
-      
-      if (!personaCreada || !personaCreada.id) {
-        throw new Error('Error al obtener o crear la persona');
-      }
-
-      console.log('✅ Persona obtenida/creada:', personaCreada);
-
-      // 4. Preparar request para reserva VIP con Mercado Pago
-      const reservaVipRequest = {
-        reservaData: {
-          idPersona: personaCreada.id,
-          idDisponibilidad: disponibilidad.id,
-          nroReserva: nroReserva,
-          cantidadComensales: this.reservaData.cantidadComensales,
-          fechaReserva: fechaReserva,
-          evento: EventoReserva.VIP as EventoReserva.VIP,
-          horario: this.reservaData.horario,
-          nombreCliente: `${personaCreada.nombre} ${personaCreada.apellido}`,
-          telefonoCliente: personaCreada.telefono,
-          ocasionEspecial: 'Reserva VIP'
-        },
-        emailCliente: personaCreada.email,
-        nombreCliente: `${personaCreada.nombre} ${personaCreada.apellido}`
-      };
-
-      console.log('💰 Creando reserva VIP con pago:', reservaVipRequest);
-
-      // 5. Llamar al backend para crear la reserva VIP
-      const response = await this.reservaService.crearReservaVip(reservaVipRequest).toPromise();
-      
-      if (!response) {
-        throw new Error('No se recibió respuesta del servidor');
-      }
-
-      console.log('✅ Respuesta de Mercado Pago:', response);
-
-      // 6. Validar que se recibió el preference ID y public key
-      if (!response.preferenceId || !response.publicKey) {
-        throw new Error('No se recibió preference ID o public key del servidor');
-      }
-
-      // 7. Mostrar mensaje informativo antes de abrir el checkout
-      await Swal.fire({
-        title: '🎉 ¡Reserva Iniciada!',
-        html: `
-          <p>Tu reserva <strong>#${nroReserva}</strong> ha sido iniciada.</p>
-          <p>Serás redirigido a <strong>Mercado Pago</strong> para completar el pago.</p>
-          <p class="text-muted mt-2">
-            <small>Una vez completado el pago, recibirás la confirmación de tu reserva VIP.</small>
-          </p>
-        `,
-        icon: 'success',
-        confirmButtonText: 'Ir a pagar',
-        confirmButtonColor: '#27ae60',
-        timer: 3000,
-        timerProgressBar: true
-      });
-
-      // 8. Abrir Mercado Pago con SDK usando preference ID y public key
-      this.reservaService.abrirCheckoutMercadoPago(
-        response.preferenceId,
-        response.publicKey,
-        response.reservaId
-      );
-
-      // No hacer nada más - el callback se encargará de mostrar el resultado
-      
-    } catch (error: any) {
-      console.error('❌ Error al procesar pago VIP:', error);
-      
-      let errorMessage = 'No se pudo procesar la reserva VIP. Por favor, intente nuevamente.';
-      
-      if (error.error?.message) {
-        errorMessage = error.error.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      Swal.fire({
-        title: 'Error al procesar pago',
-        text: errorMessage,
-        icon: 'error',
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#e74c3c'
-      });
-      
-      throw error; // Re-lanzar para que SweetAlert maneje el error
+    const personaCreada = await this.personaService.crearPersona(clienteData).toPromise() || null;
+    
+    if (!personaCreada || !personaCreada.id) {
+      throw new Error('Error al obtener o crear la persona');
     }
+
+    // 3. Preparar request para reserva VIP (SIN idDisponibilidad)
+    const reservaVipRequest = {
+      reservaData: {
+        idPersona: personaCreada.id,
+        nroReserva: nroReserva,
+        cantidadComensales: this.reservaData.cantidadComensales,
+        fechaReserva: this.reservaData.fechaReserva,
+        evento: EventoReserva.VIP as EventoReserva.VIP,
+        horario: this.reservaData.horario,
+        nombreCliente: `${personaCreada.nombre} ${personaCreada.apellido}`,
+        telefonoCliente: personaCreada.telefono,
+        ocasionEspecial: 'Reserva VIP'
+      },
+      emailCliente: personaCreada.email,
+      nombreCliente: `${personaCreada.nombre} ${personaCreada.apellido}`
+    };
+
+    const response = await this.reservaService.crearReservaVip(reservaVipRequest).toPromise();
+    
+    if (!response || !response.preferenceId || !response.publicKey) {
+      throw new Error('No se recibió preference ID o public key del servidor');
+    }
+
+    await Swal.fire({
+      title: '🎉 ¡Reserva Iniciada!',
+      html: `
+        <p>Tu reserva <strong>#${nroReserva}</strong> ha sido iniciada.</p>
+        <p>Serás redirigido a <strong>Mercado Pago</strong> para completar el pago.</p>
+      `,
+      icon: 'success',
+      confirmButtonText: 'Ir a pagar',
+      confirmButtonColor: '#27ae60',
+      timer: 3000,
+      timerProgressBar: true
+    });
+
+    this.reservaService.abrirCheckoutMercadoPago(
+      response.preferenceId,
+      response.publicKey,
+      response.reservaId
+    );
+    
+  } catch (error: any) {
+    console.error('❌ Error al procesar pago VIP:', error);
+    Swal.fire({
+      title: 'Error al procesar pago',
+      text: error.error?.message || error.message || 'No se pudo procesar la reserva VIP',
+      icon: 'error',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#e74c3c'
+    });
+    throw error;
   }
+}
 
   // Getters para el template
   get eventoSeleccionado(): string {

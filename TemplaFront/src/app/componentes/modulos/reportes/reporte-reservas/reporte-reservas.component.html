@@ -104,7 +104,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let dato of datosReporte">
-                  <td>{{ dato.periodo }}</td>
+                  <td>{{ tipoReporte === 'horarios' ? formatearHorario(dato.periodo) : dato.periodo }}</td>
                   <td class="text-center">{{ dato.totalReservas }}</td>
                   <td class="text-center">{{ dato.totalComensales }}</td>
                 </tr>

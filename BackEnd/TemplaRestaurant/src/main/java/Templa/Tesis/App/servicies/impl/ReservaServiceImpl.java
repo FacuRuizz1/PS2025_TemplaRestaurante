@@ -104,8 +104,8 @@ public class ReservaServiceImpl implements IReservaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Persona no encontrada"));
 
 
-        DisponibilidadEntity disponibilidad = disponibilidadRepository.findById(postReservaDTO.getIdDisponibilidad())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Disponibilidad no encontrada"));
+        // BUSCAR O CREAR DISPONIBILIDAD AUTOMÁTICAMENTE
+        DisponibilidadEntity disponibilidad = obtenerOCrearDisponibilidad(postReservaDTO.getFechaReserva());
 
         // VERIFICAR CUPOS DISPONIBLES
         int cuposOcupados = disponibilidad.getCuposOcupados();
@@ -380,8 +380,14 @@ public class ReservaServiceImpl implements IReservaService {
         PersonaEntity persona = personaRepository.findById(reservaData.getIdPersona())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Persona no encontrada"));
 
-        DisponibilidadEntity disponibilidad = disponibilidadRepository.findById(reservaData.getIdDisponibilidad())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Disponibilidad no encontrada"));
+        // ✅ BUSCAR O CREAR DISPONIBILIDAD AUTOMÁTICAMENTE
+        DisponibilidadEntity disponibilidad = obtenerOCrearDisponibilidad(reservaData.getFechaReserva());
+
+        // ✅ VALIDAR SI LA FECHA ESTÁ ACTIVA
+        if (!disponibilidad.isActivo()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "No se aceptan reservas para esta fecha");
+        }
 
         // Verificar cupos disponibles
         int cuposOcupados = disponibilidad.getCuposOcupados();
@@ -532,6 +538,24 @@ public class ReservaServiceImpl implements IReservaService {
                     reserva.getNroReserva(), e.getMessage());
             // No lanzamos excepción para no interrumpir el flujo de la reserva
         }
+    }
+
+    // NUEVO MÉTODOO
+    private DisponibilidadEntity obtenerOCrearDisponibilidad(LocalDate fecha) {
+        DisponibilidadEntity disponibilidad = disponibilidadRepository.findByFecha(fecha);
+
+        if (disponibilidad == null) {
+            disponibilidad = new DisponibilidadEntity();
+            disponibilidad.setFecha(fecha);
+            disponibilidad.setCuposOcupados(0);
+            disponibilidad.setCuposMaximos(100);
+            disponibilidad.setActivo(true);
+            disponibilidad = disponibilidadRepository.save(disponibilidad);
+
+            log.info("✅ Disponibilidad creada automáticamente: {} con {} cupos", fecha, 100);
+        }
+
+        return disponibilidad;
     }
 }
 

@@ -23,6 +23,7 @@ export class ReportePedidosComponent implements OnInit {
   fechaInicio = '';
   fechaFin = '';
   datosPedidos: ReportePedidosPorFechaDTO[] = [];
+  private googleChartsLoaded = false;
   
   constructor(
     private router: Router,
@@ -31,19 +32,22 @@ export class ReportePedidosComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Configurar fechas por defecto (último mes)
-    const hoy = new Date();
-    const mesAnterior = new Date();
-    mesAnterior.setMonth(hoy.getMonth() - 1);
-    
-    this.fechaFin = hoy.toISOString().split('T')[0];
-    this.fechaInicio = mesAnterior.toISOString().split('T')[0];
-    
-    // Cargar Google Charts
-    if (typeof google !== 'undefined' && google.charts) {
-      google.charts.load('current', { 'packages': ['corechart'] });
-    }
+  // Configurar fechas por defecto (último mes)
+  const hoy = new Date();
+  const mesAnterior = new Date();
+  mesAnterior.setMonth(hoy.getMonth() - 1);
+  
+  this.fechaFin = hoy.toISOString().split('T')[0];
+  this.fechaInicio = mesAnterior.toISOString().split('T')[0];
+  
+  // Cargar Google Charts
+  if (typeof google !== 'undefined' && google.charts) {
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(() => {
+      this.googleChartsLoaded = true;
+    });
   }
+}
 
   volver() {
     this.router.navigate(['/reportes']);
@@ -66,6 +70,8 @@ export class ReportePedidosComponent implements OnInit {
   }
 
   private crearGraficoBarras(data: ReportePedidosPorFechaDTO[], titulo: string, containerId: string) {
+  // Función que dibuja el gráfico
+  const dibujarGrafico = () => {
     const chartData: any[] = [['Fecha', 'Cantidad de Pedidos']];
     
     data.forEach(item => {
@@ -90,7 +96,11 @@ export class ReportePedidosComponent implements OnInit {
 
     const chart = new google.visualization.ColumnChart(document.getElementById(containerId));
     chart.draw(dataTable, options);
-  }
+  };
+
+  // Esperar a que el DOM esté listo antes de dibujar
+  setTimeout(() => dibujarGrafico(), 100);
+}
 
   exportarPDF() {
     try {

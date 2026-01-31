@@ -196,8 +196,14 @@ public class ProductoServiceImpl implements IProductoService {
         ProductoEntity producto = productoRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Producto no encontrado con el ID: " + id));
 
-        String nombreProducto = producto.getNombre();
-        productoRepository.delete(producto);
+        //  Baja lógica en lugar de eliminación física
+        producto.setActivo(false);
+        productoRepository.save(producto);
+
+        //  Desactivar platos y menús que usan este producto
+        platoService.desactivarPlatosQueUsan(id);
+        menuService.desactivarMenusQueUsan(id);
+
 
     }
 

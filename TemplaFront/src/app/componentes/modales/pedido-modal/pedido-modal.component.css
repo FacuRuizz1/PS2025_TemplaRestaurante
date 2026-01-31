@@ -550,7 +550,7 @@ textarea.custom-input {
 .item-card {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 15px;
   background-color: var(--templa-beige);
   border-radius: 8px;
@@ -563,17 +563,20 @@ textarea.custom-input {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  margin-top: 4px;
 }
 
 /* Estados del detalle */
 .estado-badge {
-  padding: 8px 14px;
-  border-radius: 15px;
-  font-size: 12px;
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  white-space: nowrap;
+  margin-top: 8px;
+  max-width: fit-content;
 }
 
 .estado-pendiente {

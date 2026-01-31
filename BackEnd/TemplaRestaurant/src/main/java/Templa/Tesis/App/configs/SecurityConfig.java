@@ -70,6 +70,7 @@ public class SecurityConfig {
 
                         //  DISPONIBILIDAD - Endpoints públicos
                         .requestMatchers("/api/disponibilidad/publica/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/disponibilidad/listar").permitAll()
 
                         // ========================================
                         // 🔒 ENDPOINTS PROTEGIDOS

@@ -3,7 +3,7 @@ import { EventoReserva } from './EventoReserva';
 export interface ReservaModel {
   id?: number;
   idPersona: number;
-  idDisponibilidad: number;
+  //idDisponibilidad: number;
   nroReserva: number;
   cantidadComensales: number;
   fechaReserva: string; // formato "yyyy-MM-dd"
@@ -33,7 +33,7 @@ export enum EstadoReserva {
 
 export interface PostReservaModel {
   idPersona: number;
-  idDisponibilidad: number;
+  //idDisponibilidad: number;
   nroReserva: number;
   cantidadComensales: number;
   fechaReserva: string; // formato "yyyy-MM-dd"

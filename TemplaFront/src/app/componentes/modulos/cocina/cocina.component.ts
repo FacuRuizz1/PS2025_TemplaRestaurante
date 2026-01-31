@@ -577,10 +577,23 @@ export class CocinaComponent implements OnInit, OnDestroy {
       confirmButtonColor: '#007bff'
     }).then((result) => {
       if (result.isConfirmed) {
-        // Cambiar estado de todos los items en preparación a LISTO_PARA_ENTREGAR
-        pedidoAgrupado.detalles.forEach(detalle => {
-          if (detalle.estado === EstadoPedidoDetalle.EN_PREPARACION) {
-            this.cambiarEstadoDetalle(pedido, detalle, EstadoPedidoDetalle.LISTO_PARA_ENTREGAR);
+        // Marcar como LISTO_PARA_ENTREGAR (el pedido se mantiene visible en cocina)
+        this.cocinaService.actualizarEstadoPedido(pedido.idPedido, EstadoPedido.LISTO_PARA_ENTREGAR).subscribe({
+          next: (pedidoListo: GetPedidoDto) => {
+            console.log('✅ Items marcados como listos:', pedidoListo);
+            
+            // Actualizar el pedido en la lista local
+            const index = this.pedidos.findIndex(p => p.idPedido === pedido.idPedido);
+            if (index !== -1) {
+              this.pedidos[index] = pedidoListo;
+              this.aplicarFiltros();
+            }
+            
+            this.alertService.showSuccess(`Pedido #${pedido.idPedido} marcado como listo para entregar`, 'Pedido Listo');
+          },
+          error: (error: any) => {
+            console.error('Error al marcar como listo:', error);
+            this.alertService.showError('Error al marcar el pedido como listo', 'Error');
           }
         });
       }

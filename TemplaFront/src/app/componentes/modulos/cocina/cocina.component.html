@@ -74,13 +74,7 @@
                 (click)="marcarItemsListosParaEntregar(pedidoAgrupado)">
           ✅ Listo para Entregar
         </button>
-        
-        <!-- Botón de Entregado para pedidos listos para entregar -->
-        <button *ngIf="pedidoAgrupado.estadoDetalle === EstadoPedidoDetalle.LISTO_PARA_ENTREGAR"
-                class="btn-entregado"
-                (click)="marcarItemsEntregados(pedidoAgrupado)">
-          � Entregado
-        </button>
+
       </div>
 
       <!-- Indicador visual para agrupar cards del mismo pedido -->

@@ -16,7 +16,7 @@ import java.time.LocalTime;
 @Builder
 public class PostReservaDTO {
     private int idPersona;
-    private int idDisponibilidad;
+    //private int idDisponibilidad;
     private int nroReserva;
     private int cantidadComensales;
     private LocalDate fechaReserva;

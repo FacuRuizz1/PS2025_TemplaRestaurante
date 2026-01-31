@@ -27,7 +27,7 @@ interface ReservaData {
   horario: string;
   idPersona: number;
   idMesa?: number; // Opcional ya que la mesa se asigna automáticamente
-  idDisponibilidad: number;
+  //idDisponibilidad: number;
   nroReserva?: number;
   // Datos del cliente
   nombre?: string;
@@ -54,7 +54,7 @@ export class ReservasComponent implements OnInit {
     evento: null,
     horario: '',
     idPersona: 0,
-    idDisponibilidad: 0
+    //idDisponibilidad: 0
   };
 
   // Datos para los formularios
@@ -308,7 +308,7 @@ export class ReservasComponent implements OnInit {
         break;
       case 2:
         this.reservaData.fechaReserva = this.fechaForm.get('fechaReserva')?.value;
-        this.buscarDisponibilidad();
+        //this.buscarDisponibilidad();
         break;
       case 3:
         this.reservaData.evento = this.eventoForm.get('evento')?.value;
@@ -328,6 +328,7 @@ export class ReservasComponent implements OnInit {
     }
   }
 
+  /*
   buscarDisponibilidad() {
     const fechaSeleccionada = this.reservaData.fechaReserva;
     console.log('🔍 Buscando disponibilidad para fecha:', fechaSeleccionada);
@@ -347,6 +348,7 @@ export class ReservasComponent implements OnInit {
       this.reservaData.idDisponibilidad = 0;
     }
   }
+  */
 
   getStepTitle(): string {
     switch (this.currentStep) {
@@ -384,6 +386,7 @@ export class ReservasComponent implements OnInit {
       return;
     }
 
+    /*
     if (!this.reservaData.idDisponibilidad || this.reservaData.idDisponibilidad === 0) {
       console.error('❌ Validación de disponibilidad falló:');
       console.error('📊 Estado actual de reservaData:', this.reservaData);
@@ -399,6 +402,7 @@ export class ReservasComponent implements OnInit {
       });
       return;
     }
+      */
 
     // Verificar si es evento VIP para mostrar modal de pago
     if (this.reservaData.evento === EventoReserva.VIP && !this.isEditMode) {
@@ -456,7 +460,7 @@ export class ReservasComponent implements OnInit {
   private crearReservaConPersona(persona: Persona, nroReserva: number) {
     const nuevaReserva: PostReservaModel = {
       idPersona: persona.id!,
-      idDisponibilidad: Number(this.reservaData.idDisponibilidad),
+      //idDisponibilidad: Number(this.reservaData.idDisponibilidad),
       nroReserva: nroReserva,
       cantidadComensales: Number(this.reservaData.cantidadComensales),
       fechaReserva: this.reservaData.fechaReserva,
@@ -515,7 +519,7 @@ export class ReservasComponent implements OnInit {
   private actualizarReservaExistente() {
     const reservaActualizada: PostReservaModel = {
       idPersona: Number(this.reservaData.idPersona),
-      idDisponibilidad: Number(this.reservaData.idDisponibilidad),
+      //idDisponibilidad: Number(this.reservaData.idDisponibilidad),
       nroReserva: Number(this.reservaData.nroReserva || this.generarNumeroReserva()),
       cantidadComensales: Number(this.reservaData.cantidadComensales),
       fechaReserva: this.reservaData.fechaReserva,
@@ -646,7 +650,7 @@ export class ReservasComponent implements OnInit {
       const reservaVipRequest = {
         reservaData: {
           idPersona: personaCreada.id,
-          idDisponibilidad: Number(this.reservaData.idDisponibilidad),
+          //idDisponibilidad: Number(this.reservaData.idDisponibilidad),
           nroReserva: nroReserva,
           cantidadComensales: Number(this.reservaData.cantidadComensales),
           fechaReserva: this.reservaData.fechaReserva,
@@ -871,7 +875,7 @@ export class ReservasComponent implements OnInit {
     if (dia.esDelMesActual && dia.tieneDisponibilidad && !dia.esPasado) {
       this.reservaData.fechaReserva = dia.fecha;
       this.fechaForm.patchValue({ fechaReserva: dia.fecha });
-      this.buscarDisponibilidad();
+      //this.buscarDisponibilidad();
     }
   }
 
@@ -956,7 +960,7 @@ export class ReservasComponent implements OnInit {
       horario: '',
       idPersona: 0,
       idMesa: 0,
-      idDisponibilidad: 0
+      //idDisponibilidad: 0
     };
     
     // Resetear formularios
@@ -1132,7 +1136,7 @@ export class ReservasComponent implements OnInit {
       evento: reserva.evento,
       horario: reserva.horario,
       idPersona: reserva.idPersona,
-      idDisponibilidad: reserva.idDisponibilidad,
+      //idDisponibilidad: reserva.idDisponibilidad,
       nroReserva: reserva.nroReserva
     };
 

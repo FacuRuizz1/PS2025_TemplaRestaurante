@@ -44,12 +44,12 @@ export class ReporteReservasComponent implements OnInit {
     
     // Cargar Google Charts
     if (typeof google !== 'undefined' && google.charts) {
-      google.charts.load('current', { 'packages': ['corechart'] });
-      google.charts.setOnLoadCallback(() => {
-        this.googleChartsLoaded = true; // ← MARCAR COMO CARGADO
-        this.generarReporte();
-      });
-    }
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(() => {
+    this.googleChartsLoaded = true;
+    // NO llamar a generarReporte() automáticamente
+  });
+}
   }
 
   volver() {
@@ -82,10 +82,16 @@ export class ReporteReservasComponent implements OnInit {
   
 
   private crearGraficoBarras(data: ReporteReservasDTO[], titulo: string, containerId: string) {
+   // Función que dibuja el gráfico
+  const dibujarGrafico = () => {
     const chartData: any[] = [['Periodo', 'Total Reservas', 'Total Comensales']];
     
     data.forEach(item => {
-      chartData.push([item.periodo, item.totalReservas, item.totalComensales]);
+      // Formatear el periodo si es tipo horarios
+      const periodoFormateado = this.tipoReporte === 'horarios' 
+        ? this.formatearHorario(item.periodo) 
+        : item.periodo;
+      chartData.push([periodoFormateado, item.totalReservas, item.totalComensales]);
     });
 
     const dataTable = google.visualization.arrayToDataTable(chartData);
@@ -107,7 +113,20 @@ export class ReporteReservasComponent implements OnInit {
     const chart = new google.visualization.ColumnChart(document.getElementById(containerId));
     this.currentChart = chart;
     chart.draw(dataTable, options);
+  };
+
+  // Si Google Charts ya está cargado, dibujar inmediatamente
+  if (this.googleChartsLoaded) {
+    // Usar setTimeout para asegurar que el contenedor del DOM esté listo
+    setTimeout(() => dibujarGrafico(), 100);
+  } else {
+    // Si no está cargado, esperar a que se cargue
+    google.charts.setOnLoadCallback(() => {
+      this.googleChartsLoaded = true;
+      setTimeout(() => dibujarGrafico(), 100);
+    });
   }
+}
 
   exportarPDF() {
     try {
@@ -234,4 +253,13 @@ export class ReporteReservasComponent implements OnInit {
       this.alertService.showError('Error', 'Ocurrió un error al generar el archivo Excel.');
     }
   }
+
+  formatearHorario(horario: string): string {
+  // Si es formato HH:MM:SS, quitar los segundos
+  if (horario && horario.includes(':')) {
+    const partes = horario.split(':');
+    return `${partes[0]}:${partes[1]}`;
+  }
+  return horario;
+}
 }
