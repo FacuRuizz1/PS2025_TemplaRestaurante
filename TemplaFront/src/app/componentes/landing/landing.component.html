@@ -177,7 +177,14 @@
       <button class="menu-modal-close" (click)="closeExperienciaModal()">&times;</button>
       <h3 class="menu-modal-schedule">{{ experienciasSalon.titulo }}</h3>
       <div class="menu-modal-divider"></div>
-      <p class="menu-modal-item">{{ experienciasSalon.descripcion }}</p>
+      <p class="menu-modal-item" style="text-align: justify; line-height: 1.8;">{{ experienciasSalon.descripcion }}</p>
+      
+      <div class="menu-modal-divider"></div>
+      
+      <!-- Imagen del salón VIP -->
+      <div class="museo-image-container">
+        <img [src]="salonVipImage" alt="Salón VIP Templa" class="museo-image">
+      </div>
     </div>
   </div>
 

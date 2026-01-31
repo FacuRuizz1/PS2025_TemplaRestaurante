@@ -63,6 +63,9 @@ export class LandingComponent implements OnInit {
   // Imagen del Museo
   museoImage: string = 'assets/imagenes/museo.png';
 
+  // Imagen del Salón VIP
+  salonVipImage: string = 'assets/imagenes/salonVip.png';
+
   // Datos simulados del backend - En el futuro estos vendrían de un servicio
   sobreNosotros = {
     titulo: 'OFRECEMOS UNA EXPERIENCIA ÚNICA, EN DONDE CÓRDOBA ESTÁ PRESENTE EN CADA SABOR',
@@ -177,12 +180,12 @@ export class LandingComponent implements OnInit {
   // Experiencias individuales con tipado específico (no index signature)
   experienciasSalon: Experiencia = {
     titulo: 'SALÓN VIP',
-    descripcion: 'Contenido del Salón VIP...'
+    descripcion: 'EXPERIENCIA GASTRONÓMICA EXCLUSIVA EN UN AMBIENTE PRIVADO Y SOFISTICADO. CAPACIDAD PARA 20 COMENSALES CON SERVICIO PERSONALIZADO, MENÚ DEGUSTACIÓN Y MARIDAJE PREMIUM. IDEAL PARA CELEBRACIONES ESPECIALES Y CENAS DE NEGOCIOS.'
   };
 
   experienciasDegustacion: Experiencia = {
     titulo: 'MENÚ DEGUSTACIÓN',
-    descripcion: 'Contenido del Menú Degustación...'
+    descripcion: 'PROPUESTA GASTRONÓMICA ÚNICA QUE DESTACA LOS INGREDIENTES PROTAGONISTAS DE CADA TEMPORADA. RENOVAMOS NUESTRO MENÚ DEGUSTACIÓN ESTACIONALMENTE PARA PRESENTAR LOS PRODUCTOS QUE LUEGO FORMARÁN PARTE DE NUESTRA CARTA HABITUAL. UNA EXPERIENCIA CULINARIA QUE ANTICIPA LOS SABORES DE LA PRÓXIMA TEMPORADA.'
   };
 
   experienciasMuseo: Experiencia = {
@@ -193,7 +196,7 @@ export class LandingComponent implements OnInit {
 
   experienciasEventos: Experiencia = {
     titulo: 'EVENTOS',
-    descripcion: 'Contenido de Eventos...'
+    descripcion: 'ORGANIZAMOS EVENTOS CORPORATIVOS Y CELEBRACIONES PERSONALES CON SERVICIO PERSONALIZADO. OFRECEMOS ALMUERZOS Y CENAS DE NEGOCIOS, CUMPLEAÑOS EXCLUSIVOS Y EVENTOS VIP CON MENÚ A MEDIDA, DECORACIÓN ESPECIALIZADA Y ATENCIÓN DEDICADA. CADA EVENTO ES DISEÑADO SEGÚN SUS NECESIDADES Y PREFERENCIAS.'
   };
 
   contacto: ContactoInfo = {
