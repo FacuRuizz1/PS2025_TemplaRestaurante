@@ -96,8 +96,16 @@ export class PlatosComponent implements OnInit {
       this.estadoSeleccionado !== 'TODOS' ? this.estadoSeleccionado : undefined
     ).subscribe({
       next: (response: Page<GetPlatoDto>) => {
-        this.pageInfo = response; // ✅ CAMBIAR: guardar toda la info de paginación
-        this.platos = response.content;
+        this.pageInfo = response;
+        // ✅ Ordenar: primero por estado (disponibles primero), luego alfabéticamente
+        this.platos = response.content.sort((a, b) => {
+          // Primero por estado (disponible = true primero)
+          if (a.disponible !== b.disponible) {
+            return a.disponible ? -1 : 1;
+          }
+          // Luego alfabéticamente por nombre
+          return a.nombre.localeCompare(b.nombre);
+        });
         this.cargando = false;
         console.log('Platos cargados:', this.platos);
       },

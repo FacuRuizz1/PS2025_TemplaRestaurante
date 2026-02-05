@@ -128,7 +128,7 @@
                         </td>
                         <td>
                             <span [ngClass]="getStockClass(producto)" class="fw-bold">
-                                {{ producto.stockActual }}
+                                {{ producto.stockActual | number:'1.0-3' }}
                             </span>
                         </td>
                         <td>

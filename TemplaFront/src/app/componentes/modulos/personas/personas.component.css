@@ -39,6 +39,12 @@
     font-size: 14px;
 }
 
+/* Centrar la primera columna (ID) */
+.custom-table thead th:first-child,
+.custom-table tbody th:first-child {
+    text-align: center;
+}
+
 .custom-table tbody td {
     padding: 12px;
     vertical-align: middle;

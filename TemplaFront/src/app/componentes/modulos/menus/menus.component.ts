@@ -124,7 +124,15 @@ export class MenusComponent implements OnInit {
     ).subscribe({
       next: (response: Page<GetMenuDTO>) => {
         this.pageInfo = response;
-        this.menus = response.content;
+        // ✅ Ordenar: primero por estado (activos primero), luego alfabéticamente
+        this.menus = response.content.sort((a, b) => {
+          // Primero por estado (activo = true primero)
+          if (a.activo !== b.activo) {
+            return a.activo ? -1 : 1;
+          }
+          // Luego alfabéticamente por nombre
+          return a.nombre.localeCompare(b.nombre);
+        });
         this.cargando = false;
         console.log('Menús cargados:', this.menus);
       },

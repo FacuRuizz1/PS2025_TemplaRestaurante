@@ -2,7 +2,12 @@
   <!-- Vista Nueva Reserva -->
   <div *ngIf="currentView === 'nueva'" class="nueva-reserva-view">
     <div class="multi-step-header">
-      <h2>{{ isEditMode ? 'Editar Reserva' : 'Nueva Reserva' }}</h2>
+      <div class="header-title-container">
+        <button type="button" class="btn-volver" (click)="cambiarVista('lista')" title="Volver a la lista">
+          <i class="fas fa-arrow-left"></i> Volver
+        </button>
+        <h2>{{ isEditMode ? 'Editar Reserva' : 'Nueva Reserva' }}</h2>
+      </div>
     <div class="step-indicator">
       <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
         <span class="step-number">1</span>
