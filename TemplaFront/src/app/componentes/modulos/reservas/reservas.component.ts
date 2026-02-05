@@ -17,6 +17,7 @@ import { PostReservaModel, ReservaModel } from '../../models/ReservaModel';
 import { ReportesModalComponent } from '../../modales/reportes-modal/reportes-modal.component';
 import { SelectorReportesModalComponent, TipoReporte } from '../../modales/selector-reportes-modal/selector-reportes-modal.component';
 import { ClientesReservasModalComponent } from '../../modales/clientes-reservas-modal/clientes-reservas-modal.component';
+import { DisponibilidadModalComponent } from '../../modales/disponibilidad-modal/disponibilidad-modal.component';
 import { environment } from '../../../../environments/environment';
 import Swal from 'sweetalert2';
 
@@ -40,7 +41,7 @@ interface ReservaData {
 @Component({
   selector: 'app-reservas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ReportesModalComponent, SelectorReportesModalComponent, ClientesReservasModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ReportesModalComponent, SelectorReportesModalComponent, ClientesReservasModalComponent, DisponibilidadModalComponent],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.css']
 })
@@ -67,6 +68,9 @@ export class ReservasComponent implements OnInit {
 
   // ✅ NUEVO: Referencia al modal de clientes con reservas
   @ViewChild('clientesReservasModal') clientesReservasModal!: ClientesReservasModalComponent;
+
+  // ✅ NUEVO: Referencia al modal de disponibilidad
+  @ViewChild('disponibilidadModal') disponibilidadModal!: DisponibilidadModalComponent;
 
   // ✅ NUEVO: Control para el selector de reportes
   mostrarSelectorReportes = false;
@@ -1388,4 +1392,32 @@ export class ReservasComponent implements OnInit {
         break;
     }
   }
+
+  // ==================== MÉTODOS DE DISPONIBILIDAD ====================
+
+  /**
+   * Abre el modal para crear disponibilidades mensuales
+   */
+  abrirModalDisponibilidad() {
+    console.log('🔵 Botón de disponibilidad clickeado');
+    console.log('Modal:', this.disponibilidadModal);
+    if (this.disponibilidadModal) {
+      this.disponibilidadModal.show();
+    } else {
+      console.error('❌ El modal de disponibilidad no está disponible');
+    }
+  }
+
+  /**
+   * Callback cuando se crean disponibilidades exitosamente
+   */
+  onDisponibilidadesCreadas() {
+    console.log('✅ Disponibilidades creadas, recargando...');
+    // Recargar disponibilidades
+    this.cargarDatos();
+    // Regenerar calendario
+    this.actualizarFechasConDisponibilidad();
+    this.generarCalendario();
+  }
 }
+    

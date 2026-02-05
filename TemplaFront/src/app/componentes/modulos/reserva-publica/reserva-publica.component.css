@@ -267,12 +267,9 @@ h1, h2, h3, h4, h5, h6 {
   cursor: not-allowed;
 }
 
-.calendar-day.today {
-  background-color: var(--templa-gold);
-  color: white;
-  font-weight: 500;
-}
 
+
+/* Día con disponibilidad */
 .calendar-day.available {
   background-color: var(--templa-green);
   color: white;
@@ -282,6 +279,12 @@ h1, h2, h3, h4, h5, h6 {
 .calendar-day.available:hover {
   background-color: var(--templa-hovergreen);
   transform: scale(1.1);
+}
+
+.calendar-day.today {
+  background-color: var(--templa-gold) !important;
+  color: white !important;
+  font-weight: 500 !important;
 }
 
 .calendar-day.selected {

@@ -1185,7 +1185,7 @@
   }
 }
 
-/* Botón Nueva Reserva */
+/* Botones */
 .custom-btn {
   background-color: var(--templa-green);
   color: white;
@@ -1209,9 +1209,37 @@
   color: white;
 }
 
+.custom-btn-secondary {
+  background-color: var(--templa-gold);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-family: var(--templa-font-body);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
+}
+
+.custom-btn-secondary:hover {
+  background-color: #d4af37;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(218, 165, 32, 0.4);
+  color: white;
+}
+
 .btn-icon {
   font-size: 16px;
   font-weight: bold;
+}
+
+/* Contenedor de botones con gap */
+.gap-2 {
+  gap: 10px !important;
 }
 
 /* Tabla */

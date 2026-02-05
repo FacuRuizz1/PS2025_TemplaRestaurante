@@ -82,19 +82,26 @@ export class ReportePedidosComponent implements OnInit {
 
     const options = {
       title: titulo,
-      chartArea: { width: '70%', height: '70%' },
+      chartArea: { width: '75%', height: '70%' },
       hAxis: {
         title: 'Fecha',
-        minValue: 0
+        slantedText: true,
+        slantedTextAngle: 45,
+        showTextEvery: 1
       },
       vAxis: {
-        title: 'Cantidad de Pedidos'
+        title: 'Cantidad de Pedidos',
+        minValue: 0,
+        format: '0'
       },
       legend: { position: 'none' },
-      colors: ['#4CAC6B']
+      colors: ['#4CAC6B'],
+      curveType: 'function',
+      pointSize: 5,
+      lineWidth: 3
     };
 
-    const chart = new google.visualization.ColumnChart(document.getElementById(containerId));
+    const chart = new google.visualization.LineChart(document.getElementById(containerId));
     chart.draw(dataTable, options);
   };
 

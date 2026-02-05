@@ -72,20 +72,27 @@ export class ReporteStockComponent implements OnInit {
       const dataTable = google.visualization.arrayToDataTable(chartData);
 
       const options = {
-        title: 'Productos con Stock Bajo',
-        chartArea: { width: '65%', height: '70%' },
+
+        chartArea: { width: '75%', height: '75%', top: 50,},
         hAxis: {
-          title: 'Cantidad',
-          minValue: 0
+          title: 'Producto',
+          slantedText: true,
+          slantedTextAngle: 45,
+          textStyle: { color: '#755143', fontSize: 12 },
+          titleTextStyle: { color: '#696848', fontSize: 13, bold: true }
         },
         vAxis: {
-          title: 'Producto'
+          title: 'Cantidad',
+          minValue: 0,
+          textStyle: { color: '#755143', fontSize: 12 },
+          titleTextStyle: { color: '#696848', fontSize: 13, bold: true }
         },
         legend: { position: 'top' },
-        colors: ['#dc3545', '#ffc107']
+        colors: ['#dc3545', '#ffc107'],
+        bar: { groupWidth: '70%' }
       };
 
-      const chart = new google.visualization.BarChart(document.getElementById('chart-stock'));
+      const chart = new google.visualization.ColumnChart(document.getElementById('chart-stock'));
       chart.draw(dataTable, options);
     });
   }

@@ -52,14 +52,14 @@
         </div>
       </div>
 
-      <!-- Seleccionar Persona (opcional) -->
-      <div class="form-row">
+      <!-- Seleccionar Persona - Solo en modo creación -->
+      <div class="form-row" *ngIf="!isEditMode">
         <div class="form-group full-width">
           <select class="form-select custom-select" 
                   [(ngModel)]="usuario.personaDni" 
                   name="personaDni">
-            <option value="" selected>Seleccionar Persona (opcional)</option>
-            <option *ngFor="let persona of personas" [value]="persona.dni">
+            <option [ngValue]="null">Seleccionar Persona</option>
+            <option *ngFor="let persona of personas" [ngValue]="persona.dni">
               {{ persona.nombre }} {{ persona.apellido }}
             </option>
           </select>

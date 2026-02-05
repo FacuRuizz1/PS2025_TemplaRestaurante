@@ -396,9 +396,13 @@
     <hr class="header-divider">
 
     <div class="body mt-5 mx-5 px-5">
-      <!-- Botón Nueva Reserva alineado a la derecha -->
-      <div class="mb-3 d-flex justify-content-end">
-        <button class="btn custom-btn" (click)="cambiarVista('nueva')">
+      <!-- Botones alineados a la derecha -->
+      <div class="mb-3 d-flex justify-content-end" style="gap: 10px;">
+        <button class="btn custom-btn-secondary" (click)="abrirModalDisponibilidad()" type="button">
+          <span class="btn-icon">📅</span>
+          Gestionar Disponibilidad
+        </button>
+        <button class="btn custom-btn" (click)="cambiarVista('nueva')" type="button">
           <span class="btn-icon">➕</span>
           Nueva Reserva
         </button>
@@ -466,57 +470,55 @@
         </table>
       </div>
 
-      <!-- Paginación -->
-      <div *ngIf="!loading && pageInfo && pageInfo.totalPages > 1" class="d-flex justify-content-between align-items-center mt-4">
-        <div class="pagination-info">
-          <small class="text-muted">
-            Mostrando {{ ((pageInfo.number * pageInfo.size) + 1) }} - 
-            {{ Math.min((pageInfo.number + 1) * pageInfo.size, pageInfo.totalElements) }} 
-            de {{ pageInfo.totalElements }} reservas
-          </small>
-        </div>
+      <!-- ✅ Paginación dinámica -->
+      <div class="pagination-container d-flex justify-content-between align-items-center mt-4" 
+           *ngIf="pageInfo && pageInfo.totalElements > 0">
         
-        <nav aria-label="Paginación de reservas">
-          <ul class="pagination pagination-sm mb-0">
-            <li class="page-item" [class.disabled]="pageInfo.number === 0">
-              <button class="page-link" (click)="irAPagina(pageInfo.number - 1)" [disabled]="pageInfo.number === 0">
-                Anterior
-              </button>
+        <div class="pagination-info">
+          <span class="text-muted">
+            Mostrando {{ (paginaActual * tamanoPagina) + 1 }}-{{ Math.min((paginaActual + 1) * tamanoPagina, pageInfo.totalElements) }} 
+            de {{ pageInfo.totalElements }} registros
+          </span>
+        </div>
+
+        <nav aria-label="Paginación de reservas" *ngIf="pageInfo.totalPages > 1">
+          <ul class="pagination custom-pagination mb-0">
+            <!-- Botón anterior -->
+            <li class="page-item" [class.disabled]="paginaActual === 0">
+              <a class="page-link" href="#" 
+                 (click)="irAPagina(paginaActual - 1); $event.preventDefault()" 
+                 [attr.tabindex]="paginaActual === 0 ? -1 : null"
+                 [attr.aria-disabled]="paginaActual === 0">‹</a>
             </li>
             
-            <li class="page-item" 
-                *ngFor="let page of obtenerPaginasVisibles()" 
-                [class.active]="page === pageInfo.number">
-              <button class="page-link" (click)="irAPagina(page)">
-                {{ page + 1 }}
-              </button>
-            </li>
-            
-            <li class="page-item" [class.disabled]="pageInfo.number === pageInfo.totalPages - 1">
-              <button class="page-link" 
-                      (click)="irAPagina(pageInfo.number + 1)" 
-                      [disabled]="pageInfo.number === pageInfo.totalPages - 1">
-                Siguiente
-              </button>
+            <!-- Números de página -->
+            @for (pagina of obtenerPaginasVisibles(); track pagina) {
+              <li class="page-item" [class.active]="pagina === paginaActual">
+                <a class="page-link" href="#" 
+                   (click)="irAPagina(pagina); $event.preventDefault()">
+                  {{ pagina + 1 }}
+                </a>
+              </li>
+            }
+
+            <!-- Botón siguiente -->
+            <li class="page-item" [class.disabled]="paginaActual === (pageInfo.totalPages - 1)">
+              <a class="page-link" href="#" 
+                 (click)="irAPagina(paginaActual + 1); $event.preventDefault()"
+                 [attr.tabindex]="paginaActual === (pageInfo.totalPages - 1) ? -1 : null"
+                 [attr.aria-disabled]="paginaActual === (pageInfo.totalPages - 1)">›</a>
             </li>
           </ul>
         </nav>
-        
-        <div class="page-size-selector">
-          <small class="text-muted me-2">Elementos por página:</small>
-          <select class="form-select form-select-sm" 
-                  [(ngModel)]="tamanoPagina" 
-                  (change)="aplicarFiltros()" 
-                  style="width: auto; display: inline-block;">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="20">20</option>
-            <option [value]="50">50</option>
-          </select>
-        </div>
       </div>
     </div>
   </div>
+
+<!-- Modal de Disponibilidad -->
+<app-disponibilidad-modal 
+  #disponibilidadModal
+  (disponibilidadesCreadas)="onDisponibilidadesCreadas()">
+</app-disponibilidad-modal>
 
 <!-- ✅ NUEVO: Selector de Reportes -->
 <app-selector-reportes-modal 

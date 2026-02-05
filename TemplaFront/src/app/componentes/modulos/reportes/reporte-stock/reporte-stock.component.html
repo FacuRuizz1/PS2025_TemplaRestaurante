@@ -58,21 +58,20 @@
   </div>
 
   <!-- Content -->
-  <div class="row" *ngIf="!loading && datosStock.length > 0">
-    <div class="col-12">
-      <div class="card shadow-sm border-templa-gold">
-        <div class="card-header bg-templa-brown text-white">
-          <h5 class="mb-0">
-            <i class="bi bi-bar-chart-fill me-2"></i>
-            Gráfico de Stock
-          </h5>
-        </div>
-        <div class="card-body">
-          <div id="chart-stock" style="height: 500px;"></div>
-        </div>
+<div class="row" *ngIf="!loading && datosStock.length > 0">
+  <div class="col-12">
+    <div class="card shadow-sm border-templa-gold">
+      <div class="card-header bg-templa-brown text-dark">
+        <h5 class="mb-0 fw-bold">
+          Productos con Stock Bajo
+        </h5>
+      </div>
+      <div class="card-body">
+        <div id="chart-stock" style="height: 500px;"></div>
       </div>
     </div>
   </div>
+</div>
 
   <!-- Table -->
   <div class="row mt-4" *ngIf="!loading && datosStock.length > 0">

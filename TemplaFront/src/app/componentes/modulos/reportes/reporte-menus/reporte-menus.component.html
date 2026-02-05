@@ -60,15 +60,20 @@
     </div>
   </div>
 
-  <div class="row" *ngIf="datosMenus.length > 0">
-    <div class="col-12">
-      <div class="card shadow-sm border-templa-gold">
-        <div class="card-body">
-          <div id="chart-menus" style="height: 500px;"></div>
-        </div>
+ <div class="row" *ngIf="datosMenus.length > 0">
+  <div class="col-12">
+    <div class="card shadow-sm border-templa-gold">
+      <div class="card-header bg-templa-brown text-dark">
+        <h5 class="mb-0 fw-bold">
+          Menús Más Pedidos
+        </h5>
+      </div>
+      <div class="card-body">
+        <div id="chart-menus" style="height: 500px;"></div>
       </div>
     </div>
   </div>
+</div>
 
   <div class="row mt-4" *ngIf="datosMenus.length > 0">
     <div class="col-12">

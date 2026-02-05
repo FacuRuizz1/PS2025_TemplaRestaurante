@@ -8,6 +8,7 @@ import { AlertService } from '../../../../services/alert.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { right } from '@popperjs/core';
 
 declare var google: any;
 
@@ -82,7 +83,7 @@ export class ReporteReservasComponent implements OnInit {
   
 
   private crearGraficoBarras(data: ReporteReservasDTO[], titulo: string, containerId: string) {
-   // Función que dibuja el gráfico
+  // Función que dibuja el gráfico
   const dibujarGrafico = () => {
     const chartData: any[] = [['Periodo', 'Total Reservas', 'Total Comensales']];
     
@@ -97,17 +98,32 @@ export class ReporteReservasComponent implements OnInit {
     const dataTable = google.visualization.arrayToDataTable(chartData);
 
     const options = {
-      title: titulo,
-      chartArea: { width: '70%', height: '70%' },
+      // ELIMINAR: title: titulo,
+      chartArea: { 
+        width: '80%', 
+        height: '75%',
+        top: 50,
+        left: 100,
+        right: 50
+      },
       hAxis: {
         title: this.tipoReporte === 'fechas' ? 'Fecha' : 'Horario',
-        minValue: 0
+        minValue: 0,
+        textStyle: { color: '#755143', fontSize: 12 },
+        titleTextStyle: { color: '#696848', fontSize: 13, bold: true }
       },
       vAxis: {
-        title: 'Cantidad'
+        title: 'Cantidad',
+        textStyle: { color: '#755143', fontSize: 12 },
+        titleTextStyle: { color: '#696848', fontSize: 13, bold: true }
       },
-      legend: { position: 'top' },
-      colors: ['#4CAC6B', '#9F763D']
+      legend: { 
+        position: 'top',
+        textStyle: { color: '#755143', fontSize: 12 }
+      },
+      colors: ['#84C473', '#d2a46d'],
+      backgroundColor: '#ffffff',
+      bar: { groupWidth: '75%' }
     };
 
     const chart = new google.visualization.ColumnChart(document.getElementById(containerId));

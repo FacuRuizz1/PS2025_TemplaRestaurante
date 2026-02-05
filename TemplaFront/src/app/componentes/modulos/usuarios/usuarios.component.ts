@@ -220,9 +220,13 @@ export class UsuariosComponent implements OnInit {
     const usuarioDto: UsuarioCreateDTO = {
       username: usuarioData.username,
       password: usuarioData.password,
-      rolUsuario: usuarioData.rolUsuario as RolUsuario,
-      personaDni: usuarioData.personaDni
+      rolUsuario: usuarioData.rolUsuario as RolUsuario
     };
+    
+    // Solo agregar personaDni si tiene un valor válido
+    if (usuarioData.personaDni && usuarioData.personaDni !== '') {
+      usuarioDto.personaDni = Number(usuarioData.personaDni);
+    }
     
     this.userService.crearUsuario(usuarioDto).subscribe({
       next: (usuarioCreado) => {
@@ -260,7 +264,7 @@ export class UsuariosComponent implements OnInit {
       password: usuarioData.password || undefined, // Solo se incluye si hay valor
       rolUsuario: usuarioData.rolUsuario as RolUsuario,
       activo: usuarioData.activo,
-      personaDni: usuarioData.personaDni
+      //personaDni: usuarioData.personaDni
     };
     
     this.userService.actualizarUsuario(id, usuarioUpdateDto).subscribe({

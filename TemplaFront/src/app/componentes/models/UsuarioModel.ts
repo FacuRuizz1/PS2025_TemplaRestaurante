@@ -12,7 +12,7 @@ export interface UsuarioCreateDTO {
   username: string;
   password: string;
   rolUsuario: RolUsuario;
-  personaDni: number; // ✅ CAMBIADO: ahora es DNI (number)
+  personaDni?: number | null; // ✅ Opcional: puede no tener persona asociada
 }
 
 // Interface que coincide con lo que devuelve tu backend

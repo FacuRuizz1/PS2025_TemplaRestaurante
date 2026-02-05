@@ -72,15 +72,19 @@ export class ReportePlatosComponent implements OnInit {
       const dataTable = google.visualization.arrayToDataTable(chartData);
 
       const options = {
-        title: 'Platos por Cantidad de Productos',
-        chartArea: { width: '65%', height: '70%' },
-        hAxis: {
-          title: 'Cantidad de Productos',
-          minValue: 0
-        },
-        vAxis: {
-          title: 'Plato'
-        },
+       
+      chartArea: { width: '65%', height: '70%' },
+       hAxis: {
+      title: 'Cantidad de Productos',
+      minValue: 0,
+      textStyle: { color: '#755143', fontSize: 12 },
+      titleTextStyle: { color: '#696848', fontSize: 13, bold: true }
+     },
+     vAxis: {
+     title: 'Plato',
+     textStyle: { color: '#755143', fontSize: 12 },
+    titleTextStyle: { color: '#696848', fontSize: 13, bold: true }
+},
         legend: { position: 'none' },
         colors: ['#4CAC6B']
       };

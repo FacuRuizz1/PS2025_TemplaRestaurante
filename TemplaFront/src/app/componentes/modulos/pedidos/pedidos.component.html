@@ -122,7 +122,8 @@
                     <td>
                         <div ngbDropdown class="d-inline-block" class="d-inline-block" container="body">
                             <button class="btn btn-sm btn-edit" type="button" id="dropdownEstado{{ pedido.idPedido }}"
-                                ngbDropdownToggle title="Cambiar estado">
+                                ngbDropdownToggle title="Cambiar estado"
+                                [disabled]="pedido.estado === 'FINALIZADO' || pedido.estado === 'CANCELADO'">
                                 🔄
                             </button>
                             <div ngbDropdownMenu [attr.aria-labelledby]="'dropdownEstado' + pedido.idPedido">

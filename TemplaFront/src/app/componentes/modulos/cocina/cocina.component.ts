@@ -389,9 +389,6 @@ export class CocinaComponent implements OnInit, OnDestroy {
   }
 
   private mostrarNotificacionNuevoPedido(pedido: GetPedidoDto) {
-    // Notificación visual
-    this.alertService.showInfo(`Nuevo pedido #${pedido.idPedido} - Mesa ${pedido.numeroMesa}`, 'Nuevo Pedido');
-    
     // Notificación de sonido (opcional)
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('Nuevo Pedido en Cocina', {

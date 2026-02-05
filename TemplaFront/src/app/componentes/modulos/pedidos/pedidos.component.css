@@ -106,3 +106,13 @@
 .btn-edit.dropdown-toggle::after {
     margin-left: 5px;
 }
+
+/* Botón deshabilitado sin borde */
+.btn-edit:disabled,
+.btn-edit.disabled {
+    background-color: transparent;
+    border: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}

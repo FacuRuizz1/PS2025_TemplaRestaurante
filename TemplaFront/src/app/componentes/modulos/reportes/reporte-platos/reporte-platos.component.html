@@ -56,22 +56,21 @@
     </div>
   </div>
 
-  <!-- Content -->
-  <div class="row" *ngIf="!loading && datosPlatos.length > 0">
-    <div class="col-12">
-      <div class="card shadow-sm border-templa-gold">
-        <div class="card-header bg-templa-brown text-white">
-          <h5 class="mb-0">
-            <i class="bi bi-bar-chart-fill me-2"></i>
-            Gráfico de Platos
-          </h5>
-        </div>
-        <div class="card-body">
-          <div id="chart-platos" style="height: 500px;"></div>
-        </div>
+ <!-- Content -->
+<div class="row" *ngIf="!loading && datosPlatos.length > 0">
+  <div class="col-12">
+    <div class="card shadow-sm border-templa-gold">
+     <div class="card-header bg-templa-brown text-dark">
+  <h5 class="mb-0 fw-bold">
+    Platos por Cantidad de Productos
+  </h5>
+</div>
+      <div class="card-body">
+        <div id="chart-platos" style="height: 500px;"></div>
       </div>
     </div>
   </div>
+</div>
 
   <!-- Table -->
   <div class="row mt-4" *ngIf="!loading && datosPlatos.length > 0">

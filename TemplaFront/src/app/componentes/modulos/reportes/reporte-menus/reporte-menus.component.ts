@@ -42,7 +42,7 @@ export class ReporteMenusComponent implements OnInit {
     // Cargar Google Charts
     if (typeof google !== 'undefined' && google.charts) {
       google.charts.load('current', { 'packages': ['corechart'] });
-      google.charts.setOnLoadCallback(() => this.generarReporte());
+      //google.charts.setOnLoadCallback(() => this.generarReporte());
     }
   }
 
@@ -51,19 +51,37 @@ export class ReporteMenusComponent implements OnInit {
   }
 
   generarReporte() {
-    console.log('Generando reporte de menús más pedidos');
-    
-    this.reporteService.getMenusMasPedidos(this.fechaInicio, this.fechaFin).subscribe({
-      next: (data: ReporteMenusMasPedidosDTO[]) => {
-        console.log('Datos recibidos:', data);
-        this.datosMenus = data;
-        this.crearGraficoTorta(data, 'Menús Más Pedidos', 'chart-menus');
-      },
-      error: (error: any) => {
-        console.error('Error al obtener reportes:', error);
-        this.alertService.showError('Error', 'No se pudieron cargar los datos del reporte.');
-      }
-    });
+  console.log('Generando reporte de menús más pedidos');
+  
+  // Cargar Google Charts si no está cargado
+  if (typeof google === 'undefined' || !google.charts) {
+    console.error('Google Charts no está disponible');
+    this.alertService.showError('Error', 'No se pudo cargar la librería de gráficos.');
+    return;
+  }
+  
+  this.reporteService.getMenusMasPedidos(this.fechaInicio, this.fechaFin).subscribe({
+    next: (data: ReporteMenusMasPedidosDTO[]) => {
+      console.log('Datos recibidos:', data);
+      this.datosMenus = data;
+      
+      // Esperar a que Angular renderice el elemento del DOM antes de crear el gráfico
+      setTimeout(() => {
+        if (google.visualization) {
+          this.crearGraficoTorta(data, 'Menús Más Pedidos', 'chart-menus');
+        } else {
+          // Si no está listo, esperar a que se cargue
+          google.charts.setOnLoadCallback(() => {
+            this.crearGraficoTorta(data, 'Menús Más Pedidos', 'chart-menus');
+          });
+        }
+      }, 100); // Pequeño delay para asegurar que el DOM esté listo
+    },
+    error: (error: any) => {
+      console.error('Error al obtener reportes:', error);
+      this.alertService.showError('Error', 'No se pudieron cargar los datos del reporte.');
+    }
+  });
   }
 
   private crearGraficoTorta(data: ReporteMenusMasPedidosDTO[], titulo: string, containerId: string) {
@@ -76,12 +94,7 @@ export class ReporteMenusComponent implements OnInit {
     const dataTable = google.visualization.arrayToDataTable(chartData);
 
     const options = {
-      title: titulo,
-      titleTextStyle: {
-        fontSize: 18,
-        bold: true,
-        color: '#696848'
-      },
+      
       pieHole: 0.4, // Donut chart
       pieSliceTextStyle: {
         color: '#ffffff',
@@ -96,11 +109,11 @@ export class ReporteMenusComponent implements OnInit {
       colors: ['#84C473', '#d2a46d', '#696848', '#755143', '#F4EADD', '#8B7355', '#A0C49D', '#E8B86D', '#C68B59', '#DDB892'],
       chartArea: { 
         left: 50, 
-        top: 60, 
+        top: 50, 
         right: 250, 
         bottom: 50, 
         width: '70%', 
-        height: '75%' 
+        height: '80%' 
       },
       tooltip: {
         text: 'both',
