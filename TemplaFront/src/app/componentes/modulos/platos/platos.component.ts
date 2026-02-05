@@ -245,17 +245,29 @@ export class PlatosComponent implements OnInit {
     console.log('Ejecutando toggle disponibilidad desde modal:', plato);
     this.cargando = true;
     this.platoService.activarDesactivarPlato(plato.idPlato).subscribe({
-      next: () => {
+      next: (response) => {
         const accion = plato.disponible ? 'activado' : 'desactivado';
         console.log(`✅ Plato ${accion} exitosamente`);
         this.cargarPlatos();
-        Swal.fire({
-          title: '¡Éxito!',
-          text: `Plato ${accion} exitosamente`,
-          icon: 'success',
-          confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
-        });
+        
+        // ✅ Mostrar advertencia si existe
+        if (response.mensaje) {
+          Swal.fire({
+            title: `Plato ${accion}`,
+            html: `<p>${response.mensaje}</p>`,
+            icon: 'warning',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#f39c12'
+          });
+        } else {
+          Swal.fire({
+            title: '¡Éxito!',
+            text: `Plato ${accion} exitosamente`,
+            icon: 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#28a745'
+          });
+        }
       },
       error: (error) => {
         console.error('❌ Error al cambiar disponibilidad:', error);

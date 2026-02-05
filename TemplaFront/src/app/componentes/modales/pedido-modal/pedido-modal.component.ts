@@ -3,6 +3,7 @@ import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { forkJoin, Subscription } from 'rxjs';
+import Swal from 'sweetalert2';
 import { GetPedidoDto, PostPedidoDto, PostPedidoDetalleDto } from '../../models/PedidoModel';
 import { GetMesaDto } from '../../models/MesasModel';
 import { GetPlatoDto } from '../../models/PlatoModel';
@@ -645,7 +646,22 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
         error: (error: any) => {
           console.error('❌ Error al actualizar pedido:', error);
           this.guardando = false;
-          alert('Error al actualizar el pedido: ' + (error.error?.message || error.message || 'Error desconocido'));
+          
+          // ✅ Manejo mejorado de errores con mensajes específicos
+          const errorMsg = error.error?.message || error.message || 'Error desconocido';
+          
+          if (errorMsg.includes('no está disponible') || errorMsg.includes('no tiene stock') || 
+              errorMsg.includes('está inactivo') || errorMsg.includes('Stock insuficiente')) {
+            Swal.fire({
+              title: 'Item no disponible',
+              text: errorMsg,
+              icon: 'warning',
+              confirmButtonText: 'Entendido',
+              confirmButtonColor: '#f39c12'
+            });
+          } else {
+            alert('Error al actualizar el pedido: ' + errorMsg);
+          }
         }
       });
     } else {
@@ -660,8 +676,24 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
           });
         },
         error: (error: any) => {
+          console.error('❌ Error al crear pedido:', error);
           this.guardando = false;
-          alert('Error al crear el pedido: ' + (error.error?.message || error.message || 'Error desconocido'));
+          
+          // ✅ Manejo mejorado de errores con mensajes específicos
+          const errorMsg = error.error?.message || error.message || 'Error desconocido';
+          
+          if (errorMsg.includes('no está disponible') || errorMsg.includes('no tiene stock') || 
+              errorMsg.includes('está inactivo') || errorMsg.includes('Stock insuficiente')) {
+            Swal.fire({
+              title: 'Item no disponible',
+              text: errorMsg,
+              icon: 'warning',
+              confirmButtonText: 'Entendido',
+              confirmButtonColor: '#f39c12'
+            });
+          } else {
+            alert('Error al crear el pedido: ' + errorMsg);
+          }
         }
       });
     }

@@ -14,7 +14,7 @@ public interface IPlatoService {
     Page<GetPlatoDto> getPlatos(String buscarFiltro,String tipoPlato ,String estado ,int page, int size);
     GetPlatoDto createPlato(PostPlatoDto platoNuevo, MultipartFile imagen);
     GetPlatoDto updatePlato(GetPlatoDto platoActualizar, MultipartFile imagen);
-    void activarDesactivarPlato(Integer id);
+    String activarDesactivarPlato(Integer id);
     void bajaPlato(Integer id);
     PlatoEntity obtenerPlatoConIngredientes(Integer idPlato);
 

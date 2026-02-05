@@ -287,15 +287,50 @@ public class MenuServiceImpl implements IMenuService {
      *
      * @param id Identificador único del menú a modificar.
      * @throws ResponseStatusException con código 404 si no existe un menú con el ID proporcionado.
+     * @return String con mensaje de advertencia si hay items con problemas, null si todo está bien.
      * @throws Exception si ocurre un error durante la actualización.
      */
     @Override
-    public void activarDesactivarMenu(Integer id) {
+    public String activarDesactivarMenu(Integer id) {
         Optional<MenuEntity> menuOptional = menuRepository.findById(id);
         if (menuOptional.isPresent()) {
             MenuEntity menu = menuOptional.get();
+            
+            String mensajeAdvertencia = null;
+            
+            // ✅ Si está inactivo y se intenta activar, validar items
+            if (!menu.getActivo()) {
+                List<MenuDetalleEntity> detalles = menuDetalleRepository.findByMenuId(menu.getId());
+                List<String> itemsProblematicos = new ArrayList<>();
+                
+                for (MenuDetalleEntity detalle : detalles) {
+                    if (detalle.getProducto() != null) {
+                        ProductoEntity producto = detalle.getProducto();
+                        if (!producto.getActivo()) {
+                            itemsProblematicos.add("Producto: " + producto.getNombre() + " (inactivo)");
+                        } else if (producto.getStockActual() <= producto.getStockMinimo()) {
+                            itemsProblematicos.add("Producto: " + producto.getNombre() + " (stock bajo)");
+                        }
+                    }
+                    
+                    if (detalle.getPlato() != null) {
+                        PlatoEntity plato = detalle.getPlato();
+                        if (!plato.getDisponible()) {
+                            itemsProblematicos.add("Plato: " + plato.getNombre() + " (no disponible)");
+                        }
+                    }
+                }
+                
+                if (!itemsProblematicos.isEmpty()) {
+                    mensajeAdvertencia = "ADVERTENCIA: El menú se activó pero los siguientes items tienen stock bajo o esta inactivo: " +
+                        String.join(", ", itemsProblematicos);
+                }
+            }
+            
             menu.setActivo(!menu.getActivo());
             menuRepository.save(menu);
+            
+            return mensajeAdvertencia;
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu no encontrado con ID: " + id);
         }

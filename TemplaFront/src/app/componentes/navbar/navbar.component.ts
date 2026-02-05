@@ -82,6 +82,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(countSub, notificationsSub);
+    
+    // ✅ NUEVO: Conectar a alertas de stock bajo automáticamente
+    this.notificationService.conectarAlertasStock();
   }
 
   private loadUserInfo() {

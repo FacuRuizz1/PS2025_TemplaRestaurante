@@ -1,4 +1,4 @@
-<div class="mapa-mesas-container" (click)="cerrarMenuContextual()">
+<div class="mapa-mesas-container" (click)="cerrarMenuContextual($event)" (touchstart)="cerrarMenuContextual($event)">
   
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- HEADER CON CONTROLES -->
@@ -198,6 +198,7 @@
     [style.left.px]="menuContextual.x"
     [style.top.px]="menuContextual.y"
     (click)="$event.stopPropagation()"
+    (touchstart)="$event.stopPropagation()"
   >
     <div class="menu-header">
       <strong>{{ menuContextual.mesa?.numeroMesa }}</strong>

@@ -731,14 +731,44 @@ public class PedidoServiceImpl implements IPedidoService {
      * @param detalleDto Objeto DTO con los datos del detalle de menú.
      * @param pedido Entidad del pedido al que se agregará el detalle.
      * @return List<GetPedidoDetalleDTO> con los datos del detalle creado (siempre un solo elemento).
+     * @throws RuntimeException si el menú no está activo o sus items no están disponibles.
      *
      * @note Método privado utilizado internamente para manejar detalles de menús.
      * @note Reduce automáticamente el stock de todos los items del menú.
      * @note Maneja tanto productos directos como platos con sus ingredientes.
+     * @note Valida que el menú esté activo y todos sus items estén disponibles.
      */
     private List<GetPedidoDetalleDTO> handleMenuDetalle(PostPedidoDetalleDTO detalleDto, PedidoEntity pedido) {
         GetMenuDTO menu = menuService.obtenerMenuPorId(detalleDto.getIdMenu());
+        
+        // ✅ VALIDACIÓN: Verificar que el menú esté activo
+        if (!menu.isActivo()) {
+            throw new RuntimeException("El menú '" + menu.getNombre() + "' no está disponible actualmente");
+        }
+        
         List<MenuDetalleEntity> itemsDelMenu = menuService.obtenerDetallesMenu(detalleDto.getIdMenu());
+        
+        // ✅ VALIDACIÓN: Verificar disponibilidad de todos los items del menú
+        for (MenuDetalleEntity item : itemsDelMenu) {
+            if (item.getProducto() != null) {
+                ProductoEntity producto = item.getProducto();
+                if (!producto.getActivo()) {
+                    throw new RuntimeException("El menú no está disponible: el producto '" + 
+                        producto.getNombre() + "' está inactivo");
+                }
+                if (producto.getStockActual() <= 0) {
+                    throw new RuntimeException("El menú no está disponible: el producto '" + 
+                        producto.getNombre() + "' no tiene stock");
+                }
+            }
+            if (item.getPlato() != null) {
+                PlatoEntity plato = item.getPlato();
+                if (!plato.getDisponible()) {
+                    throw new RuntimeException("El menú no está disponible: el plato '" + 
+                        plato.getNombre() + "' no está disponible");
+                }
+            }
+        }
 
         PedidoDetalleEntity detalleMenu = new PedidoDetalleEntity();
         detalleMenu.setPedido(pedido);

@@ -68,6 +68,40 @@ export class NotificationService {
     };
   }
 
+  /**
+   * Conectar al endpoint SSE de alertas de stock bajo
+   * Esta conexión es global y no requiere ID de usuario
+   */
+  public conectarAlertasStock(): void {
+    const url = `http://localhost:8081/api/sse/alertas-stock`;
+    console.log('🔌 Conectando a SSE de alertas de stock:', url);
+
+    const stockEventSource = new EventSource(url);
+
+    stockEventSource.onopen = () => {
+      console.log('✅ Conexión SSE establecida para alertas de stock');
+    };
+
+    stockEventSource.addEventListener('stock-bajo', (event: MessageEvent) => {
+      try {
+        const notificacion: NotificacionDTO = JSON.parse(event.data);
+        console.log('⚠️ Notificación de stock bajo recibida:', notificacion);
+        this.addNotification(notificacion);
+      } catch (error) {
+        console.error('❌ Error al parsear notificación de stock bajo:', error);
+      }
+    });
+
+    stockEventSource.onerror = (error) => {
+      console.error('❌ Error en conexión SSE de alertas de stock:', error);
+      // Reintentar conexión después de 5 segundos
+      setTimeout(() => {
+        console.log('🔄 Reintentando conexión SSE de alertas de stock...');
+        this.conectarAlertasStock();
+      }, 5000);
+    };
+  }
+
   // Método para simular la llegada de una notificación (útil para testing)
   public simulateNotification(notification: NotificacionDTO): void {
     this.addNotification(notification);

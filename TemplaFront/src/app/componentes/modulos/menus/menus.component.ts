@@ -317,14 +317,26 @@ formatearContenidos(menu: GetMenuDTO): string {
     }).then((result) => {
       if (result.isConfirmed && menu.id) {
         this.menuService.activarDesactivarMenu(menu.id).subscribe({
-          next: () => {
-            Swal.fire({
-              title: 'Éxito',
-              text: `Menú ${accion === 'activar' ? 'activado' : 'desactivado'} exitosamente`,
-              icon: 'success',
-              confirmButtonText: 'Aceptar'
-            });
+          next: (response) => {
             this.cargarMenus();
+            
+            // ✅ Mostrar advertencia si existe
+            if (response.mensaje) {
+              Swal.fire({
+                title: `Menú ${accion === 'activar' ? 'activado' : 'desactivado'} con advertencia`,
+                html: `<p>${response.mensaje}</p>`,
+                icon: 'warning',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#f39c12'
+              });
+            } else {
+              Swal.fire({
+                title: 'Éxito',
+                text: `Menú ${accion === 'activar' ? 'activado' : 'desactivado'} exitosamente`,
+                icon: 'success',
+                confirmButtonText: 'Aceptar'
+              });
+            }
           },
           error: (error) => {
             console.error(`Error al ${accion} menú:`, error);

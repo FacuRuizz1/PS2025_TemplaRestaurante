@@ -21,7 +21,7 @@ public class NotificationService {
         try {
             NotificacionDTO notificacion = NotificacionDTO.builder()
                     .tipo("STOCK_BAJO")
-                    .mensaje(String.format("ALERTA: Stock bajo para el producto '%s'. Stock actual: %d, Stock mínimo: %d",
+                    .mensaje(String.format("ALERTA: Stock bajo para el producto '%s'. Stock actual: %.0f, Stock mínimo: %.0f",
                             productoDTO.getNombre(),
                             productoDTO.getStockActual(),
                             productoDTO.getStockMinimo()))
@@ -33,7 +33,7 @@ public class NotificationService {
 
             log.warn("Alerta de stock bajo enviada para producto: {}", productoDTO.getNombre());
         } catch (Exception e) {
-            log.error("Error al enviar alerta de stock bajo para producto: {}", productoDTO.getNombre(), e);
+            log.error("Error al enviar alerta de stock bajo para producto: {} - Detalles: {}", productoDTO.getNombre(), e.getMessage(), e);
         }
     }
 

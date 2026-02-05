@@ -85,8 +85,8 @@ export class MenuService {
     /**
      * Activa o desactiva un menú
      */
-    activarDesactivarMenu(id: number): Observable<string> {
-        return this.http.put<string>(`${this.apiUrl}/activar-desactivar/${id}`, {}, this.getHttpOptions());
+    activarDesactivarMenu(id: number): Observable<{ mensaje: string | null }> {
+        return this.http.put<{ mensaje: string | null }>(`${this.apiUrl}/activar-desactivar/${id}`, {}, this.getHttpOptions());
     }
 
     /**

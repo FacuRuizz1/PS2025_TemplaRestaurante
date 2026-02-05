@@ -92,9 +92,9 @@ export class PlatoService {
         return this.http.put<GetPlatoDto>(`${this.apiUrl}/actualizar`, formData, { headers });
     }
 
-    activarDesactivarPlato(id: number): Observable<void> {
+    activarDesactivarPlato(id: number): Observable<{ mensaje: string | null }> {
         // ✅ Usar método helper
-        return this.http.delete<void>(`${this.apiUrl}/activarDesactivarPlato/${id}`, this.getHttpOptions());
+        return this.http.delete<{ mensaje: string | null }>(`${this.apiUrl}/activarDesactivarPlato/${id}`, this.getHttpOptions());
     }
 
     bajaPlato(id: number): Observable<void> {

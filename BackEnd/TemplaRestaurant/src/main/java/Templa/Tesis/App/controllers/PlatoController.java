@@ -2,6 +2,7 @@ package Templa.Tesis.App.controllers;
 
 import Templa.Tesis.App.dtos.GetPlatoDto;
 import Templa.Tesis.App.dtos.PostPlatoDto;
+import Templa.Tesis.App.dtos.MensajeAdvertenciaDTO;
 import Templa.Tesis.App.servicies.IPlatoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,13 +43,9 @@ public class PlatoController {
     }
 
     @DeleteMapping("/activarDesactivarPlato/{id}")
-    public ResponseEntity<Void> activarDesactivarPlato(@PathVariable Integer id) {
-        try {
-            platoService.activarDesactivarPlato(id);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al dar de baja el Plato");
-        }
+    public ResponseEntity<MensajeAdvertenciaDTO> activarDesactivarPlato(@PathVariable Integer id) {
+        String mensaje = platoService.activarDesactivarPlato(id);
+        return ResponseEntity.ok(new MensajeAdvertenciaDTO(mensaje));
     }
 
     @GetMapping("/filtrar")

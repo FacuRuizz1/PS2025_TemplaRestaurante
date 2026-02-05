@@ -12,7 +12,7 @@ public interface IMenuService {
     Page<GetMenuDTO> getMenus(String buscarFiltro,String estado, int page, int size);
     GetMenuDTO createMenu(PostMenuDTO postMenuDTO);
     GetMenuDTO actualizarMenu(GetMenuDTO menuActualizar);
-    void activarDesactivarMenu(Integer id);
+    String activarDesactivarMenu(Integer id);
     void bajaMenu(Integer id);
     List<MenuDetalleEntity>  obtenerDetallesMenu(Integer idMenu);
     GetMenuDTO obtenerMenuPorId(Integer id);

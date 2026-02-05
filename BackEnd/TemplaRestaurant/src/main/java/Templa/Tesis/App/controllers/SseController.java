@@ -64,6 +64,15 @@ public class SseController {
     }
 
     /**
+     * Endpoint para recibir alertas de stock bajo
+     */
+    @GetMapping(value = "/alertas-stock", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribeAlertasStock() {
+        log.info("⚠️ Cliente conectándose para recibir alertas de stock bajo");
+        return subscribe("alertas-stock");
+    }
+
+    /**
      * Endpoint de prueba sin autenticación para verificar que SSE funciona
      */
     @GetMapping(value = "/test", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

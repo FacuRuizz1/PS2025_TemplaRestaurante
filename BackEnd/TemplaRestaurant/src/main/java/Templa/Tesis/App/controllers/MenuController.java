@@ -2,6 +2,7 @@ package Templa.Tesis.App.controllers;
 
 import Templa.Tesis.App.dtos.GetMenuDTO;
 import Templa.Tesis.App.dtos.PostMenuDTO;
+import Templa.Tesis.App.dtos.MensajeAdvertenciaDTO;
 import Templa.Tesis.App.servicies.IMenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -48,9 +49,9 @@ public class MenuController {
     }
 
     @PutMapping("/activar-desactivar/{id}")
-    public ResponseEntity<String> activarDesactivarMenu(@PathVariable Integer id) {
-        menuService.activarDesactivarMenu(id);
-        return ResponseEntity.ok("Estado del menú actualizado correctamente");
+    public ResponseEntity<MensajeAdvertenciaDTO> activarDesactivarMenu(@PathVariable Integer id) {
+        String mensaje = menuService.activarDesactivarMenu(id);
+        return ResponseEntity.ok(new MensajeAdvertenciaDTO(mensaje));
     }
 
     @DeleteMapping("/baja/{id}")

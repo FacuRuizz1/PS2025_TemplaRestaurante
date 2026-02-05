@@ -336,17 +336,41 @@ public class PlatoServiceImpl implements IPlatoService {
      *
      * @param id Identificador único del plato cuyo estado se desea cambiar.
      * @throws ResponseStatusException con código 404 si no existe un plato con el ID proporcionado.
+     * @return String con mensaje de advertencia si hay ingredientes con stock bajo/inactivos, null si todo está bien.
      *
      * @note No afecta a platos dados de baja (fechaBaja no nula).
      * @note Útil para gestionar temporalmente la disponibilidad de platos sin eliminarlos.
      */
     @Override
-    public void activarDesactivarPlato(Integer id) {
+    public String activarDesactivarPlato(Integer id) {
         PlatoEntity plato = platoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plato no encontrado"));
 
+        String mensajeAdvertencia = null;
+        
+        // ✅ Si está desactivado y se intenta activar, validar ingredientes
+        if (!plato.getDisponible()) {
+            List<String> ingredientesProblematicos = new ArrayList<>();
+            
+            for (PlatoDetalleEntity ingrediente : plato.getIngredientes()) {
+                ProductoEntity producto = ingrediente.getProducto();
+                if (!producto.getActivo()) {
+                    ingredientesProblematicos.add(producto.getNombre() + " (inactivo)");
+                } else if (producto.getStockActual() <= producto.getStockMinimo()) {
+                    ingredientesProblematicos.add(producto.getNombre() + " (stock bajo)");
+                }
+            }
+            
+            if (!ingredientesProblematicos.isEmpty()) {
+                mensajeAdvertencia = "ADVERTENCIA: El plato se activó pero los siguientes ingredientes tienen stock bajo o esta inactivo: " +
+                    String.join(", ", ingredientesProblematicos);
+            }
+        }
+        
         plato.setDisponible(!plato.getDisponible());
         platoRepository.save(plato);
+        
+        return mensajeAdvertencia;
     }
 
     /**
@@ -380,16 +404,18 @@ public class PlatoServiceImpl implements IPlatoService {
 
     /**
      * Obtiene un plato con todos sus ingredientes para operaciones internas.
-     * Valida que el plato exista y esté disponible.
+     * Valida que el plato exista, esté disponible y todos sus ingredientes tengan stock.
      *
      * @param idPlato Identificador único del plato a obtener.
      * @return PlatoEntity con todos sus ingredientes cargados.
      * @throws RuntimeException si:
      *         - El plato no existe
      *         - El plato no está disponible
+     *         - Algún ingrediente no tiene stock suficiente
      *
      * @note Método público utilizado para obtener platos con sus relaciones cargadas.
      * @note Lanza RuntimeException en lugar de ResponseStatusException para uso interno.
+     * @note Valida stock de ingredientes en tiempo real antes de procesar.
      */
     public PlatoEntity obtenerPlatoConIngredientes(Integer idPlato) {
         PlatoEntity plato = platoRepository.findById(idPlato)
@@ -397,6 +423,19 @@ public class PlatoServiceImpl implements IPlatoService {
 
         if (!plato.getDisponible()) {
             throw new RuntimeException("Plato no disponible");
+        }
+        
+        // ✅ VALIDACIÓN ADICIONAL: Verificar stock de ingredientes en tiempo real
+        for (PlatoDetalleEntity ingrediente : plato.getIngredientes()) {
+            ProductoEntity producto = ingrediente.getProducto();
+            if (!producto.getActivo()) {
+                throw new RuntimeException("El plato '" + plato.getNombre() + 
+                    "' no está disponible: el ingrediente '" + producto.getNombre() + "' está inactivo");
+            }
+            if (producto.getStockActual() <= 0) {
+                throw new RuntimeException("El plato '" + plato.getNombre() + 
+                    "' no está disponible: el ingrediente '" + producto.getNombre() + "' no tiene stock");
+            }
         }
 
         return plato;
@@ -480,5 +519,21 @@ public class PlatoServiceImpl implements IPlatoService {
                         (TipoPlato) resultado[3]         // ya es TipoPlato, no String
                 ))
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Verifica si un plato tiene todos sus ingredientes con stock disponible.
+     * Utilizado para filtrar platos realmente disponibles en los combos.
+     *
+     * @param plato Entidad PlatoEntity a verificar.
+     * @return true si todos los ingredientes están activos y tienen stock > 0, false en caso contrario.
+     * @note Método privado utilizado internamente para validación de disponibilidad real.
+     */
+    private boolean tieneIngredientesDisponibles(PlatoEntity plato) {
+        return plato.getIngredientes().stream()
+                .allMatch(ingrediente -> {
+                    ProductoEntity producto = ingrediente.getProducto();
+                    return producto.getActivo() && producto.getStockActual() > 0;
+                });
     }
 }

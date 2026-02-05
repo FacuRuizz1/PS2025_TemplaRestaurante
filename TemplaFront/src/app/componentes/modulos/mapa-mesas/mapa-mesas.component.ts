@@ -678,7 +678,15 @@ export class MapaMesasComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 
-  cerrarMenuContextual(): void {
+  cerrarMenuContextual(event?: MouseEvent | TouchEvent): void {
+    // Si el evento viene del menú contextual mismo, no hacer nada
+    if (event) {
+      const target = event.target as HTMLElement;
+      if (target.closest('.menu-contextual')) {
+        return;
+      }
+    }
+    
     this.menuContextual.visible = false;
     this.menuContextual.mesa = null;
   }
