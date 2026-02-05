@@ -181,7 +181,7 @@ export class ReporteReservasComponent implements OnInit {
       ];
       
       const rows = this.datosReporte.map(item => ({
-        periodo: item.periodo,
+        periodo: this.tipoReporte === 'horarios' ? this.formatearHorario(item.periodo) : item.periodo,
         totalReservas: item.totalReservas.toString(),
         totalComensales: item.totalComensales.toString()
       }));

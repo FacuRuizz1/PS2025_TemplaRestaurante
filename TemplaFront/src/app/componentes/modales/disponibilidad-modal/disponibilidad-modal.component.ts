@@ -176,17 +176,7 @@ export class DisponibilidadModalComponent {
     // Confirmación
     const confirmacion = await Swal.fire({
       title: '¿Crear disponibilidades?',
-      html: `
-        <div style="text-align: left; padding: 10px;">
-          <p><strong>Período:</strong> ${nombreMes} ${this.anioSeleccionado}</p>
-          <p><strong>Días a crear:</strong> ${diasDelMes}</p>
-          <p><strong>Cupos por día:</strong> ${this.cuposMaximos}</p>
-          <p><strong>Estado:</strong> ${this.activo ? 'Activo' : 'Inactivo'}</p>
-          <hr>
-          <p class="text-muted">Se crearán disponibilidades para todos los días del mes.</p>
-          <p class="text-warning">Si alguna fecha ya existe, será omitida.</p>
-        </div>
-      `,
+      text: 'Se crearán disponibilidades para todos los días del mes seleccionado.',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, crear',
@@ -252,9 +242,9 @@ export class DisponibilidadModalComponent {
       this.isLoading = false;
 
       // Mostrar resultado
-      let mensaje = `✅ Disponibilidades creadas: ${creadas}`;
+      let mensaje = `Disponibilidades creadas: ${creadas}`;
       if (omitidas > 0) {
-        mensaje += `<br>⏭️ Fechas omitidas (ya existían): ${omitidas}`;
+        mensaje += `<br>Fechas omitidas: ${omitidas}`;
       }
       if (errores.length > 0) {
         mensaje += `<br><br>❌ Errores: ${errores.length}`;

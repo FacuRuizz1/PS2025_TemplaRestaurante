@@ -4,7 +4,7 @@
   <div class="modal-content" (click)="$event.stopPropagation()">
     <!-- Header -->
     <div class="modal-header">
-      <h2 class="modal-title">📅 Crear Disponibilidades Mensuales</h2>
+      <h2 class="modal-title">Crear Disponibilidades Mensuales</h2>
       <button type="button" class="btn-close" (click)="cancelar()" [disabled]="isLoading">
         ✖
       </button>
@@ -70,24 +70,6 @@
             placeholder="Ej: 100">
           <small class="form-text text-muted">
             Cantidad de comensales que se pueden reservar por día
-          </small>
-        </div>
-
-        <!-- Estado Activo -->
-        <div class="form-group">
-          <div class="form-check">
-            <input 
-              type="checkbox" 
-              id="activo" 
-              class="form-check-input" 
-              [(ngModel)]="activo"
-              [disabled]="isLoading">
-            <label for="activo" class="form-check-label">
-              <strong>Disponibilidades activas</strong>
-            </label>
-          </div>
-          <small class="form-text text-muted">
-            Si está desactivado, las fechas no aceptarán reservas
           </small>
         </div>
 
@@ -185,7 +167,7 @@
         class="btn btn-primary" 
         (click)="crearDisponibilidades()"
         [disabled]="isLoading || cuposMaximos <= 0">
-        <span *ngIf="!isLoading">✅ Crear Disponibilidades</span>
+        <span *ngIf="!isLoading">Crear Disponibilidades</span>
         <span *ngIf="isLoading">
           <span class="spinner-border spinner-border-sm" role="status"></span>
           Creando...
