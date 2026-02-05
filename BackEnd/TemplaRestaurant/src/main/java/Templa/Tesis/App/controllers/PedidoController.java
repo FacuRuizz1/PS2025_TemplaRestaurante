@@ -61,6 +61,13 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.cancelarDetalle(id));
     }
 
+    @PostMapping("/cancelar-detalle/{idPedido}/{idDetalle}")
+    public ResponseEntity<PedidoDTO> cancelarDetalleEspecifico(
+            @PathVariable Integer idPedido,
+            @PathVariable Integer idDetalle){
+        return ResponseEntity.ok(pedidoService.cancelarDetalleEspecifico(idPedido, idDetalle));
+    }
+
     @PostMapping("/entregar-detalles/{id}")
     public ResponseEntity<PedidoDTO> marcarDetallesEntregados(@PathVariable Integer id){
         return ResponseEntity.ok(pedidoService.marcarDetalleEntregado(id));

@@ -72,11 +72,8 @@ export class PedidosComponent implements OnInit {
         this.pageInfo = response;
         this.cargando = false;
 
-        for (let pedido of this.pedidos) {
-          for (let detalle of pedido.detalles) {
-            this.total += detalle.cantidad * detalle.precioUnitario;
-          }
-        }
+        // ✅ El backend ya calcula el total excluyendo items cancelados
+        // Ya no necesitamos calcularlo aquí manualmente
 
         console.log('✅ Pedidos cargados:', this.pedidos);
       },
@@ -369,7 +366,13 @@ export class PedidosComponent implements OnInit {
       return false;
     }
 
-    return pedido.detalles.every(detalle => detalle.estado === 'ENTREGADO');
+    // ✅ Filtrar solo los items que NO están cancelados
+    const itemsActivos = pedido.detalles.filter(d => d.estado !== 'CANCELADO');
+    if (itemsActivos.length === 0) {
+      return false;
+    }
+
+    return itemsActivos.every(detalle => detalle.estado === 'ENTREGADO');
   }
 
     todosLosDetallesParaEntregar(pedido: GetPedidoDto): boolean {

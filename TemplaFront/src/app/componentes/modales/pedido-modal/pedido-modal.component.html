@@ -187,6 +187,17 @@
       {{ soloLectura ? 'Cerrar' : 'Cancelar' }}
     </button>
     
+    <!-- ✅ Botón Cancelar Pedido (solo si TODOS los items están CANCELADOS) -->
+    <button *ngIf="isEditMode && !soloLectura && todosItemsCancelados()" 
+            type="button" 
+            class="btn btn-danger" 
+            (click)="cancelarPedidoCompleto()"
+            [disabled]="guardando">
+      <span *ngIf="guardando" class="spinner-border spinner-border-sm me-2"></span>
+      <i class="fas fa-times-circle me-1"></i>
+      Cancelar Pedido
+    </button>
+    
     <!-- ✅ Botón Entregar Items Listos (solo si hay items LISTO) -->
     <button *ngIf="isEditMode && !soloLectura && hayItemsListos()" 
             type="button" 
@@ -198,7 +209,7 @@
       Entregar Items Listos
     </button>
     
-    <!-- ✅ Botón Finalizar Pedido (solo en modo edición y si todos están entregados) -->
+    <!-- ✅ Botón Finalizar Pedido (solo en modo edición y si todos están entregados, ignorando cancelados) -->
     <button *ngIf="isEditMode && !soloLectura && todosPedidosEntregados()" 
             type="button" 
             class="btn btn-secondary" 

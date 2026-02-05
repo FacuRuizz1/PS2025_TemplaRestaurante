@@ -94,6 +94,12 @@ export class PedidoService {
         return this.http.post<GetPedidoDto>(`${this.apiUrl}/cancelar-detalles/${id}`, {}, this.getHttpOptions());
     }
 
+    // ✅ Cancelar detalle específico
+    cancelarDetalleEspecifico(idPedido: number, idDetalle: number): Observable<GetPedidoDto> {
+        console.log('❌ Cancelando detalle específico:', idPedido, idDetalle);
+        return this.http.post<GetPedidoDto>(`${this.apiUrl}/cancelar-detalle/${idPedido}/${idDetalle}`, {}, this.getHttpOptions());
+    }
+
     // ✅ Marcar detalles como entregados
     entregarDetalles(id: number): Observable<GetPedidoDto> {
         console.log('📦 Entregando detalles del pedido:', id);

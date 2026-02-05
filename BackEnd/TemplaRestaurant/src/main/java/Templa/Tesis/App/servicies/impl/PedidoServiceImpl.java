@@ -299,6 +299,49 @@ public class PedidoServiceImpl implements IPedidoService {
     }
 
     /**
+     * Cancela un detalle específico del pedido.
+     * Marca el detalle especificado como CANCELADO y devuelve el stock asociado.
+     *
+     * @param idPedido Identificador único del pedido.
+     * @param idDetalle Identificador único del detalle a cancelar.
+     * @return PedidoDTO con los datos actualizados del pedido.
+     * @throws RuntimeException si no existe el pedido o el detalle.
+     *
+     * @Transactional La operación se ejecuta dentro de una transacción.
+     * @note Solo afecta el detalle especificado si está en estado PENDIENTE.
+     * @note Emite notificación SSE a la cocina sobre el pedido actualizado.
+     */
+    @Override
+    @Transactional
+    public PedidoDTO cancelarDetalleEspecifico(Integer idPedido, Integer idDetalle) {
+        PedidoEntity existe = pedidoRepository.findById(idPedido)
+                .orElseThrow(() -> new RuntimeException("El pedido con id " + idPedido + " no existe"));
+
+        // Buscar el detalle específico
+        PedidoDetalleEntity detalleEncontrado = existe.getDetalles().stream()
+                .filter(d -> d.getIdPedidoDetalle().equals(idDetalle))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("El detalle con id " + idDetalle + " no existe en el pedido"));
+
+        // Solo cancelar si está PENDIENTE
+        if (detalleEncontrado.getEstado() == EstadoPedidoDetalle.PENDIENTE) {
+            devolverStockPorDetalle(detalleEncontrado);
+            detalleEncontrado.setEstado(EstadoPedidoDetalle.CANCELADO);
+            pedidoDetalleRepository.save(detalleEncontrado);
+        } else {
+            throw new RuntimeException("Solo se pueden cancelar detalles en estado PENDIENTE");
+        }
+
+        pedidoRepository.save(existe);
+        PedidoDTO pedidoActualizado = modelMapper.map(existe, PedidoDTO.class);
+
+        // 🔥 Emitir notificación SSE de pedido actualizado
+        sseController.sendNotification("cocina", "pedido-actualizado", pedidoActualizado);
+
+        return pedidoActualizado;
+    }
+
+    /**
      * Marca todos los detalles listos para entregar como entregados.
      * Avanza el estado de los detalles de LISTO_PARA_ENTREGAR a ENTREGADO.
      *
@@ -428,7 +471,22 @@ public class PedidoServiceImpl implements IPedidoService {
             throw new RuntimeException("No se puede finalizar un pedido en estado " + existe.getEstado());
         }
 
+        // ✅ Verificar que al menos haya un item activo (no cancelado)
+        long itemsActivos = existe.getDetalles().stream()
+                .filter(d -> d.getEstado() != EstadoPedidoDetalle.CANCELADO)
+                .count();
+
+        if (itemsActivos == 0) {
+            throw new RuntimeException("No se puede finalizar el pedido porque todos los items están cancelados. Use la opción de cancelar pedido.");
+        }
+
+        // ✅ Validar que todos los items ACTIVOS (no cancelados) estén ENTREGADOS
         for(PedidoDetalleEntity detalle : existe.getDetalles()){
+            // Ignorar items cancelados en la validación
+            if(detalle.getEstado() == EstadoPedidoDetalle.CANCELADO) {
+                continue;
+            }
+            
             if(detalle.getEstado() != EstadoPedidoDetalle.ENTREGADO) {
                 throw new RuntimeException("No se puede finalizar el pedido porque tiene detalles en estado " + detalle.getEstado());
             }
@@ -777,9 +835,10 @@ public class PedidoServiceImpl implements IPedidoService {
                         dst.setFechaHora(src.getFechaPedido());
                     }
 
-                    // compute total if DTO doesn't get it automatically
+                    // ✅ compute total if DTO doesn't get it automatically (excluir items CANCELADOS)
                     double total = src.getDetalles() == null ? 0.0 :
                             src.getDetalles().stream()
+                                    .filter(d -> d.getEstado() != EstadoPedidoDetalle.CANCELADO) // Excluir cancelados
                                     .mapToDouble(d -> (d.getPrecioUnitario() == null ? 0.0 : d.getPrecioUnitario()) * (d.getCantidad() == null ? 0 : d.getCantidad()))
                                     .sum();
                     dst.setTotal(total);

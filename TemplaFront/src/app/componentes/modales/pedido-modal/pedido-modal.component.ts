@@ -471,7 +471,7 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
     this.detallesAgregados.splice(index, 1);
   }
 
-  // ✅ Cancelar detalle del pedido (para items con estado PENDIENTE)
+  // ✅ Cancelar detalle específico del pedido (para items con estado PENDIENTE)
   cancelarDetalle(idDetalle: number): void {
     if (!this.pedidoData) {
       console.error('No hay pedido cargado');
@@ -480,12 +480,11 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
 
     this.alertService.showConfirmation('Confirmar Cancelación', '¿Está seguro que desea cancelar este item?', 'Sí, cancelar').then((result) => {
       if (result.isConfirmed) {
-        // ✅ Llamar al servicio para cancelar todos los detalles pendientes del pedido
-        // Nota: El backend cancela todos los detalles PENDIENTES, no uno específico
+        // ✅ Llamar al servicio para cancelar el detalle específico
         this.guardando = true;
-        this.pedidoService.cancelarDetalles(this.pedidoData!.idPedido).subscribe({
+        this.pedidoService.cancelarDetalleEspecifico(this.pedidoData!.idPedido, idDetalle).subscribe({
           next: (response) => {
-            console.log('✅ Detalles cancelados:', response);
+            console.log('✅ Detalle cancelado:', response);
             this.guardando = false;
             
             // Actualizar los detalles con la respuesta del backend
@@ -495,8 +494,12 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
               tipo: detalle.tipo,
               precio: detalle.precioUnitario,
               cantidad: detalle.cantidad,
-              estado: detalle.estado
+              estado: detalle.estado,
+              esNuevo: false
             }));
+            
+            // ✅ Actualizar también pedidoData para mantener sincronizado
+            this.pedidoData = response;
             
             this.alertService.showSuccess('Item Cancelado', 'El item ha sido cancelado exitosamente');
           },
@@ -510,11 +513,13 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Calcular total del pedido
+  // ✅ Calcular total del pedido (excluyendo items cancelados)
   calcularTotal(): number {
-    return this.detallesAgregados.reduce((total, detalle) => {
-      return total + (detalle.precio * detalle.cantidad);
-    }, 0);
+    return this.detallesAgregados
+      .filter(detalle => detalle.estado !== 'CANCELADO') // Excluir cancelados
+      .reduce((total, detalle) => {
+        return total + (detalle.precio * detalle.cantidad);
+      }, 0);
   }
 
   // ✅ Cargar datos para edición (agregar items a pedido existente)
@@ -723,11 +728,54 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ Verificar si todos los detalles están entregados
+   * ✅ Verificar si todos los detalles están entregados (ignorando cancelados)
    */
   todosPedidosEntregados(): boolean {
     if (this.detallesAgregados.length === 0) return false;
-    return this.detallesAgregados.every(d => d.estado === 'ENTREGADO');
+    // Filtrar solo los items que NO están cancelados
+    const itemsActivos = this.detallesAgregados.filter(d => d.estado !== 'CANCELADO');
+    if (itemsActivos.length === 0) return false;
+    return itemsActivos.every(d => d.estado === 'ENTREGADO');
+  }
+
+  /**
+   * ✅ Verificar si todos los detalles están cancelados
+   */
+  todosItemsCancelados(): boolean {
+    if (this.detallesAgregados.length === 0) return false;
+    return this.detallesAgregados.every(d => d.estado === 'CANCELADO');
+  }
+
+  /**
+   * ✅ Cancelar pedido completo (cuando todos los items están cancelados)
+   */
+  cancelarPedidoCompleto(): void {
+    if (!this.pedidoData) return;
+
+    this.alertService.showConfirmation(
+      'Confirmar Cancelación de Pedido', 
+      'Todos los items están cancelados. ¿Desea cancelar el pedido completo?', 
+      'Sí, cancelar pedido'
+    ).then((result) => {
+      if (result.isConfirmed) {
+        this.guardando = true;
+        this.pedidoService.cancelarPedido(this.pedidoData!.idPedido).subscribe({
+          next: (response) => {
+            console.log('✅ Pedido cancelado:', response);
+            this.guardando = false;
+            this.activeModal.close({
+              accion: 'cancelado',
+              pedido: response
+            });
+          },
+          error: (error: any) => {
+            console.error('❌ Error al cancelar pedido:', error);
+            this.guardando = false;
+            this.alertService.showError('Error al Cancelar Pedido', error.error?.message || 'Error desconocido');
+          }
+        });
+      }
+    });
   }
 
   /**

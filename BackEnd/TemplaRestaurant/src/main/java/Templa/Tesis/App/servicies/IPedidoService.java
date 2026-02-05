@@ -19,6 +19,7 @@ public interface IPedidoService {
                                      LocalDate fechaDesde, LocalDate fechaHasta);
     PedidoDTO cancelarPedido(Integer idPedido);
     PedidoDTO cancelarDetalle(Integer idPedido);
+    PedidoDTO cancelarDetalleEspecifico(Integer idPedido, Integer idDetalle);
     PedidoDTO marcarDetalleEntregado(Integer idPedido);
     PedidoDTO iniciarPedido(Integer idPedido);
     PedidoDTO marcarDetalleParaEntregar(Integer idPedido);
