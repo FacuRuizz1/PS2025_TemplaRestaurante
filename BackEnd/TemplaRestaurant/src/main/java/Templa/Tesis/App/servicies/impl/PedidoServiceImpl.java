@@ -2,8 +2,8 @@ package Templa.Tesis.App.servicies.impl;
 
 import Templa.Tesis.App.Enums.EstadoMesa;
 import Templa.Tesis.App.Enums.EstadoPedido;
-
 import Templa.Tesis.App.Enums.EstadoPedidoDetalle;
+import Templa.Tesis.App.Enums.TipoProducto;
 import Templa.Tesis.App.dtos.*;
 import Templa.Tesis.App.entities.*;
 import Templa.Tesis.App.repositories.*;
@@ -308,7 +308,7 @@ public class PedidoServiceImpl implements IPedidoService {
      * @throws RuntimeException si no existe el pedido o el detalle.
      *
      * @Transactional La operación se ejecuta dentro de una transacción.
-     * @note Solo afecta el detalle especificado si está en estado PENDIENTE.
+     * @note Solo se puede cancelar si: está PENDIENTE o está LISTO_PARA_ENTREGAR y es PRODUCTO BEBIDA.
      * @note Emite notificación SSE a la cocina sobre el pedido actualizado.
      */
     @Override
@@ -323,13 +323,28 @@ public class PedidoServiceImpl implements IPedidoService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("El detalle con id " + idDetalle + " no existe en el pedido"));
 
-        // Solo cancelar si está PENDIENTE
+        // ✅ Validar si se puede cancelar:
+        // - PENDIENTE: Siempre se puede cancelar
+        // - LISTO_PARA_ENTREGAR: Solo si es un PRODUCTO BEBIDA (ej: Coca-Cola)
+        //   Los platos/menús listos ya no se pueden cancelar porque pasaron por cocina
+        boolean puedesCancelar = false;
+        
         if (detalleEncontrado.getEstado() == EstadoPedidoDetalle.PENDIENTE) {
+            puedesCancelar = true;
+        } else if (detalleEncontrado.getEstado() == EstadoPedidoDetalle.LISTO_PARA_ENTREGAR) {
+            // Solo permitir cancelar si es un PRODUCTO con tipo BEBIDA
+            if (detalleEncontrado.getProducto() != null && 
+                detalleEncontrado.getProducto().getTipo() == TipoProducto.BEBIDA) {
+                puedesCancelar = true;
+            }
+        }
+        
+        if (puedesCancelar) {
             devolverStockPorDetalle(detalleEncontrado);
             detalleEncontrado.setEstado(EstadoPedidoDetalle.CANCELADO);
             pedidoDetalleRepository.save(detalleEncontrado);
         } else {
-            throw new RuntimeException("Solo se pueden cancelar detalles en estado PENDIENTE");
+            throw new RuntimeException("Solo se pueden cancelar items PENDIENTES o PRODUCTOS BEBIDA listos para entregar");
         }
 
         pedidoRepository.save(existe);
@@ -678,6 +693,12 @@ public class PedidoServiceImpl implements IPedidoService {
                 detalleDto.getCantidad()
         );
 
+        // ✅ Si es una BEBIDA (producto), no pasa por cocina → LISTO_PARA_ENTREGAR
+        // Los PLATOS BEBIDA sí pasan por cocina porque requieren preparación (ej: limonada)
+        EstadoPedidoDetalle estadoInicial = (producto.getTipo() == TipoProducto.BEBIDA)
+                ? EstadoPedidoDetalle.LISTO_PARA_ENTREGAR
+                : EstadoPedidoDetalle.PENDIENTE;
+
         PedidoDetalleEntity nuevoDetalle = new PedidoDetalleEntity();
         nuevoDetalle.setPedido(pedido);
         nuevoDetalle.setProducto(producto);
@@ -685,7 +706,7 @@ public class PedidoServiceImpl implements IPedidoService {
         nuevoDetalle.setMenu(null);
         nuevoDetalle.setCantidad(detalleDto.getCantidad());
         nuevoDetalle.setPrecioUnitario(producto.getPrecio());
-        nuevoDetalle.setEstado(EstadoPedidoDetalle.PENDIENTE);
+        nuevoDetalle.setEstado(estadoInicial);
         pedidoDetalleRepository.save(nuevoDetalle);
 
         return modelMapper.map(nuevoDetalle, GetPedidoDetalleDTO.class);

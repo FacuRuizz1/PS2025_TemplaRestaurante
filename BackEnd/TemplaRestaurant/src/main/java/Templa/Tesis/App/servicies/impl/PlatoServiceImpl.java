@@ -363,7 +363,7 @@ public class PlatoServiceImpl implements IPlatoService {
             }
             
             if (!ingredientesProblematicos.isEmpty()) {
-                mensajeAdvertencia = "ADVERTENCIA: El plato se activó pero los siguientes ingredientes tienen stock bajo o esta inactivo: " +
+                mensajeAdvertencia = "El plato se activó pero los siguientes ingredientes tienen stock bajo o esta inactivo: " +
                     String.join(", ", ingredientesProblematicos);
             }
         }

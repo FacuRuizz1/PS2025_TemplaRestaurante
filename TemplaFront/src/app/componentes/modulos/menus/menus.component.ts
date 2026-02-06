@@ -149,26 +149,25 @@ export class MenusComponent implements OnInit {
     }
   }
 
-  obtenerPaginasVisibles(): number[] {
+  obtenerPaginasVisibles(): (number | null)[] {
     if (!this.pageInfo) return [];
 
-    const totalPaginas = this.pageInfo.totalPages;
-    const paginaActual = this.pageInfo.number;
-    const paginas: number[] = [];
-    const maxPaginasVisibles = 5;
+    const totalPages = this.pageInfo.totalPages;
+    const pages: (number | null)[] = [];
 
-    let inicio = Math.max(0, paginaActual - Math.floor(maxPaginasVisibles / 2));
-    let fin = Math.min(totalPaginas - 1, inicio + maxPaginasVisibles - 1);
-
-    if (fin - inicio < maxPaginasVisibles - 1) {
-      inicio = Math.max(0, fin - maxPaginasVisibles + 1);
+    if (totalPages <= 7) {
+      // Si hay 7 páginas o menos, mostrar todas
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar: 1, 2, 3, 4, ..., última
+      pages.push(0, 1, 2, 3);
+      pages.push(null); // Puntos suspensivos
+      pages.push(totalPages - 1);
     }
 
-    for (let i = inicio; i <= fin; i++) {
-      paginas.push(i);
-    }
-
-    return paginas;
+    return pages;
   }
 
   // ✅ Métodos de filtros
@@ -327,7 +326,7 @@ formatearContenidos(menu: GetMenuDTO): string {
                 html: `<p>${response.mensaje}</p>`,
                 icon: 'warning',
                 confirmButtonText: 'Entendido',
-                confirmButtonColor: '#f39c12'
+                confirmButtonColor: '#f5d76e'
               });
             } else {
               Swal.fire({
@@ -363,7 +362,7 @@ formatearContenidos(menu: GetMenuDTO): string {
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#d33'
+      confirmButtonColor: '#e74c3c'
     }).then((result) => {
       if (result.isConfirmed && menu.id) {
         this.menuService.bajaMenu(menu.id).subscribe({

@@ -59,10 +59,10 @@ export class PlatoModalComponent implements OnInit {
   }
 
   // ✅ NUEVO: Crear FormGroup para un ingrediente
-  crearIngredienteFormGroup(idProducto: number = 0, cantidad: number = 0): FormGroup {
+  crearIngredienteFormGroup(idProducto: number | null = null, cantidad: number | null = null): FormGroup {
     return this.formBuilder.group({
-      idProducto: [idProducto, Validators.required],
-      cantidad: [cantidad, [Validators.required, Validators.min(0.1)]]
+      idProducto: [idProducto || '', Validators.required],
+      cantidad: [cantidad, [Validators.required, Validators.min(0.001)]] // ✅ Cambiado: min 0.001 (1 gramo)
     });
   }
 
@@ -107,6 +107,18 @@ export class PlatoModalComponent implements OnInit {
     } else {
       this.agregarIngrediente();
     }
+
+    // Preview de imagen existente
+    if (this.platoData.foto) {
+      this.imagenPreview = this.platoData.foto;
+    }
+
+    // Debug: verificar estado del formulario
+    console.log('📝 Formulario cargado para edición:', {
+      valido: this.platoForm.valid,
+      valores: this.platoForm.value,
+      errores: this.obtenerErroresFormulario()
+    });
   }
 
   // ✅ NUEVO: Método que confirma antes de cambiar el estado
@@ -122,7 +134,7 @@ export class PlatoModalComponent implements OnInit {
       text: `¿Está seguro de ${accion} "${nombrePlato}"?`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: nuevoValor ? '#28a745' : '#dc3545',
+      confirmButtonColor: nuevoValor ? '#84C473' : '#e74c3c',
       cancelButtonColor: '#6c757d',
       confirmButtonText: `Sí, ${accion}`,
       cancelButtonText: 'Cancelar',
@@ -157,7 +169,7 @@ export class PlatoModalComponent implements OnInit {
       `,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#dc3545',
+      confirmButtonColor: '#e74c3c',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Sí, eliminar definitivamente',
       cancelButtonText: 'Cancelar',
@@ -285,6 +297,48 @@ export class PlatoModalComponent implements OnInit {
       if (field.errors['min']) return `El valor debe ser mayor a ${field.errors['min'].min}`;
     }
     return '';
+  }
+
+  // ✅ NUEVO: Debug - Obtener todos los errores del formulario
+  obtenerErroresFormulario(): any {
+    const errores: any = {};
+    
+    Object.keys(this.platoForm.controls).forEach(key => {
+      const control = this.platoForm.get(key);
+      if (control && control.invalid) {
+        errores[key] = control.errors;
+      }
+    });
+
+    // Errores de ingredientes
+    if (this.ingredientesFormArray.invalid) {
+      errores.ingredientes = [];
+      this.ingredientesFormArray.controls.forEach((control, index) => {
+        if (control.invalid) {
+          errores.ingredientes.push({
+            index,
+            errores: control.errors,
+            valores: control.value
+          });
+        }
+      });
+    }
+
+    return errores;
+  }
+
+  // ✅ NUEVO: Método para debug en consola del estado del formulario
+  debugFormulario(): void {
+    console.log('🔍 Estado del formulario:', {
+      valido: this.platoForm.valid,
+      valores: this.platoForm.value,
+      errores: this.obtenerErroresFormulario(),
+      ingredientes: {
+        cantidad: this.ingredientesFormArray.length,
+        validos: this.ingredientesFormArray.controls.filter(c => c.valid).length,
+        invalidos: this.ingredientesFormArray.controls.filter(c => c.invalid).length
+      }
+    });
   }
 
   getProductoNombre(id: number): string {

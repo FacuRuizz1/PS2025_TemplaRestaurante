@@ -354,11 +354,33 @@ export class PedidosComponent implements OnInit {
   }
 
   irAPagina(pagina: number) {
-    console.log('Ir a página:', pagina);
+    if (pagina >= 0 && this.pageInfo && pagina < this.pageInfo.totalPages) {
+      this.paginaActual = pagina;
+      this.cargarPedidos();
+    }
   }
 
-  obtenerPaginasVisibles(): number[] {
-    return [0, 1, 2];
+  obtenerPaginasVisibles(): (number | null)[] {
+    if (!this.pageInfo) {
+      return [];
+    }
+
+    const totalPages = this.pageInfo.totalPages;
+    const pages: (number | null)[] = [];
+
+    if (totalPages <= 7) {
+      // Si hay 7 páginas o menos, mostrar todas
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar: 1, 2, 3, 4, ..., última
+      pages.push(0, 1, 2, 3);
+      pages.push(null); // Puntos suspensivos
+      pages.push(totalPages - 1);
+    }
+
+    return pages;
   }
 
   todosLosDetallesEntregados(pedido: GetPedidoDto): boolean {

@@ -264,16 +264,17 @@ export class ReservaPublicaComponent implements OnInit {
     Swal.fire({
       icon: 'success',
       title: '¡Reserva Confirmada!',
-      html: `...`,
+      html: `Su reserva se realizo con éxito.<br>Número de reserva: <strong>#${nroReserva}</strong><br>Fecha: <strong>${this.formatearFecha(this.reservaData.fechaReserva)}</strong><br>Horario: <strong>${this.reservaData.horario}</strong>`,
       confirmButtonText: 'Volver al inicio',
-      confirmButtonColor: '#27ae60'
+      confirmButtonColor: '#84C473'
     }).then(() => {
       this.router.navigate(['/']);
     });
 
   } catch (error: any) {
     console.error('Error al crear reserva:', error);
-    Swal.fire('Error', error.error?.message || 'No se pudo crear la reserva', 'error');
+    const errorMsg = (error.error?.message || 'No se pudo crear la reserva').replace('Error interno del servidor: ', '');
+    Swal.fire('Error', errorMsg, 'error');
   }
 }
 
@@ -500,7 +501,7 @@ export class ReservaPublicaComponent implements OnInit {
       showCancelButton: true,
       confirmButtonText: '<i class="fas fa-credit-card"></i> Continuar al Pago',
       cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-      confirmButtonColor: '#27ae60',
+      confirmButtonColor: '#84C473',
       cancelButtonColor: '#e74c3c',
       showLoaderOnConfirm: true,
       allowOutsideClick: false,
@@ -579,7 +580,7 @@ export class ReservaPublicaComponent implements OnInit {
       `,
       icon: 'success',
       confirmButtonText: 'Ir a pagar',
-      confirmButtonColor: '#27ae60',
+      confirmButtonColor: '#84C473',
       timer: 3000,
       timerProgressBar: true
     });
@@ -592,9 +593,10 @@ export class ReservaPublicaComponent implements OnInit {
     
   } catch (error: any) {
     console.error('❌ Error al procesar pago VIP:', error);
+    const errorMsg = (error.error?.message || error.message || 'No se pudo procesar la reserva VIP').replace('Error interno del servidor: ', '');
     Swal.fire({
       title: 'Error al procesar pago',
-      text: error.error?.message || error.message || 'No se pudo procesar la reserva VIP',
+      text: errorMsg,
       icon: 'error',
       confirmButtonText: 'OK',
       confirmButtonColor: '#e74c3c'

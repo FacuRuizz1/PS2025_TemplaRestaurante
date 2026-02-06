@@ -826,76 +826,6 @@
   margin: 0;
 }
 
-/* Paginación */
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 25px;
-  padding: 20px;
-  background: var(--templa-beige);
-  border-radius: 12px;
-  border: 1px solid var(--templa-gold);
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.btn-pagination {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  border: 2px solid var(--templa-gold);
-  background: white;
-  color: var(--templa-gold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background: var(--templa-gold);
-  color: white;
-  transform: translateY(-1px);
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-weight: 600;
-  color: var(--templa-dark-green);
-  padding: 0 15px;
-}
-
-.page-size {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.page-size label {
-  font-weight: 600;
-  color: var(--templa-dark-green);
-  font-size: 0.9rem;
-}
-
-.page-size select {
-  padding: 8px 12px;
-  border: 2px solid var(--templa-gold);
-  border-radius: 6px;
-  background: white;
-  color: var(--templa-dark-green);
-  font-weight: 600;
-}
-
 /* Responsive para lista */
 @media (max-width: 1200px) {
   .filter-row {
@@ -1402,46 +1332,6 @@
 .btn-delete:hover {
   background-color: #dc3545;
 }
-
-/* Paginación */
-.pagination-container {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.pagination-info {
-  color: var(--templa-dark-green);
-  font-size: 14px;
-}
-
-.custom-pagination .page-link {
-  color: var(--templa-brown);
-  border: 1px solid var(--templa-gold);
-  padding: 8px 12px;
-  margin: 0 2px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.custom-pagination .page-link:hover {
-  background-color: var(--templa-gold);
-  border-color: var(--templa-gold);
-  color: var(--templa-brown);
-}
-
-.custom-pagination .page-item.active .page-link {
-  background-color: var(--templa-brown);
-  border-color: var(--templa-brown);
-  color: white;
-}
-
-.custom-pagination .page-item.disabled .page-link {
-  color: #6c757d;
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
-}
-
 /* Estilos para el nuevo dropdown de eventos */
 .event-filter {
   display: flex;
@@ -1450,17 +1340,23 @@
 
 .event-filter .form-select {
   min-width: 180px;
-  background-color: white;
-  border: 2px solid var(--templa-beige);
-  color: var(--templa-brown);
+  background-color: var(--templa-gold);
+  border: none;
+  color: white;
   border-radius: 8px;
   font-weight: 500;
+  height: 35px;
+  padding: 0 15px;
   transition: all 0.3s ease;
+  font-family: var(--templa-font-body);
+  font-size: 13px;
 }
 
 .event-filter .form-select:focus {
-  border-color: var(--templa-gold);
-  box-shadow: 0 0 0 0.2rem rgba(218, 165, 32, 0.25);
+  background-color: var(--templa-gold);
+  border: none;
+  box-shadow: 0 0 0 0.2rem rgba(212, 165, 116, 0.5);
+  color: white;
 }
 
 .event-filter .form-select option {
@@ -1748,4 +1644,68 @@
   .resumen-value {
     text-align: left;
   }
+}
+
+/* ===== FILTROS DE FECHA ===== */
+.date-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: var(--templa-gold);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 35px;
+}
+
+.date-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-label {
+  font-family: var(--templa-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--templa-brown);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.custom-date-input {
+  background-color: var(--templa-brown) !important;
+  border: 1px solid var(--templa-brown) !important;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  min-width: 130px;
+  height: 28px;
+  color: white !important;
+  font-family: var(--templa-font-body);
+  transition: all 0.3s ease;
+}
+
+.custom-date-input:focus {
+  background-color: rgba(101, 67, 33, 0.9) !important;
+  border-color: white !important;
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25) !important;
+  outline: none;
+  color: white !important;
+}
+
+.custom-date-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Estilo para el calendario picker */
+.custom-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.custom-date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }

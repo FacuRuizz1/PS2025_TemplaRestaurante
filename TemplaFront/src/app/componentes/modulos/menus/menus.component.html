@@ -127,9 +127,12 @@
 
             <!-- Números de página -->
             <li class="page-item" *ngFor="let pagina of obtenerPaginasVisibles()" 
-                [class.active]="pagina === pageInfo.number">
-                <button class="page-link" (click)="irAPagina(pagina)">
-                    {{ pagina + 1 }}
+                [class.active]="pagina === pageInfo.number"
+                [class.disabled]="pagina === null">
+                <button class="page-link" 
+                        (click)="pagina !== null && irAPagina(pagina)"
+                        [disabled]="pagina === null">
+                    {{ pagina === null ? '...' : (pagina + 1) }}
                 </button>
             </li>
 

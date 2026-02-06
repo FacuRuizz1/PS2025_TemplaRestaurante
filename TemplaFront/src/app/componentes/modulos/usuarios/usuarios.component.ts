@@ -30,7 +30,7 @@ export class UsuariosComponent implements OnInit {
   
   // ✅ Paginación
   paginaActual: number = 1;
-  itemsPorPagina: number = 5;
+  itemsPorPagina: number = 10;
   totalItems: number = 0;
 
   // ✅ Loading
@@ -71,15 +71,15 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
-  // ✅ Cargar lista de personas para el dropdown
+  // ✅ Cargar lista de personas PERSONAL sin usuario para el dropdown
   cargarPersonas(): void {
-    this.personaService.obtenerPersonas(0, 1000).subscribe({
+    this.personaService.obtenerPersonalSinUsuario(0, 1000).subscribe({
       next: (response) => {
         this.personas = response.content || [];
-        console.log('Personas cargadas:', this.personas.length);
+        console.log('✅ Personas sin usuario cargadas:', this.personas.length);
       },
       error: (error) => {
-        console.error('Error al cargar personas:', error);
+        console.error('❌ Error al cargar personas sin usuario:', error);
         this.personas = [];
       }
     });
@@ -232,12 +232,13 @@ export class UsuariosComponent implements OnInit {
       next: (usuarioCreado) => {
         console.log('✅ Usuario creado exitosamente:', usuarioCreado);
         this.cargarUsuarios();
+        this.cargarPersonas(); // ✅ Recargar lista de personas sin usuario
         Swal.fire({
           title: '¡Éxito!',
           text: 'Usuario creado exitosamente',
           icon: 'success',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
+          confirmButtonColor: '#84C473'
         });
       },
       error: (error) => {
@@ -248,7 +249,7 @@ export class UsuariosComponent implements OnInit {
           text: 'Error al crear el usuario',
           icon: 'error',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
+          confirmButtonColor: '#e74c3c'
         });
       }
     });
@@ -276,7 +277,7 @@ export class UsuariosComponent implements OnInit {
           text: 'Usuario actualizado exitosamente',
           icon: 'success',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
+          confirmButtonColor: '#84C473'
         });
       },
       error: (error) => {
@@ -287,7 +288,7 @@ export class UsuariosComponent implements OnInit {
           text: 'Error al actualizar el usuario',
           icon: 'error',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
+          confirmButtonColor: '#e74c3c'
         });
       }
     });
@@ -300,7 +301,7 @@ export class UsuariosComponent implements OnInit {
       text: `¿Desea eliminar al usuario ${usuario.username}?`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#dc3545',
+      confirmButtonColor: '#e74c3c',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar',
@@ -319,7 +320,7 @@ export class UsuariosComponent implements OnInit {
                 text: 'Usuario eliminado exitosamente',
                 icon: 'success',
                 confirmButtonText: 'OK',
-                confirmButtonColor: '#28a745'
+                confirmButtonColor: '#84C473'
               });
             },
             error: (error) => {
@@ -330,7 +331,7 @@ export class UsuariosComponent implements OnInit {
                 text: 'Error al eliminar el usuario',
                 icon: 'error',
                 confirmButtonText: 'OK',
-                confirmButtonColor: '#dc3545'
+                confirmButtonColor: '#e74c3c'
               });
             }
           });
@@ -342,7 +343,7 @@ export class UsuariosComponent implements OnInit {
             text: 'Error: usuario sin ID',
             icon: 'error',
             confirmButtonText: 'OK',
-            confirmButtonColor: '#dc3545'
+            confirmButtonColor: '#e74c3c'
           });
         }
       }

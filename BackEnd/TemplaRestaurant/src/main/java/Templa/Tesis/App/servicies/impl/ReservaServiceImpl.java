@@ -212,41 +212,52 @@ public class ReservaServiceImpl implements IReservaService {
 
     /**
      * Obtiene una lista paginada de reservas aplicando filtros de búsqueda.
-     * Permite filtrar por tipo de evento y fecha específica.
+     * Permite filtrar por tipo de evento y rango de fechas.
      * Los resultados se ordenan por fecha de reserva descendente.
      *
      * @param page Número de página a recuperar (comenzando desde 0).
      * @param size Cantidad de elementos por página.
      * @param evento Tipo de evento a filtrar (ej: "CENA", "ALMUERZO", "VIP").
      *               Si es null o vacío, no se aplica filtro por evento.
-     * @param fecha Fecha específica para filtrar reservas. Si es null, no se filtra por fecha.
+     * @param fechaDesde Fecha inicial del rango para filtrar reservas.
+     *                   Si es null, se usa el primer día del mes actual.
+     * @param fechaHasta Fecha final del rango para filtrar reservas.
+     *                   Si es null, se usa la fecha actual.
      * @return Page<ReservaDTO> con las reservas filtradas, paginadas y ordenadas.
      * @throws Exception si ocurre un error durante la consulta a la base de datos.
      */
     @Override
-    public Page<ReservaDTO> traerReservas(int page, int size, String evento, LocalDate fecha) {
+    public Page<ReservaDTO> traerReservas(int page, int size, String evento, LocalDate fechaDesde, LocalDate fechaHasta) {
+        // Establecer valores por defecto si no se proporcionan fechas
+        if (fechaDesde == null) {
+            fechaDesde = LocalDate.now().withDayOfMonth(1);
+        }
+        if (fechaHasta == null) {
+            fechaHasta = LocalDate.now();
+        }
+
+        // Variables finales para usar en la lambda
+        final LocalDate fechaDesdeFinal = fechaDesde;
+        final LocalDate fechaHastaFinal = fechaHasta;
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaReserva").descending());
 
         Specification<ReservaEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (evento != null && !evento.isEmpty()) {
-                predicates.add(cb.equal(root.get("evento"), evento));
-            }
-
-            if (fecha != null) {
-                Class<?> fechaType = root.get("fechaReserva").getJavaType();
-                if (fechaType.equals(java.time.LocalDate.class)) {
-                    predicates.add(cb.equal(root.get("fechaReserva"), fecha));
-                } else if (fechaType.equals(java.time.LocalDateTime.class)) {
-                    java.time.LocalDateTime start = fecha.atStartOfDay();
-                    java.time.LocalDateTime end = fecha.plusDays(1).atStartOfDay().minusNanos(1);
-                    predicates.add(cb.between(root.get("fechaReserva"), start, end));
-                } else {
-                    // fallback: intentar comparar como texto (por si acaso)
-                    predicates.add(cb.equal(cb.function("TO_CHAR", String.class, root.get("fechaReserva"), cb.literal("YYYY-MM-DD")), fecha.toString()));
+            // Filtrar por evento si se proporciona
+            if (evento != null && !evento.trim().isEmpty()) {
+                try {
+                    EventoReserva eventoEnum = EventoReserva.valueOf(evento.toUpperCase());
+                    predicates.add(cb.equal(root.get("evento"), eventoEnum));
+                } catch (IllegalArgumentException e) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Evento de reserva inválido: " + evento);
                 }
             }
+
+            // Filtrar por rango de fechas
+            predicates.add(cb.between(root.get("fechaReserva"), fechaDesdeFinal, fechaHastaFinal));
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

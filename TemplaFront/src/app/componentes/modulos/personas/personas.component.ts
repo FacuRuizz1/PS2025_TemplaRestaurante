@@ -124,25 +124,25 @@ export class PersonasComponent implements OnInit {
     this.aplicarFiltros();
   } 
 
-  obtenerPaginasVisibles(): number[] {
+  obtenerPaginasVisibles(): (number | null)[] {
     if (!this.pageInfo) return [];
     
-    const totalPaginas = this.pageInfo.totalPages;
-    const paginaActual = this.pageInfo.number;
-    const paginas: number[] = [];
-    
-    let inicio = Math.max(0, paginaActual - 2);
-    let fin = Math.min(totalPaginas - 1, inicio + 4);
-    
-    if (fin - inicio < 4) {
-      inicio = Math.max(0, fin - 4);
+    const totalPages = this.pageInfo.totalPages;
+    const pages: (number | null)[] = [];
+
+    if (totalPages <= 7) {
+      // Si hay 7 páginas o menos, mostrar todas
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar: 1, 2, 3, 4, ..., última
+      pages.push(0, 1, 2, 3);
+      pages.push(null); // Puntos suspensivos
+      pages.push(totalPages - 1);
     }
-    
-    for (let i = inicio; i <= fin; i++) {
-      paginas.push(i);
-    }
-    
-    return paginas;
+
+    return pages;
   }
 
  openNewPersonModal(persona?: Persona) {
@@ -207,7 +207,7 @@ crearPersona(persona: Persona) {
         text: 'Persona creada exitosamente',
         icon: 'success',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#28a745'
+        confirmButtonColor: '#84C473'
       });
     },
     error: (error) => {
@@ -218,7 +218,7 @@ crearPersona(persona: Persona) {
         text: 'Error al crear la persona',
         icon: 'error',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#dc3545'
+        confirmButtonColor: '#e74c3c'
       });
     }
   });
@@ -235,7 +235,7 @@ crearPersona(persona: Persona) {
           text: 'Persona actualizada exitosamente',
           icon: 'success',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
+          confirmButtonColor: '#84C473'
         });
       },
       error: (error) => {
@@ -246,7 +246,7 @@ crearPersona(persona: Persona) {
           text: 'Error al actualizar la persona',
           icon: 'error',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
+          confirmButtonColor: '#e74c3c'
         });
       }
     });
@@ -259,7 +259,7 @@ crearPersona(persona: Persona) {
       text: `¿Desea eliminar a ${persona.nombre} ${persona.apellido}?`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#dc3545',
+      confirmButtonColor: '#e74c3c',
       cancelButtonColor: '#6c757d',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar',
@@ -276,7 +276,7 @@ crearPersona(persona: Persona) {
               text: 'Persona eliminada exitosamente',
               icon: 'success',
               confirmButtonText: 'OK',
-              confirmButtonColor: '#28a745'
+              confirmButtonColor: '#84C473'
             });
           },
           error: (error) => {
@@ -287,7 +287,7 @@ crearPersona(persona: Persona) {
               text: 'Error al eliminar la persona',
               icon: 'error',
               confirmButtonText: 'OK',
-              confirmButtonColor: '#dc3545'
+              confirmButtonColor: '#e74c3c'
             });
           }
         });

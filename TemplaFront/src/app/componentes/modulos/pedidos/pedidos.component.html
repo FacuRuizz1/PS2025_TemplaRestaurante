@@ -115,7 +115,8 @@
                         </button>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-edit" (click)="abrirNuevoPedido(pedido)" title="Editar">
+                        <button class="btn btn-sm btn-edit" (click)="abrirNuevoPedido(pedido)" title="Editar"
+                            [disabled]="pedido.estado === 'FINALIZADO' || pedido.estado === 'CANCELADO'">
                             ✏️
                         </button>
                     </td>
@@ -146,7 +147,7 @@
                                 </button>
 
                                 <button ngbDropdownItem
-                                    *ngIf="todosLosDetallesEntregados(pedido)"
+                                    *ngIf="todosLosDetallesEntregados(pedido) && pedido.estado !== 'FINALIZADO' && pedido.estado !== 'CANCELADO'"
                                     (click)="cambiarEstadoPedido(pedido, 'finalizar')">
                                     Finalizar
                                 </button>
@@ -154,7 +155,8 @@
                         </div>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-delete" (click)="cancelarPedido(pedido)" title="Cancelar">
+                        <button class="btn btn-sm btn-delete" (click)="cancelarPedido(pedido)" title="Cancelar"
+                            [disabled]="pedido.estado === 'FINALIZADO' || pedido.estado === 'CANCELADO'">
                             🗑️
                         </button>
                     </td>
@@ -184,11 +186,17 @@
                     </li>
                     <!-- Números de página -->
                     @for (pagina of obtenerPaginasVisibles(); track pagina) {
-                    <li class="page-item" [class.active]="pagina === pageInfo.number">
-                        <a class="page-link" href="#" (click)="irAPagina(pagina); $event.preventDefault()">
-                            {{ pagina + 1 }}
-                        </a>
-                    </li>
+                    @if (pagina === null) {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    } @else {
+                        <li class="page-item" [class.active]="pagina === pageInfo.number">
+                            <a class="page-link" href="#" (click)="irAPagina(pagina); $event.preventDefault()">
+                                {{ pagina + 1 }}
+                            </a>
+                        </li>
+                    }
                     }
 
                     <!-- Botón siguiente -->

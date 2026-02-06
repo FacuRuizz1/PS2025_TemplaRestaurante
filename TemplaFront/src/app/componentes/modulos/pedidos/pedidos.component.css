@@ -107,9 +107,13 @@
     margin-left: 5px;
 }
 
-/* Botón deshabilitado sin borde */
+/* Botones deshabilitados sin borde */
 .btn-edit:disabled,
-.btn-edit.disabled {
+.btn-edit.disabled,
+.btn-delete:disabled,
+.btn-delete.disabled,
+.btn-view:disabled,
+.btn-view.disabled {
     background-color: transparent;
     border: none;
     opacity: 0.5;

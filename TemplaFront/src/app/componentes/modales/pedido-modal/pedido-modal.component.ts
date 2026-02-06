@@ -300,7 +300,7 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('❌ Error cargando mesas:', error);
         this.cargandoDatos = false;
-        alert('Error al cargar las mesas');
+        this.alertService.showError('Error', 'No se pudieron cargar las mesas');
       }
     });
   }
@@ -317,7 +317,7 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('❌ Error cargando platos:', error);
         this.cargandoDatos = false;
-        alert('Error al cargar los platos');
+        this.alertService.showError('Error', 'No se pudieron cargar los platos');
       }
     });
   }
@@ -342,7 +342,7 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('❌ Error cargando productos:', error);
         this.cargandoDatos = false;
-        alert('Error al cargar los productos');
+        this.alertService.showError('Error', 'No se pudieron cargar los productos');
       }
     });
   }
@@ -358,7 +358,7 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('❌ Error cargando menús:', error);
         this.cargandoDatos = false;
-        alert('Error al cargar los menús');
+        this.alertService.showError('Error', 'No se pudieron cargar los menús');
       }
     });
   }
@@ -438,7 +438,7 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
     });
 
     if (!this.tipoItemSeleccionado || !this.itemSeleccionado || this.cantidadSeleccionada < 1) {
-      alert('Complete todos los campos para agregar el detalle');
+      this.alertService.showError('Error', 'Complete todos los campos para agregar el detalle');
       return;
     }
 
@@ -577,9 +577,9 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
 
     if (!this.esFormularioValido()) {
       if (!this.pedidoForm.valid) {
-        alert('Seleccione una mesa');
+        this.alertService.showError('Error', 'Seleccione una mesa');
       } else if (this.detallesAgregados.length === 0) {
-        alert('Debe agregar al menos un detalle al pedido');
+        this.alertService.showError('Error', 'Debe agregar al menos un detalle al pedido');
       }
       return;
     }
@@ -648,7 +648,7 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
           this.guardando = false;
           
           // ✅ Manejo mejorado de errores con mensajes específicos
-          const errorMsg = error.error?.message || error.message || 'Error desconocido';
+          const errorMsg = (error.error?.message || error.message || 'Error desconocido').replace('Error interno del servidor: ', '');
           
           if (errorMsg.includes('no está disponible') || errorMsg.includes('no tiene stock') || 
               errorMsg.includes('está inactivo') || errorMsg.includes('Stock insuficiente')) {
@@ -657,10 +657,10 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
               text: errorMsg,
               icon: 'warning',
               confirmButtonText: 'Entendido',
-              confirmButtonColor: '#f39c12'
+              confirmButtonColor: '#f5d76e'
             });
           } else {
-            alert('Error al actualizar el pedido: ' + errorMsg);
+            this.alertService.showError('Error al actualizar el pedido', errorMsg);
           }
         }
       });
@@ -680,7 +680,7 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
           this.guardando = false;
           
           // ✅ Manejo mejorado de errores con mensajes específicos
-          const errorMsg = error.error?.message || error.message || 'Error desconocido';
+          const errorMsg = (error.error?.message || error.message || 'Error desconocido').replace('Error interno del servidor: ', '');
           
           if (errorMsg.includes('no está disponible') || errorMsg.includes('no tiene stock') || 
               errorMsg.includes('está inactivo') || errorMsg.includes('Stock insuficiente')) {
@@ -689,10 +689,10 @@ export class PedidoModalComponent implements OnInit, OnDestroy {
               text: errorMsg,
               icon: 'warning',
               confirmButtonText: 'Entendido',
-              confirmButtonColor: '#f39c12'
+              confirmButtonColor: '#f5d76e'
             });
           } else {
-            alert('Error al crear el pedido: ' + errorMsg);
+            this.alertService.showError('Error al crear el pedido', errorMsg);
           }
         }
       });

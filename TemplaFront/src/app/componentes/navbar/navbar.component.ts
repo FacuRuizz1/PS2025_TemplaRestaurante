@@ -164,7 +164,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         text: 'No hay notificaciones nuevas',
         icon: 'info',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#28a745'
+        confirmButtonColor: '#84C473'
       });
       return;
     }
@@ -191,7 +191,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       showCancelButton: true,
       confirmButtonText: 'Limpiar Todo',
       cancelButtonText: 'Cerrar',
-      confirmButtonColor: '#dc3545',
+      confirmButtonColor: '#e74c3c',
       cancelButtonColor: '#6c757d',
       width: '600px'
     }).then((result) => {

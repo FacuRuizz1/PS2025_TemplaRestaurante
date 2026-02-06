@@ -122,6 +122,8 @@ export class ReservasComponent implements OnInit {
   // ✅ Filtros - siguiendo el patrón estándar
   busqueda: string = '';
   eventoSeleccionado: string = 'TODOS';
+  fechaDesde: string = '';
+  fechaHasta: string = '';
   
   // ✅ Paginación - siguiendo el patrón estándar
   paginaActual: number = 0;
@@ -151,6 +153,9 @@ export class ReservasComponent implements OnInit {
     // Verificar si venimos de un callback de Mercado Pago
     this.verificarCallbackPago();
     
+    // Inicializar fechas por defecto (primer y último día del mes actual)
+    this.inicializarFechasPorDefecto();
+    
     await this.cargarDatos();
     this.generarCalendario();
     this.aplicarFiltros(); // Usar filtros desde el inicio como mesas
@@ -164,8 +169,38 @@ export class ReservasComponent implements OnInit {
     
     console.log('🚀 Componente inicializado, filtros:', {
       evento: this.eventoSeleccionado,
-      busqueda: this.busqueda
+      busqueda: this.busqueda,
+      fechaDesde: this.fechaDesde,
+      fechaHasta: this.fechaHasta
     });
+  }
+
+  /**
+   * Inicializa las fechas de filtro por defecto con el primer y último día del mes actual
+   */
+  private inicializarFechasPorDefecto(): void {
+    const hoy = new Date();
+    const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+
+    // Formato YYYY-MM-DD para los inputs de tipo date
+    this.fechaDesde = this.formatearFechaParaInput(primerDia);
+    this.fechaHasta = this.formatearFechaParaInput(ultimoDia);
+
+    console.log('📅 Fechas por defecto inicializadas:', {
+      desde: this.fechaDesde,
+      hasta: this.fechaHasta
+    });
+  }
+
+  /**
+   * Formatea una fecha al formato YYYY-MM-DD requerido por el input type="date"
+   */
+  private formatearFechaParaInput(fecha: Date): string {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   initializeForms() {
@@ -372,7 +407,7 @@ export class ReservasComponent implements OnInit {
         text: 'Por favor complete todos los campos requeridos',
         icon: 'warning',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#f39c12'
+        confirmButtonColor: '#f5d76e'
       });
       return;
     }
@@ -500,7 +535,7 @@ export class ReservasComponent implements OnInit {
           `,
           icon: 'success',
           confirmButtonText: 'Continuar',
-          confirmButtonColor: '#27ae60',
+          confirmButtonColor: '#84C473',
           width: '500px'
         }).then(async () => {
           this.resetForm();
@@ -540,7 +575,7 @@ export class ReservasComponent implements OnInit {
           text: 'La reserva ha sido actualizada exitosamente',
           icon: 'success',
           confirmButtonText: 'Continuar',
-          confirmButtonColor: '#27ae60'
+          confirmButtonColor: '#84C473'
         }).then(() => {
           this.resetForm();
           this.cambiarVista('lista');
@@ -548,9 +583,10 @@ export class ReservasComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error al actualizar reserva:', error);
+        const errorMsg = (error.error?.message || 'Ha ocurrido un error inesperado').replace('Error interno del servidor: ', '');
         Swal.fire({
           title: 'Error al actualizar reserva',
-          text: error.error?.message || 'Ha ocurrido un error inesperado',
+          text: errorMsg,
           icon: 'error',
           confirmButtonText: 'OK',
           confirmButtonColor: '#e74c3c'
@@ -598,7 +634,7 @@ export class ReservasComponent implements OnInit {
       showCancelButton: true,
       confirmButtonText: '<i class="fas fa-credit-card"></i> Continuar al Pago',
       cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-      confirmButtonColor: '#27ae60',
+      confirmButtonColor: '#84C473',
       cancelButtonColor: '#e74c3c',
       customClass: {
         popup: 'vip-payment-modal',
@@ -720,6 +756,9 @@ export class ReservasComponent implements OnInit {
       } else if (error.message) {
         errorMessage = error.message;
       }
+      
+      // Limpiar el prefijo "Error interno del servidor: "
+      errorMessage = errorMessage.replace('Error interno del servidor: ', '');
       
       Swal.fire({
         title: 'Error al procesar pago',
@@ -1008,21 +1047,33 @@ export class ReservasComponent implements OnInit {
     console.log('🧹 Limpiando filtros y recargando...');
     this.eventoSeleccionado = 'TODOS';
     this.busqueda = '';
+    this.inicializarFechasPorDefecto(); // Restablecer a fechas del mes actual
     this.cargarReservasIniciales();
   }
 
   private construirFiltros(pagina: number = 0): any {
-    const filtros = {
+    const filtros: any = {
       page: pagina,
       size: this.tamanoPagina,
       evento: this.eventoSeleccionado
       // Nota: El backend actual no soporta búsqueda por texto
     };
     
+    // Agregar filtros de fecha si están definidos
+    if (this.fechaDesde && this.fechaDesde.trim() !== '') {
+      filtros.fechaDesde = this.fechaDesde;
+    }
+    
+    if (this.fechaHasta && this.fechaHasta.trim() !== '') {
+      filtros.fechaHasta = this.fechaHasta;
+    }
+    
     console.log('🔧 Filtros construidos:', filtros);
     console.log('🔧 Estado de variables de filtros:', {
       eventoSeleccionado: this.eventoSeleccionado,
-      busqueda: this.busqueda
+      busqueda: this.busqueda,
+      fechaDesde: this.fechaDesde,
+      fechaHasta: this.fechaHasta
     });
     console.log('🔧 ¿Filtrando por evento?', this.eventoSeleccionado === 'TODOS' ? 'No - mostrará todos los eventos' : `Sí: ${this.eventoSeleccionado}`);
     return filtros;
@@ -1105,6 +1156,11 @@ export class ReservasComponent implements OnInit {
   onEventoChange(evento: string) {
     console.log('🔍 Evento seleccionado:', evento);
     this.eventoSeleccionado = evento;
+    this.aplicarFiltros();
+  }
+
+  onFechaChange() {
+    console.log('🔍 Filtro de fecha cambiado:', { desde: this.fechaDesde, hasta: this.fechaHasta });
     this.aplicarFiltros();
   }
 
@@ -1197,26 +1253,28 @@ export class ReservasComponent implements OnInit {
     });
   }
 
-  // ✅ Paginación - siguiendo el patrón estándar
-  obtenerPaginasVisibles(): number[] {
-    if (!this.pageInfo) return [];
-    
-    const totalPaginas = this.pageInfo.totalPages;
-    const paginaActual = this.pageInfo.number;
-    const paginas: number[] = [];
-    
-    let inicio = Math.max(0, paginaActual - 2);
-    let fin = Math.min(totalPaginas - 1, inicio + 4);
-    
-    if (fin - inicio < 4) {
-      inicio = Math.max(0, fin - 4);
+  // ✅ Paginación mejorada con puntos suspensivos
+  obtenerPaginasVisibles(): (number | null)[] {
+    if (!this.pageInfo) {
+      return [];
     }
-    
-    for (let i = inicio; i <= fin; i++) {
-      paginas.push(i);
+
+    const totalPages = this.pageInfo.totalPages;
+    const pages: (number | null)[] = [];
+
+    if (totalPages <= 7) {
+      // Si hay 7 páginas o menos, mostrar todas
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar: 1, 2, 3, 4, ..., última
+      pages.push(0, 1, 2, 3);
+      pages.push(null); // Puntos suspensivos
+      pages.push(totalPages - 1);
     }
-    
-    return paginas;
+
+    return pages;
   }
 
   irAPagina(pagina: number) {
@@ -1353,7 +1411,7 @@ export class ReservasComponent implements OnInit {
           `,
           icon: 'success',
           confirmButtonText: 'Ver mis reservas',
-          confirmButtonColor: '#27ae60',
+          confirmButtonColor: '#84C473',
           width: '500px'
         }).then(() => {
           this.cambiarVista('lista');
@@ -1370,7 +1428,7 @@ export class ReservasComponent implements OnInit {
           `,
           icon: 'info',
           confirmButtonText: 'Entendido',
-          confirmButtonColor: '#3498db'
+          confirmButtonColor: '#f5d76e'
         }).then(() => {
           this.cambiarVista('lista');
         });

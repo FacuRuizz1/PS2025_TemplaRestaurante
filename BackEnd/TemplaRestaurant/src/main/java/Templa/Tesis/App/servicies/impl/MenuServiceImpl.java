@@ -325,7 +325,7 @@ public class MenuServiceImpl implements IMenuService {
                 }
                 
                 if (!itemsProblematicos.isEmpty()) {
-                    mensajeAdvertencia = "ADVERTENCIA: El menú se activó pero los siguientes items tienen stock bajo o esta inactivo: " +
+                    mensajeAdvertencia = "El menú se activó pero los siguientes items tienen stock bajo o esta inactivo: " +
                         String.join(", ", itemsProblematicos);
                 }
             }

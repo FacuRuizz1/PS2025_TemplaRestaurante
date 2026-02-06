@@ -50,6 +50,27 @@ export class PersonaService {
     return this.http.get<Page<Persona>>(`${this.apiUrl}/personas`, httpOptions);
   }
 
+  /**
+   * Obtiene personas de tipo PERSONAL que NO tienen un usuario asignado.
+   * Útil para el dropdown al crear un nuevo usuario.
+   */
+  obtenerPersonalSinUsuario(page: number = 0, size: number = 1000): Observable<Page<Persona>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    const token = this.authService.getToken();
+    
+    const httpOptions = {
+      params,
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+
+    return this.http.get<Page<Persona>>(`${this.apiUrl}/personas/sin-usuario`, httpOptions);
+  }
+
   obtenerPersonasConFiltros(filtros: FiltroPersona): Observable<Page<Persona>> {
     let params = new HttpParams();
    console.log('🔍 Filtros recibidos en service:', filtros);

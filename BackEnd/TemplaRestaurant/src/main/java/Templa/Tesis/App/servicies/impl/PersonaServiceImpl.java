@@ -106,6 +106,23 @@ public class PersonaServiceImpl implements IPersonaService {
     }
 
     /**
+     * Obtiene una lista paginada de personas de tipo PERSONAL que NO tienen un usuario asignado.
+     * Este método es útil para mostrar en el dropdown al crear un nuevo usuario,
+     * evitando mostrar personas que ya tienen un usuario.
+     *
+     * @param page Número de página a recuperar (comenzando desde 0).
+     * @param size Cantidad de elementos por página.
+     * @return Page<PersonaDto> con las personas tipo PERSONAL sin usuario, paginadas.
+     * @throws Exception si ocurre un error durante la consulta a la base de datos.
+     */
+    @Override
+    public Page<PersonaDto> traerPersonalSinUsuario(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nombre", "apellido").ascending());
+        Page<PersonaEntity> personalSinUsuario = personaRepository.findPersonalSinUsuario(pageable);
+        return personalSinUsuario.map(entity -> modelMapper.map(entity, PersonaDto.class));
+    }
+
+    /**
      * Registra una nueva persona en el sistema.
      * Realiza validaciones de datos requeridos y verifica que no exista una persona con el mismo DNI.
      * Establece automáticamente la fecha de alta y usuario que realizó la operación.

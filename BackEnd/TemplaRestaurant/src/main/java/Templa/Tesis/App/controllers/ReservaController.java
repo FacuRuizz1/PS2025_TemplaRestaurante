@@ -39,9 +39,10 @@ public class ReservaController {
            @RequestParam(defaultValue = "0") int page,
            @RequestParam(defaultValue = "10") int size,
            @RequestParam(required = false) String evento,
-           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta) {
 
-      Page<ReservaDTO> reservas = reservaService.traerReservas(page, size, evento, fecha);
+      Page<ReservaDTO> reservas = reservaService.traerReservas(page, size, evento, fechaDesde, fechaHasta);
       return ResponseEntity.ok(reservas);
    }
 

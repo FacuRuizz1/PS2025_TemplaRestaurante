@@ -115,27 +115,25 @@ export class PlatosComponent implements OnInit {
     }
   }
 
-  obtenerPaginasVisibles(): number[] {
+  obtenerPaginasVisibles(): (number | null)[] {
     if (!this.pageInfo) return [];
 
-    const totalPaginas = this.pageInfo.totalPages;
-    const paginaActual = this.pageInfo.number;
-    const paginas: number[] = [];
-    const maxPaginasVisibles = 5;
+    const totalPages = this.pageInfo.totalPages;
+    const pages: (number | null)[] = [];
 
-    let inicio = Math.max(0, paginaActual - Math.floor(maxPaginasVisibles / 2));
-    let fin = Math.min(totalPaginas - 1, inicio + maxPaginasVisibles - 1);
-
-    // Ajustar el inicio si estamos cerca del final
-    if (fin - inicio < maxPaginasVisibles - 1) {
-      inicio = Math.max(0, fin - maxPaginasVisibles + 1);
+    if (totalPages <= 7) {
+      // Si hay 7 páginas o menos, mostrar todas
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar: 1, 2, 3, 4, ..., última
+      pages.push(0, 1, 2, 3);
+      pages.push(null); // Puntos suspensivos
+      pages.push(totalPages - 1);
     }
 
-    for (let i = inicio; i <= fin; i++) {
-      paginas.push(i);
-    }
-
-    return paginas;
+    return pages;
   }
 
   // ✅ Métodos con tipado correcto
@@ -257,7 +255,7 @@ export class PlatosComponent implements OnInit {
             html: `<p>${response.mensaje}</p>`,
             icon: 'warning',
             confirmButtonText: 'Entendido',
-            confirmButtonColor: '#f39c12'
+            confirmButtonColor: '#f5d76e'
           });
         } else {
           Swal.fire({
@@ -265,7 +263,7 @@ export class PlatosComponent implements OnInit {
             text: `Plato ${accion} exitosamente`,
             icon: 'success',
             confirmButtonText: 'OK',
-            confirmButtonColor: '#28a745'
+            confirmButtonColor: '#84C473'
           });
         }
       },
@@ -277,7 +275,7 @@ export class PlatosComponent implements OnInit {
           text: 'Error al cambiar la disponibilidad del plato',
           icon: 'error',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
+          confirmButtonColor: '#e74c3c'
         });
       }
     });
@@ -296,7 +294,7 @@ export class PlatosComponent implements OnInit {
           text: 'Plato eliminado exitosamente',
           icon: 'success',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
+          confirmButtonColor: '#84C473'
         });
       },
       error: (error) => {
@@ -307,7 +305,7 @@ export class PlatosComponent implements OnInit {
           text: 'Error al eliminar el plato',
           icon: 'error',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
+          confirmButtonColor: '#e74c3c'
         });
       }
     });
@@ -338,7 +336,7 @@ export class PlatosComponent implements OnInit {
         text: 'El plato debe tener al menos un ingrediente',
         icon: 'error',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#dc3545'
+        confirmButtonColor: '#e74c3c'
       });
       return;
     }
@@ -369,7 +367,7 @@ export class PlatosComponent implements OnInit {
           text: 'Plato creado exitosamente',
           icon: 'success',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#28a745'
+          confirmButtonColor: '#84C473'
         });
       },
       error: (error) => {
@@ -380,7 +378,7 @@ export class PlatosComponent implements OnInit {
           text: 'Error al crear el plato',
           icon: 'error',
           confirmButtonText: 'OK',
-          confirmButtonColor: '#dc3545'
+          confirmButtonColor: '#e74c3c'
         });
       }
     });
@@ -428,7 +426,7 @@ private actualizarPlato(resultado: any): void {
         text: 'Plato actualizado exitosamente',
         icon: 'success',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#28a745'
+        confirmButtonColor: '#84C473'
       });
     },
     error: (error) => {
@@ -439,7 +437,7 @@ private actualizarPlato(resultado: any): void {
         text: 'Error al actualizar el plato',
         icon: 'error',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#dc3545'
+        confirmButtonColor: '#e74c3c'
       });
     }
   });

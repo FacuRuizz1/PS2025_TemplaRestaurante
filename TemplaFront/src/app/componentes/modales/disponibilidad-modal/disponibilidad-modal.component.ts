@@ -181,8 +181,8 @@ export class DisponibilidadModalComponent {
       showCancelButton: true,
       confirmButtonText: 'Sí, crear',
       cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#28a745',
-      cancelButtonColor: '#6c757d'
+      confirmButtonColor: '#84C473',
+      cancelButtonColor: '#e74c3c'
     });
 
     if (!confirmacion.isConfirmed) {
@@ -254,7 +254,8 @@ export class DisponibilidadModalComponent {
         title: creadas > 0 ? '¡Proceso completado!' : 'Proceso finalizado',
         html: mensaje,
         icon: creadas > 0 ? 'success' : 'warning',
-        confirmButtonText: 'Entendido'
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: creadas > 0 ? '#84C473' : '#f5d76e'
       });
 
       if (creadas > 0) {

@@ -146,8 +146,11 @@
             </div>
 
             <div class="item-actions">
-              <!-- ✅ Botón Cancelar (solo si está PENDIENTE y no es solo lectura) -->
-              <button *ngIf="!soloLectura && detalle.estado === 'PENDIENTE'" 
+              <!-- ✅ Botón Cancelar:
+                   - PENDIENTE: siempre se puede cancelar
+                   - LISTO_PARA_ENTREGAR: solo si es PRODUCTO (tipo !== PLATO && tipo !== MENU)
+              -->
+              <button *ngIf="!soloLectura && (detalle.estado === 'PENDIENTE' || (detalle.estado === 'LISTO_PARA_ENTREGAR' && detalle.tipo === 'PRODUCTO'))" 
                       type="button" 
                       class="btn btn-sm btn-outline-danger"
                       (click)="cancelarDetalle(detalle.id)">

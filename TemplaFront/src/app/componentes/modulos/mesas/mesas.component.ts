@@ -107,25 +107,25 @@ export class MesasComponent implements OnInit {
   }
 
   // ✅ Método para obtener páginas visibles
-  obtenerPaginasVisibles(): number[] {
+  obtenerPaginasVisibles(): (number | null)[] {
     if (!this.pageInfo) return [];
     
-    const totalPaginas = this.pageInfo.totalPages;
-    const paginaActual = this.pageInfo.number;
-    const paginas: number[] = [];
-    
-    let inicio = Math.max(0, paginaActual - 2);
-    let fin = Math.min(totalPaginas - 1, inicio + 4);
-    
-    if (fin - inicio < 4) {
-      inicio = Math.max(0, fin - 4);
+    const totalPages = this.pageInfo.totalPages;
+    const pages: (number | null)[] = [];
+
+    if (totalPages <= 7) {
+      // Si hay 7 páginas o menos, mostrar todas
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar: 1, 2, 3, 4, ..., última
+      pages.push(0, 1, 2, 3);
+      pages.push(null); // Puntos suspensivos
+      pages.push(totalPages - 1);
     }
-    
-    for (let i = inicio; i <= fin; i++) {
-      paginas.push(i);
-    }
-    
-    return paginas;
+
+    return pages;
   }
 
   // ✅ Modal para nueva mesa

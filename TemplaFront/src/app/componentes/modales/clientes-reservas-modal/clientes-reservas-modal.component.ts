@@ -469,7 +469,8 @@ export class ClientesReservasModalComponent implements OnInit, OnDestroy {
         Swal.fire({
           title: 'Error',
           text: 'No se pudieron cargar los datos de clientes con reservas',
-          icon: 'error'
+          icon: 'error',
+          confirmButtonColor: '#e74c3c'
         });
       }
     });
@@ -550,7 +551,8 @@ export class ClientesReservasModalComponent implements OnInit, OnDestroy {
       Swal.fire({
         title: 'Sin datos',
         text: 'No hay datos para exportar',
-        icon: 'warning'
+        icon: 'warning',
+        confirmButtonColor: '#f5d76e'
       });
       return;
     }
@@ -643,7 +645,8 @@ export class ClientesReservasModalComponent implements OnInit, OnDestroy {
       Swal.fire({
         title: 'Error',
         text: 'No se pudo generar el archivo PDF',
-        icon: 'error'
+        icon: 'error',
+        confirmButtonColor: '#e74c3c'
       });
     }
   }

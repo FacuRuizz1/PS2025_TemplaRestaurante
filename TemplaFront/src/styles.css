@@ -178,7 +178,7 @@ html, body {
 
 .custom-pagination .page-link {
     color: var(--templa-brown);
-    border: 1px solid var(--templa-gold);
+    border: none;
     padding: 8px 12px;
     margin: 0 2px;
     border-radius: 6px;
@@ -187,20 +187,20 @@ html, body {
 
 .custom-pagination .page-link:hover {
     background-color: var(--templa-gold);
-    border-color: var(--templa-gold);
+    border: none;
     color: var(--templa-brown);
 }
 
 .custom-pagination .page-item.active .page-link {
     background-color: var(--templa-brown);
-    border-color: var(--templa-brown);
+    border: none;
     color: white;
 }
 
 .custom-pagination .page-item.disabled .page-link {
     color: #6c757d;
     background-color: #f8f9fa;
-    border-color: #dee2e6;
+    border: none;
 }
 
 /* ✅ NUEVO: Botón eliminar definitivo */

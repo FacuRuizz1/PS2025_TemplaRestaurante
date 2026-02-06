@@ -186,12 +186,18 @@
                     
                     <!-- Números de página -->
                     @for (pagina of obtenerPaginasVisibles(); track pagina) {
+                    @if (pagina === null) {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    } @else {
                         <li class="page-item" [class.active]="pagina === paginaActual">
                             <a class="page-link" href="#" 
                                (click)="irAPagina(pagina); $event.preventDefault()">
                                 {{ pagina + 1 }}
                             </a>
                         </li>
+                    }
                     }
 
                     <!-- Botón siguiente -->

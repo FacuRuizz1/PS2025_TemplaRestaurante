@@ -55,7 +55,7 @@ export class ReservaService {
   }
 
   // Método para obtener reservas con filtros
-  obtenerReservasConFiltros(filtros: { page: number; size: number; evento?: string }): Observable<any> {
+  obtenerReservasConFiltros(filtros: { page: number; size: number; evento?: string; fechaDesde?: string; fechaHasta?: string }): Observable<any> {
     let params = new HttpParams()
       .set('page', filtros.page.toString())
       .set('size', filtros.size.toString());
@@ -68,6 +68,17 @@ export class ReservaService {
       console.log('🎭 ReservaService - Agregando filtro evento:', filtros.evento);
     } else {
       console.log('🎭 ReservaService - Filtro TODOS: no enviando parámetro evento');
+    }
+
+    // Agregar filtros de fecha si están definidos
+    if (filtros.fechaDesde && filtros.fechaDesde.trim() !== '') {
+      params = params.set('fechaDesde', filtros.fechaDesde);
+      console.log('📅 ReservaService - Agregando fechaDesde:', filtros.fechaDesde);
+    }
+
+    if (filtros.fechaHasta && filtros.fechaHasta.trim() !== '') {
+      params = params.set('fechaHasta', filtros.fechaHasta);
+      console.log('📅 ReservaService - Agregando fechaHasta:', filtros.fechaHasta);
     }
 
     const url = `${this.baseUrl}/filtrar`;

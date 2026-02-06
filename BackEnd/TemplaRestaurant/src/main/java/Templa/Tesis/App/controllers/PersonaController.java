@@ -32,6 +32,14 @@ public class PersonaController {
         return personaService.traerPersonas(page, size);
     }
 
+    @GetMapping("/personas/sin-usuario")
+    public Page<PersonaDto> getPersonalSinUsuario(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1000") int size
+    ) {
+        return personaService.traerPersonalSinUsuario(page, size);
+    }
+
     @GetMapping("/personas/filtrar")
     public Page<PersonaDto> getPersonasFiltradas(
             @RequestParam(defaultValue = "0") int page,

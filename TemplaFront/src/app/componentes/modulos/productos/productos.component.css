@@ -244,45 +244,6 @@
   background-color: #dc3545;
 }
 
-/* Paginación */
-.pagination-container {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.pagination-info {
-  color: var(--templa-dark-green);
-  font-size: 14px;
-}
-
-.custom-pagination .page-link {
-  color: var(--templa-brown);
-  border: 1px solid var(--templa-gold);
-  padding: 8px 12px;
-  margin: 0 2px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.custom-pagination .page-link:hover {
-  background-color: var(--templa-gold);
-  border-color: var(--templa-gold);
-  color: var(--templa-brown);
-}
-
-.custom-pagination .page-item.active .page-link {
-  background-color: var(--templa-brown);
-  border-color: var(--templa-brown);
-  color: white;
-}
-
-.custom-pagination .page-item.disabled .page-link {
-  color: #6c757d;
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
-}
-
 /* Estilos específicos para información de stock */
 .stock-info {
   font-size: 12px;

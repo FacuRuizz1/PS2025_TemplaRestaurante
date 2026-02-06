@@ -10,7 +10,7 @@ public interface IReservaService {
     ReservaDTO createReserva(PostReservaDTO postReservaDTO);
     ReservaDTO actualizarReserva(Integer id, PostReservaDTO postReservaDTO);
     Page<ReservaDTO> traerReservas(int page, int size);
-    Page<ReservaDTO> traerReservas(int page, int size, String evento, LocalDate fecha);
+    Page<ReservaDTO> traerReservas(int page, int size, String evento, LocalDate fechaDesde, LocalDate fechaHasta);
     void eliminarReserva(Integer id);
 
     List<ReporteReservasDTO> getReporteFechasConcurridas(LocalDate fechaInicio, LocalDate fechaFin);

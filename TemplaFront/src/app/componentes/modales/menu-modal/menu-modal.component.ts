@@ -312,7 +312,8 @@ agregarItem(): void {
       title: 'Item duplicado',
       text: 'Este item ya está agregado al menú',
       icon: 'warning',
-      confirmButtonText: 'Aceptar'
+      confirmButtonText: 'Aceptar',
+      confirmButtonColor: '#f5d76e'
     });
     return;
   }
@@ -391,7 +392,8 @@ agregarItem(): void {
         title: 'Formulario incompleto',
         text: 'Por favor complete todos los campos obligatorios',
         icon: 'warning',
-        confirmButtonText: 'Aceptar'
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#f5d76e'
       });
       return;
     }
@@ -418,7 +420,8 @@ agregarItem(): void {
             title: 'Éxito',
             text: 'Menú actualizado correctamente',
             icon: 'success',
-            confirmButtonText: 'Aceptar'
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#84C473'
           }).then(() => {
             this.activeModal.close({
               action: 'updated',
@@ -433,7 +436,8 @@ agregarItem(): void {
             title: 'Error',
             text: 'No se pudo actualizar el menú',
             icon: 'error',
-            confirmButtonText: 'Aceptar'
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#e74c3c'
           });
         }
       });
@@ -464,7 +468,8 @@ agregarItem(): void {
             title: 'Éxito',
             text: 'Menú creado correctamente',
             icon: 'success',
-            confirmButtonText: 'Aceptar'
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#84C473'
           }).then(() => {
             this.activeModal.close({
               action: 'created',
@@ -491,7 +496,8 @@ agregarItem(): void {
             title: 'Error',
             text: mensajeError,
             icon: 'error',
-            confirmButtonText: 'Aceptar'
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#e74c3c'
           });
         }
       });

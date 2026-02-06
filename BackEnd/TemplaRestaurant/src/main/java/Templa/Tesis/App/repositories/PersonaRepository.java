@@ -45,4 +45,17 @@ public interface PersonaRepository extends JpaRepository<PersonaEntity, Integer>
     @Query("SELECT p FROM PersonaEntity p WHERE LOWER(CONCAT(p.nombre, ' ', p.apellido)) = LOWER(:nombreCompleto) AND p.fechaBaja IS NULL")
     PersonaEntity findByNombreCompleto(@Param("nombreCompleto") String nombreCompleto);
 
+    /**
+     * Busca personas de tipo PERSONAL que NO tienen un usuario asignado.
+     * Útil para mostrar en el dropdown al crear un nuevo usuario.
+     */
+    @Query("""
+        SELECT p FROM PersonaEntity p 
+        WHERE p.fechaBaja IS NULL 
+        AND p.tipoPersona = 'PERSONAL'
+        AND NOT EXISTS (
+            SELECT u FROM UsuarioEntity u WHERE u.persona.id = p.id
+        )""")
+    Page<PersonaEntity> findPersonalSinUsuario(Pageable pageable);
+
 }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 public interface IPersonaService {
     Page<PersonaDto> traerPersonas(int page, int size);
     Page<PersonaDto> traerPersonas(int page, int size, String buscarFiltro, String tipoPersonaFiltro, String estado);
+    Page<PersonaDto> traerPersonalSinUsuario(int page, int size);
     PersonaDto insertarPersona(PostPersonaDto nuevaPersona);
     PersonaDto actualizarPersona(PersonaDto personaActualizada);
     void bajaPersona(Integer id);

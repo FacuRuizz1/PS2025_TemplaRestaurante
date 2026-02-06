@@ -6,23 +6,22 @@ import Swal from 'sweetalert2';
 })
 export class AlertService {
 
-  // ✅ Colores de la paleta Templa
+  // ✅ Colores normalizados para Sweet Alerts
   private readonly colors = {
     primary: '#755143',      // templa-brown
-    success: '#84C473',      // templa-green (pastel)
-    error: '#C47373',        // templa-red (pastel)
-    warning: '#d2a46d',      // templa-gold (pastel)
-    info: '#d4e7f5',         // azul pastel
+    success: '#84C473',      // verde pastel
+    error: '#e74c3c',        // rojo
+    warning: '#f5d76e',      // amarillo pastel suave
     darkGreen: '#696848'     // templa-dark-green
   };
 
   // ✅ Mensaje de éxito genérico
   showSuccess(title: string, message?: string): Promise<any> {
     return Swal.fire({
-      title: `🎉 ${title}`,
+      title: title,
       text: message || 'Operación completada exitosamente',
       icon: 'success',
-      confirmButtonText: '👍 OK',
+      confirmButtonText: 'OK',
       confirmButtonColor: this.colors.success,
       timer: 3000,
       timerProgressBar: true
@@ -31,11 +30,16 @@ export class AlertService {
 
   // ✅ Mensaje de error genérico
   showError(title: string, message?: string): Promise<any> {
+    // ✅ Limpiar el prefijo "Error interno del servidor: " del mensaje
+    const cleanMessage = message 
+      ? message.replace('Error interno del servidor: ', '')
+      : 'Ha ocurrido un error inesperado';
+    
     return Swal.fire({
-      title: `❌ ${title}`,
-      text: message || 'Ha ocurrido un error inesperado',
+      title: title,
+      text: cleanMessage,
       icon: 'error',
-      confirmButtonText: '😞 OK',
+      confirmButtonText: 'OK',
       confirmButtonColor: this.colors.error
     });
   }
@@ -43,12 +47,12 @@ export class AlertService {
   // ✅ Mensaje de confirmación
   showConfirmation(title: string, message: string, confirmText: string = 'Sí, continuar'): Promise<any> {
     return Swal.fire({
-      title: `⚠️ ${title}`,
+      title: title,
       text: message,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: confirmText,
-      cancelButtonText: '❌ Cancelar',
+      cancelButtonText: 'Cancelar',
       confirmButtonColor: this.colors.success,
       cancelButtonColor: this.colors.error
     });
@@ -57,18 +61,18 @@ export class AlertService {
   // ✅ Mensaje de información
   showInfo(title: string, message: string): Promise<any> {
     return Swal.fire({
-      title: `ℹ️ ${title}`,
+      title: title,
       text: message,
       icon: 'info',
-      confirmButtonText: '👍 Entendido',
-      confirmButtonColor: this.colors.info
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: this.colors.warning
     });
   }
 
   // ✅ Loading personalizado
   showLoading(title: string = 'Procesando...', message?: string): void {
     Swal.fire({
-      title: `⏳ ${title}`,
+      title: title,
       text: message || 'Por favor espere...',
       allowOutsideClick: false,
       allowEscapeKey: false,
