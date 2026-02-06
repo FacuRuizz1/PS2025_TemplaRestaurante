@@ -86,28 +86,32 @@
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-hover table-striped">
-              <thead class="table-light">
-                <tr>
-                  <th>#</th>
-                  <th>Producto</th>
-                  <th class="text-center">Stock Actual</th>
-                  <th class="text-center">Stock Mínimo</th>
-                  <th>Tipo</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let dato of datosStock; let i = index">
-                  <td>{{i + 1}}</td>
-                  <td><strong>{{dato.nombreProducto}}</strong></td>
-                  <td class="text-center">
-                    {{dato.stockActual}}
-                  </td>
-                  <td class="text-center">
-                    {{dato.stockMinimo}}
-                  </td>
-                  <td>{{dato.tipoProducto}}</td>
-                </tr>
-              </tbody>
+             <thead class="table-light">
+  <tr>
+    <th>#</th>
+    <th>Producto</th>
+    <th class="text-center">Stock Actual</th>
+    <th class="text-center">Stock Mínimo</th>
+    <th class="text-center">Estado</th>
+    <th>Tipo</th>
+  </tr>
+</thead>
+<tbody>
+  <tr *ngFor="let dato of datosStock; let i = index">
+    <td>{{i + 1}}</td>
+    <td><strong>{{dato.nombreProducto}}</strong></td>
+    <td class="text-center">
+      {{dato.stockActual | number:'1.0-3'}}
+    </td>
+    <td class="text-center">
+      {{dato.stockMinimo}}
+    </td>
+    <td class="text-center">
+      {{dato.activo ? 'Activo' : 'Inactivo'}}
+    </td>
+    <td>{{dato.tipoProducto}}</td>
+  </tr>
+</tbody>
             </table>
           </div>
         </div>

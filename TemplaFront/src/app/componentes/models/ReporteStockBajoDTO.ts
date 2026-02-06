@@ -5,6 +5,7 @@ export interface ReporteStockBajoDTO {
   stockActual: number;
   stockMinimo: number;
   cantidadFaltante: number;
+  activo: boolean;
 }
 
 export enum TipoProducto {

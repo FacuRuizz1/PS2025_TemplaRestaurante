@@ -333,12 +333,13 @@ public class ProductoServiceImpl implements IProductoService {
 
         return resultados.stream()
                 .map(resultado -> new ReporteStockBajoDTO(
-                        (String) resultado[0],
-                        (TipoProducto) resultado[1],
-                        (UnidadMedida) resultado[2],
-                        (Double) resultado[3],
-                        (Double) resultado[4],
-                        Double.valueOf(((Double) resultado[4]) - ((Double) resultado[3])) // cantidad faltante
+                        (String) resultado[0],              // nombre
+                        (TipoProducto) resultado[1],        // tipo
+                        (UnidadMedida) resultado[2],        // unidadMedida
+                        (Double) resultado[3],              // stockActual
+                        (Double) resultado[4],              // stockMinimo
+                        Double.valueOf(((Double) resultado[4]) - ((Double) resultado[3])), // cantidad faltante
+                        (Boolean) resultado[5]              // activo ← NUEVO
                 ))
                 .collect(Collectors.toList());
     }

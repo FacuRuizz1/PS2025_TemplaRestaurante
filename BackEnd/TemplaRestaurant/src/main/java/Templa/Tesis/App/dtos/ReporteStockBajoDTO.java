@@ -16,4 +16,5 @@ public class ReporteStockBajoDTO {
     private Double stockActual;
     private Double stockMinimo;
     private Double cantidadFaltante;
+    private Boolean activo;
 }
