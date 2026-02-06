@@ -95,7 +95,8 @@ public class PlatoServiceImpl implements IPlatoService {
      */
     @Override
     public Page<GetPlatoDto> getPlatos(String buscarFiltro, String tipoPlato, String estado, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending());
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Order.desc("disponible"), Sort.Order.asc("nombre")));
 
         Specification<PlatoEntity> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();

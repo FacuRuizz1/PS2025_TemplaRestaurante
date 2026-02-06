@@ -19,6 +19,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -50,7 +51,8 @@ public class MenuServiceImpl implements IMenuService {
      */
     @Override
     public Page<GetMenuDTO> getMenus(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Order.desc("activo"), Sort.Order.asc("nombre")));
         Page<MenuEntity> menuEntities = menuRepository.findAll(pageable);
         return menuEntities.map(this::convertToDto);
     }
@@ -69,7 +71,8 @@ public class MenuServiceImpl implements IMenuService {
      */
     @Override
     public Page<GetMenuDTO> getMenus(String buscarFiltro, String estado, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Order.desc("activo"), Sort.Order.asc("nombre")));
         Page<MenuEntity> menuEntities = menuRepository.findMenusWithFilters(buscarFiltro, estado, pageable);
         return menuEntities.map(menu -> convertToDto(menu));
     }

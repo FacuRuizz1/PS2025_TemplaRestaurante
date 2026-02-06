@@ -97,15 +97,7 @@ export class PlatosComponent implements OnInit {
     ).subscribe({
       next: (response: Page<GetPlatoDto>) => {
         this.pageInfo = response;
-        // ✅ Ordenar: primero por estado (disponibles primero), luego alfabéticamente
-        this.platos = response.content.sort((a, b) => {
-          // Primero por estado (disponible = true primero)
-          if (a.disponible !== b.disponible) {
-            return a.disponible ? -1 : 1;
-          }
-          // Luego alfabéticamente por nombre
-          return a.nombre.localeCompare(b.nombre);
-        });
+        this.platos = response.content;
         this.cargando = false;
         console.log('Platos cargados:', this.platos);
       },
